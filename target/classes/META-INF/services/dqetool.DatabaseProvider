@@ -1,0 +1,5 @@
+dqetool.cockroachdb.CockroachDBProvider
+dqetool.mariadb.MariaDBProvider
+dqetool.mysql.MySQLProvider
+dqetool.sqlite3.SQLite3Provider
+dqetool.tidb.TiDBProvider
