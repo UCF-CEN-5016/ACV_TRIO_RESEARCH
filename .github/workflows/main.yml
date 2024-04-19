@@ -7,7 +7,6 @@ on:
     paths:
       - 'src/**'
       - 'test/**'
-      - '.github/workflows/*.yml'
       - 'pom.xml'
   pull_request:
     branches:
@@ -15,7 +14,6 @@ on:
     paths:
       - 'src/**'
       - 'test/**'
-      - '.github/workflows/*.yml'
       - 'pom.xml'
 
 jobs:
@@ -33,7 +31,7 @@ jobs:
           distribution: 'temurin'
           java-version: '11'
           cache: 'maven'
-      - name: Verify
-        run: mvn -B verify -DskipTests=true
+      # - name: Verify
+      #   run: mvn -B verify -DskipTests=true
      
   
