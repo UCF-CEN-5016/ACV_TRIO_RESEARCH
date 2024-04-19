@@ -33,5 +33,7 @@ jobs:
           distribution: 'temurin'
           java-version: '11'
           cache: 'maven'
+      - name: Verify
+        run: mvn -B verify -DskipTests=true
      
   
