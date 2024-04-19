@@ -52,5 +52,5 @@ jobs:
       - name: Build SQLancer
         run: mvn -B package -DskipTests=true
       - name: Run CockroachDB Tests
-        run: COCKROACHDB_AVAILABLE=true mvn -Dtest=TestCockroachDB test
+        run: mvn test -Dtest=dqetool.dbms.TestCockroachDB
     
