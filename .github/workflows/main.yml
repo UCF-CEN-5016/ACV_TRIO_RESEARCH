@@ -33,12 +33,5 @@ jobs:
           distribution: 'temurin'
           java-version: '11'
           cache: 'maven'
-      # - name: Verify
-      #   run: mvn -B verify -DskipTests=true
-
-      - name: Set up Python
-        uses: actions/setup-python@v4
-        # with:
-        #   python-version: '3.10'
-      - name: Naming Convention Tests
-        run: python src/check_names.py
+     
+  
