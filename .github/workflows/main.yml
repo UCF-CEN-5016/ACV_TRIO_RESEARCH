@@ -72,4 +72,4 @@ jobs:
       - name: Run Tests
         run: |
           mvn test -Dtest=dqetool.dbms.TestMySQLTLP
-          mvn test -Dtest=dqetool.dbms.TestMySQLPQ
+          mvn test -Dtest=dqetool.dbms.TestMySQLPQS
