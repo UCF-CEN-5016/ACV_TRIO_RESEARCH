@@ -1,0 +1,360 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>CockroachDBSchema.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">dqetool</a> &gt; <a href="index.source.html" class="el_package">dqetool.cockroachdb</a> &gt; <span class="el_source">CockroachDBSchema.java</span></div><h1>CockroachDBSchema.java</h1><pre class="source lang-java linenums">package dqetool.cockroachdb;
+
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
+import java.util.ArrayList;
+import java.util.List;
+
+import dqetool.Randomly;
+import dqetool.SQLConnection;
+import dqetool.cockroachdb.CockroachDBProvider.CockroachDBGlobalState;
+import dqetool.cockroachdb.CockroachDBSchema.CockroachDBTable;
+import dqetool.common.schema.AbstractRelationalTable;
+import dqetool.common.schema.AbstractSchema;
+import dqetool.common.schema.AbstractTableColumn;
+import dqetool.common.schema.AbstractTables;
+import dqetool.common.schema.TableIndex;
+
+public class CockroachDBSchema extends AbstractSchema&lt;CockroachDBGlobalState, CockroachDBTable&gt; {
+
+<span class="nc" id="L21">    public enum CockroachDBDataType {</span>
+
+<span class="nc" id="L23">        INT, BOOL, STRING, FLOAT, BYTES, BIT, VARBIT, SERIAL, INTERVAL, TIMESTAMP, TIMESTAMPTZ, DECIMAL, JSONB, TIME,</span>
+<span class="nc" id="L24">        TIMETZ, ARRAY;</span>
+
+        public static CockroachDBDataType getRandom() {
+<span class="nc" id="L27">            return Randomly.fromOptions(values());</span>
+        }
+
+        public CockroachDBCompositeDataType get() {
+<span class="nc" id="L31">            return CockroachDBCompositeDataType.getRandomForType(this);</span>
+        }
+
+    }
+
+    public static class CockroachDBCompositeDataType {
+
+        private final CockroachDBDataType dataType;
+
+        private final int size;
+
+        private CockroachDBCompositeDataType elementType;
+
+<span class="nc" id="L44">        public CockroachDBCompositeDataType(CockroachDBDataType dataType) {</span>
+<span class="nc" id="L45">            this.dataType = dataType;</span>
+<span class="nc" id="L46">            this.size = -1;</span>
+<span class="nc" id="L47">        }</span>
+
+<span class="nc" id="L49">        public CockroachDBCompositeDataType(CockroachDBDataType dataType, int size) {</span>
+<span class="nc" id="L50">            this.dataType = dataType;</span>
+<span class="nc" id="L51">            this.size = size;</span>
+<span class="nc" id="L52">        }</span>
+
+<span class="nc" id="L54">        public CockroachDBCompositeDataType(CockroachDBDataType dataType, CockroachDBCompositeDataType elementType) {</span>
+<span class="nc bnc" id="L55" title="All 2 branches missed.">            if (dataType != CockroachDBDataType.ARRAY) {</span>
+<span class="nc" id="L56">                throw new IllegalArgumentException();</span>
+            }
+<span class="nc" id="L58">            this.dataType = dataType;</span>
+<span class="nc" id="L59">            this.size = -1;</span>
+<span class="nc" id="L60">            this.elementType = elementType;</span>
+<span class="nc" id="L61">        }</span>
+
+        public CockroachDBDataType getPrimitiveDataType() {
+<span class="nc" id="L64">            return dataType;</span>
+        }
+
+        public int getSize() {
+<span class="nc bnc" id="L68" title="All 2 branches missed.">            if (size == -1) {</span>
+<span class="nc" id="L69">                throw new AssertionError(this);</span>
+            }
+<span class="nc" id="L71">            return size;</span>
+        }
+
+        public boolean isString() {
+<span class="nc bnc" id="L75" title="All 2 branches missed.">            return dataType == CockroachDBDataType.STRING;</span>
+        }
+
+        public static CockroachDBCompositeDataType getInt(int size) {
+<span class="nc" id="L79">            return new CockroachDBCompositeDataType(CockroachDBDataType.INT, size);</span>
+        }
+
+        public static CockroachDBCompositeDataType getBit(int size) {
+<span class="nc" id="L83">            return new CockroachDBCompositeDataType(CockroachDBDataType.BIT, size);</span>
+        }
+
+        @Override
+        public String toString() {
+<span class="nc bnc" id="L88" title="All 6 branches missed.">            switch (dataType) {</span>
+            case INT:
+<span class="nc bnc" id="L90" title="All 4 branches missed.">                switch (size) {</span>
+                case 2:
+<span class="nc" id="L92">                    return Randomly.fromOptions(&quot;INT2&quot;, &quot;SMALLINT&quot;);</span>
+                case 4:
+<span class="nc" id="L94">                    return &quot;INT4&quot;;</span>
+                case 8:
+                    // &quot;INTEGER&quot;: can be affected by a session variable
+<span class="nc" id="L97">                    return Randomly.fromOptions(&quot;INT8&quot;, &quot;INT64&quot;, &quot;BIGINT&quot;);</span>
+                default:
+<span class="nc" id="L99">                    return &quot;INT&quot;;</span>
+                }
+            case SERIAL:
+<span class="nc bnc" id="L102" title="All 4 branches missed.">                switch (size) {</span>
+                case 2:
+<span class="nc" id="L104">                    return Randomly.fromOptions(&quot;SERIAL2&quot;, &quot;SMALLSERIAL&quot;);</span>
+                case 4:
+<span class="nc" id="L106">                    return &quot;SERIAL4&quot;;</span>
+                case 8:
+<span class="nc" id="L108">                    return Randomly.fromOptions(&quot;SERIAL8&quot;, &quot;BIGSERIAL&quot;);</span>
+                default:
+<span class="nc" id="L110">                    throw new AssertionError();</span>
+                }
+            case BIT:
+<span class="nc bnc" id="L113" title="All 4 branches missed.">                if (size == 1 &amp;&amp; Randomly.getBoolean()) {</span>
+<span class="nc" id="L114">                    return &quot;BIT&quot;;</span>
+                } else {
+<span class="nc" id="L116">                    return String.format(&quot;BIT(%d)&quot;, size);</span>
+                }
+            case VARBIT:
+<span class="nc bnc" id="L119" title="All 2 branches missed.">                if (size == -1) {</span>
+<span class="nc" id="L120">                    return String.format(&quot;VARBIT&quot;);</span>
+                } else {
+<span class="nc" id="L122">                    return String.format(&quot;VARBIT(%d)&quot;, size);</span>
+                }
+            case ARRAY:
+<span class="nc" id="L125">                return String.format(&quot;%s[]&quot;, elementType.toString());</span>
+            default:
+<span class="nc" id="L127">                return dataType.toString();</span>
+            }
+        }
+
+        public static CockroachDBCompositeDataType getRandom() {
+<span class="nc" id="L132">            CockroachDBDataType randomDataType = CockroachDBDataType.getRandom();</span>
+<span class="nc" id="L133">            return getRandomForType(randomDataType);</span>
+        }
+
+        private static CockroachDBCompositeDataType getRandomForType(CockroachDBDataType randomDataType) {
+<span class="nc bnc" id="L137" title="All 4 branches missed.">            if (randomDataType == CockroachDBDataType.INT || randomDataType == CockroachDBDataType.SERIAL) {</span>
+<span class="nc" id="L138">                return new CockroachDBCompositeDataType(randomDataType, Randomly.fromOptions(2, 4, 8));</span>
+<span class="nc bnc" id="L139" title="All 2 branches missed.">            } else if (randomDataType == CockroachDBDataType.BIT) {</span>
+<span class="nc" id="L140">                return new CockroachDBCompositeDataType(randomDataType, (int) Randomly.getNotCachedInteger(1, 200));</span>
+<span class="nc bnc" id="L141" title="All 2 branches missed.">            } else if (randomDataType == CockroachDBDataType.VARBIT) {</span>
+<span class="nc" id="L142">                return new CockroachDBCompositeDataType(randomDataType, (int) Randomly.getNotCachedInteger(1, 200));</span>
+<span class="nc bnc" id="L143" title="All 2 branches missed.">            } else if (randomDataType == CockroachDBDataType.ARRAY) {</span>
+<span class="nc" id="L144">                return new CockroachDBCompositeDataType(randomDataType, getRandomForType(getArrayElementType()));</span>
+            } else {
+<span class="nc" id="L146">                return new CockroachDBCompositeDataType(randomDataType);</span>
+            }
+        }
+
+        private static CockroachDBDataType getArrayElementType() {
+            while (true) {
+<span class="nc" id="L152">                CockroachDBDataType type = CockroachDBDataType.getRandom();</span>
+<span class="nc bnc" id="L153" title="All 4 branches missed.">                if (type != CockroachDBDataType.ARRAY &amp;&amp; type != CockroachDBDataType.JSONB) {</span>
+                    // nested arrays are not supported:
+                    // https://github.com/cockroachdb/cockroach/issues/32552
+                    // JSONB arrays are not supported as well:
+                    // https://github.com/cockroachdb/cockroach/issues/23468
+<span class="nc" id="L158">                    return type;</span>
+                }
+            }
+        }
+
+        public static CockroachDBCompositeDataType getVarBit(int maxSize) {
+<span class="nc" id="L164">            return new CockroachDBCompositeDataType(CockroachDBDataType.VARBIT, maxSize);</span>
+        }
+
+        public CockroachDBCompositeDataType getElementType() {
+<span class="nc" id="L168">            return elementType;</span>
+        }
+
+    }
+
+    public static class CockroachDBColumn extends AbstractTableColumn&lt;CockroachDBTable, CockroachDBCompositeDataType&gt; {
+
+        private final boolean isPrimaryKey;
+        private final boolean isNullable;
+
+        public CockroachDBColumn(String name, CockroachDBCompositeDataType columnType, boolean isPrimaryKey,
+                boolean isNullable) {
+<span class="nc" id="L180">            super(name, null, columnType);</span>
+<span class="nc" id="L181">            this.isPrimaryKey = isPrimaryKey;</span>
+<span class="nc" id="L182">            this.isNullable = isNullable;</span>
+<span class="nc" id="L183">        }</span>
+
+        public boolean isPrimaryKey() {
+<span class="nc" id="L186">            return isPrimaryKey;</span>
+        }
+
+        public boolean isNullable() {
+<span class="nc" id="L190">            return isNullable;</span>
+        }
+
+    }
+
+    public static class CockroachDBTables extends AbstractTables&lt;CockroachDBTable, CockroachDBColumn&gt; {
+
+        public CockroachDBTables(List&lt;CockroachDBTable&gt; tables) {
+<span class="nc" id="L198">            super(tables);</span>
+<span class="nc" id="L199">        }</span>
+
+    }
+
+    public CockroachDBSchema(List&lt;CockroachDBTable&gt; databaseTables) {
+<span class="nc" id="L204">        super(databaseTables);</span>
+<span class="nc" id="L205">    }</span>
+
+    public CockroachDBTables getRandomTableNonEmptyTables() {
+<span class="nc" id="L208">        return new CockroachDBTables(Randomly.nonEmptySubset(getDatabaseTables()));</span>
+    }
+
+    private static CockroachDBCompositeDataType getColumnType(String typeString) {
+<span class="nc bnc" id="L212" title="All 2 branches missed.">        if (typeString.endsWith(&quot;[]&quot;)) {</span>
+<span class="nc" id="L213">            String substring = typeString.substring(0, typeString.length() - 2);</span>
+<span class="nc" id="L214">            CockroachDBCompositeDataType elementType = getColumnType(substring);</span>
+<span class="nc" id="L215">            return new CockroachDBCompositeDataType(CockroachDBDataType.ARRAY, elementType);</span>
+        }
+<span class="nc bnc" id="L217" title="All 2 branches missed.">        if (typeString.startsWith(&quot;STRING COLLATE&quot;)) {</span>
+<span class="nc" id="L218">            return new CockroachDBCompositeDataType(CockroachDBDataType.STRING);</span>
+        }
+<span class="nc bnc" id="L220" title="All 2 branches missed.">        if (typeString.startsWith(&quot;BIT(&quot;)) {</span>
+<span class="nc" id="L221">            int val = Integer.parseInt(typeString.substring(4, typeString.length() - 1));</span>
+<span class="nc" id="L222">            return CockroachDBCompositeDataType.getBit(val);</span>
+        }
+<span class="nc bnc" id="L224" title="All 2 branches missed.">        if (typeString.startsWith(&quot;VARBIT(&quot;)) {</span>
+<span class="nc" id="L225">            int val = Integer.parseInt(typeString.substring(7, typeString.length() - 1));</span>
+<span class="nc" id="L226">            return CockroachDBCompositeDataType.getBit(val);</span>
+        }
+<span class="nc bnc" id="L228" title="All 17 branches missed.">        switch (typeString) {</span>
+        case &quot;VARBIT&quot;:
+<span class="nc" id="L230">            return CockroachDBCompositeDataType.getVarBit(-1);</span>
+        case &quot;BIT&quot;:
+<span class="nc" id="L232">            return CockroachDBCompositeDataType.getBit(1);</span>
+        case &quot;INT8&quot;:
+<span class="nc" id="L234">            return CockroachDBCompositeDataType.getInt(8);</span>
+        case &quot;INT4&quot;:
+<span class="nc" id="L236">            return CockroachDBCompositeDataType.getInt(4);</span>
+        case &quot;INT2&quot;:
+<span class="nc" id="L238">            return CockroachDBCompositeDataType.getInt(2);</span>
+        case &quot;BOOL&quot;:
+<span class="nc" id="L240">            return new CockroachDBCompositeDataType(CockroachDBDataType.BOOL);</span>
+        case &quot;STRING&quot;:
+<span class="nc" id="L242">            return new CockroachDBCompositeDataType(CockroachDBDataType.STRING);</span>
+        case &quot;FLOAT8&quot;:
+<span class="nc" id="L244">            return new CockroachDBCompositeDataType(CockroachDBDataType.FLOAT);</span>
+        case &quot;BYTES&quot;:
+<span class="nc" id="L246">            return new CockroachDBCompositeDataType(CockroachDBDataType.BYTES);</span>
+        case &quot;INTERVAL&quot;:
+<span class="nc" id="L248">            return new CockroachDBCompositeDataType(CockroachDBDataType.INTERVAL);</span>
+        case &quot;DECIMAL&quot;:
+<span class="nc" id="L250">            return new CockroachDBCompositeDataType(CockroachDBDataType.DECIMAL);</span>
+        case &quot;TIMESTAMP&quot;:
+<span class="nc" id="L252">            return new CockroachDBCompositeDataType(CockroachDBDataType.TIMESTAMP);</span>
+        case &quot;TIMESTAMPTZ&quot;:
+<span class="nc" id="L254">            return new CockroachDBCompositeDataType(CockroachDBDataType.TIMESTAMPTZ);</span>
+        case &quot;JSONB&quot;:
+<span class="nc" id="L256">            return new CockroachDBCompositeDataType(CockroachDBDataType.JSONB);</span>
+        case &quot;TIME&quot;:
+<span class="nc" id="L258">            return new CockroachDBCompositeDataType(CockroachDBDataType.TIME);</span>
+        case &quot;TIMETZ&quot;:
+<span class="nc" id="L260">            return new CockroachDBCompositeDataType(CockroachDBDataType.TIMETZ);</span>
+
+        default:
+<span class="nc" id="L263">            throw new AssertionError(typeString);</span>
+        }
+    }
+
+    public static class CockroachDBTable
+            extends AbstractRelationalTable&lt;CockroachDBColumn, TableIndex, CockroachDBGlobalState&gt; {
+
+        public CockroachDBTable(String tableName, List&lt;CockroachDBColumn&gt; columns, List&lt;TableIndex&gt; indexes,
+                boolean isView) {
+<span class="nc" id="L272">            super(tableName, columns, indexes, isView);</span>
+<span class="nc" id="L273">        }</span>
+
+    }
+
+    public int getIndexCount() {
+<span class="nc" id="L278">        int count = 0;</span>
+<span class="nc bnc" id="L279" title="All 2 branches missed.">        for (CockroachDBTable table : getDatabaseTables()) {</span>
+<span class="nc" id="L280">            count += table.getIndexes().size();</span>
+        }
+<span class="nc" id="L282">        return count;</span>
+    }
+
+    public static CockroachDBSchema fromConnection(SQLConnection con, String databaseName) throws SQLException {
+<span class="nc" id="L286">        List&lt;CockroachDBTable&gt; databaseTables = new ArrayList&lt;&gt;();</span>
+<span class="nc" id="L287">        List&lt;String&gt; tableNames = getTableNames(con);</span>
+<span class="nc bnc" id="L288" title="All 2 branches missed.">        for (String tableName : tableNames) {</span>
+<span class="nc" id="L289">            List&lt;CockroachDBColumn&gt; databaseColumns = getTableColumns(con, tableName);</span>
+<span class="nc" id="L290">            List&lt;TableIndex&gt; indexes = getIndexes(con, tableName);</span>
+<span class="nc" id="L291">            boolean isView = tableName.startsWith(&quot;v&quot;);</span>
+<span class="nc" id="L292">            CockroachDBTable t = new CockroachDBTable(tableName, databaseColumns, indexes, isView);</span>
+<span class="nc bnc" id="L293" title="All 2 branches missed.">            for (CockroachDBColumn c : databaseColumns) {</span>
+<span class="nc" id="L294">                c.setTable(t);</span>
+            }
+            // To avoid some situations that columns can not be retrieved.
+<span class="nc bnc" id="L297" title="All 2 branches missed.">            if (databaseColumns.isEmpty()) {</span>
+<span class="nc" id="L298">                continue;</span>
+            }
+<span class="nc" id="L300">            databaseTables.add(t);</span>
+
+        }
+<span class="nc" id="L303">        return new CockroachDBSchema(databaseTables);</span>
+    }
+
+    private static List&lt;String&gt; getTableNames(SQLConnection con) throws SQLException {
+<span class="nc" id="L307">        List&lt;String&gt; tableNames = new ArrayList&lt;&gt;();</span>
+<span class="nc" id="L308">        try (Statement s = con.createStatement()) {</span>
+<span class="nc" id="L309">            ResultSet tableRs = s.executeQuery(</span>
+<span class="nc" id="L310">                    &quot;SELECT table_name FROM information_schema.tables WHERE TABLE_TYPE IN ('BASE TABLE', 'LOCAL TEMPORARY');&quot;);</span>
+<span class="nc bnc" id="L311" title="All 2 branches missed.">            while (tableRs.next()) {</span>
+<span class="nc" id="L312">                String tableName = tableRs.getString(1);</span>
+<span class="nc" id="L313">                tableNames.add(tableName);</span>
+            }
+        }
+<span class="nc" id="L316">        return tableNames;</span>
+    }
+
+    private static List&lt;TableIndex&gt; getIndexes(SQLConnection con, String tableName) throws SQLException {
+<span class="nc" id="L320">        List&lt;TableIndex&gt; indexes = new ArrayList&lt;&gt;();</span>
+<span class="nc" id="L321">        try (Statement s = con.createStatement()) {</span>
+<span class="nc" id="L322">            try (ResultSet rs = s.executeQuery(String.format(&quot;SHOW INDEX FROM %s&quot;, tableName))) {</span>
+<span class="nc bnc" id="L323" title="All 2 branches missed.">                while (rs.next()) {</span>
+<span class="nc" id="L324">                    String indexName = rs.getString(&quot;index_name&quot;);</span>
+<span class="nc" id="L325">                    indexes.add(TableIndex.create(indexName));</span>
+                }
+            }
+        }
+<span class="nc" id="L329">        return indexes;</span>
+    }
+
+    private static List&lt;CockroachDBColumn&gt; getTableColumns(SQLConnection con, String tableName) throws SQLException {
+<span class="nc" id="L333">        List&lt;CockroachDBColumn&gt; columns = new ArrayList&lt;&gt;();</span>
+<span class="nc" id="L334">        try (Statement s = con.createStatement()) {</span>
+<span class="nc" id="L335">            try (ResultSet rs = s.executeQuery(&quot;SHOW COLUMNS FROM &quot; + tableName)) {</span>
+<span class="nc bnc" id="L336" title="All 2 branches missed.">                while (rs.next()) {</span>
+<span class="nc" id="L337">                    String columnName = rs.getString(&quot;column_name&quot;);</span>
+<span class="nc bnc" id="L338" title="All 2 branches missed.">                    if (columnName.contains(&quot;crdb_internal&quot;)) {</span>
+<span class="nc" id="L339">                        continue; // created for CREATE INDEX ON t0(c0) USING HASH WITH BUCKET_COUNT = 1;</span>
+                    }
+<span class="nc" id="L341">                    String dataType = rs.getString(&quot;data_type&quot;);</span>
+<span class="nc" id="L342">                    boolean isNullable = rs.getBoolean(&quot;is_nullable&quot;);</span>
+<span class="nc" id="L343">                    String indices = rs.getString(&quot;indices&quot;);</span>
+<span class="nc" id="L344">                    boolean isPrimaryKey = indices.contains(&quot;primary&quot;);</span>
+<span class="nc" id="L345">                    CockroachDBColumn c = new CockroachDBColumn(columnName, getColumnType(dataType), isPrimaryKey,</span>
+<span class="nc" id="L346">                            isNullable);</span>
+<span class="nc" id="L347">                    columns.add(c);</span>
+                }
+<span class="nc" id="L349">            } catch (SQLException e) {</span>
+<span class="nc bnc" id="L350" title="All 4 branches missed.">                if (CockroachDBBugs.bug85394 &amp;&amp; e.getMessage().contains(&quot;incompatible type annotation for ARRAY&quot;)) {</span>
+<span class="nc" id="L351">                    return columns;</span>
+                }
+<span class="nc" id="L353">                throw e;</span>
+            }
+        }
+<span class="nc" id="L356">        return columns;</span>
+    }
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.8.202204050719</span></div></body></html>

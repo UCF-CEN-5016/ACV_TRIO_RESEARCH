@@ -1,0 +1,262 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>ProviderAdapter.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">dqetool</a> &gt; <a href="index.source.html" class="el_package">dqetool</a> &gt; <span class="el_source">ProviderAdapter.java</span></div><h1>ProviderAdapter.java</h1><pre class="source lang-java linenums">package dqetool;
+
+import java.sql.SQLException;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
+
+import dqetool.StateToReproduce.OracleRunReproductionState;
+import dqetool.common.DBMSCommon;
+import dqetool.common.oracle.CompositeTestOracle;
+import dqetool.common.oracle.TestOracle;
+import dqetool.common.schema.AbstractSchema;
+
+public abstract class ProviderAdapter&lt;G extends GlobalState&lt;O, ? extends AbstractSchema&lt;G, ?&gt;, C&gt;, O extends DBMSSpecificOptions&lt;? extends OracleFactory&lt;G&gt;&gt;, C extends SQLancerDBConnection&gt;
+        implements DatabaseProvider&lt;G, O, C&gt; {
+
+    private final Class&lt;G&gt; globalClass;
+    private final Class&lt;O&gt; optionClass;
+
+    // Variables for QPG
+<span class="nc" id="L23">    Map&lt;String, String&gt; queryPlanPool = new HashMap&lt;&gt;();</span>
+<span class="nc" id="L24">    static double[] weightedAverageReward; // static variable for sharing across all threads</span>
+    int currentSelectRewards;
+    int currentSelectCounts;
+<span class="nc" id="L27">    int currentMutationOperator = -1;</span>
+
+<span class="nc" id="L29">    public ProviderAdapter(Class&lt;G&gt; globalClass, Class&lt;O&gt; optionClass) {</span>
+<span class="nc" id="L30">        this.globalClass = globalClass;</span>
+<span class="nc" id="L31">        this.optionClass = optionClass;</span>
+<span class="nc" id="L32">    }</span>
+
+    @Override
+    public StateToReproduce getStateToReproduce(String databaseName) {
+<span class="nc" id="L36">        return new StateToReproduce(databaseName, this);</span>
+    }
+
+    @Override
+    public Class&lt;G&gt; getGlobalStateClass() {
+<span class="nc" id="L41">        return globalClass;</span>
+    }
+
+    @Override
+    public Class&lt;O&gt; getOptionClass() {
+<span class="nc" id="L46">        return optionClass;</span>
+    }
+
+    @Override
+    public Reproducer&lt;G&gt; generateAndTestDatabase(G globalState) throws Exception {
+        try {
+<span class="nc" id="L52">            generateDatabase(globalState);</span>
+<span class="nc" id="L53">            checkViewsAreValid(globalState);</span>
+<span class="nc" id="L54">            globalState.getManager().incrementCreateDatabase();</span>
+
+<span class="nc" id="L56">            TestOracle&lt;G&gt; oracle = getTestOracle(globalState);</span>
+<span class="nc bnc" id="L57" title="All 2 branches missed.">            for (int i = 0; i &lt; globalState.getOptions().getNrQueries(); i++) {</span>
+<span class="nc" id="L58">                try (OracleRunReproductionState localState = globalState.getState().createLocalState()) {</span>
+<span class="nc bnc" id="L59" title="All 2 branches missed.">                    assert localState != null;</span>
+                    try {
+<span class="nc" id="L61">                        oracle.check();</span>
+<span class="nc" id="L62">                        globalState.getManager().incrementSelectQueryCount();</span>
+<span class="nc" id="L63">                    } catch (IgnoreMeException e) {</span>
+
+<span class="nc" id="L65">                    } catch (AssertionError e) {</span>
+<span class="nc" id="L66">                        Reproducer&lt;G&gt; reproducer = oracle.getLastReproducer();</span>
+<span class="nc bnc" id="L67" title="All 2 branches missed.">                        if (reproducer != null) {</span>
+<span class="nc" id="L68">                            return reproducer;</span>
+                        }
+<span class="nc" id="L70">                        throw e;</span>
+                    }
+<span class="nc bnc" id="L72" title="All 2 branches missed.">                    assert localState != null;</span>
+<span class="nc" id="L73">                    localState.executedWithoutError();</span>
+                }
+            }
+<span class="nc" id="L76">        } finally {</span>
+<span class="nc" id="L77">            globalState.getConnection().close();</span>
+        }
+<span class="nc" id="L79">        return null;</span>
+    }
+
+    protected abstract void checkViewsAreValid(G globalState) throws SQLException;
+
+    protected TestOracle&lt;G&gt; getTestOracle(G globalState) throws Exception {
+<span class="nc" id="L85">        List&lt;? extends OracleFactory&lt;G&gt;&gt; testOracleFactory = globalState.getDbmsSpecificOptions()</span>
+<span class="nc" id="L86">                .getTestOracleFactory();</span>
+<span class="nc" id="L87">        boolean testOracleRequiresMoreThanZeroRows = testOracleFactory.stream()</span>
+<span class="nc" id="L88">                .anyMatch(p -&gt; p.requiresAllTablesToContainRows());</span>
+<span class="nc" id="L89">        boolean userRequiresMoreThanZeroRows = globalState.getOptions().testOnlyWithMoreThanZeroRows();</span>
+<span class="nc bnc" id="L90" title="All 4 branches missed.">        boolean checkZeroRows = testOracleRequiresMoreThanZeroRows || userRequiresMoreThanZeroRows;</span>
+<span class="nc bnc" id="L91" title="All 4 branches missed.">        if (checkZeroRows &amp;&amp; globalState.getSchema().containsTableWithZeroRows(globalState)) {</span>
+<span class="nc bnc" id="L92" title="All 2 branches missed.">            if (globalState.getOptions().enableQPG()) {</span>
+<span class="nc" id="L93">                addRowsToAllTables(globalState);</span>
+<span class="nc" id="L94">            } else {</span>
+<span class="nc" id="L95">                throw new IgnoreMeException();</span>
+            }
+        }
+<span class="nc bnc" id="L98" title="All 2 branches missed.">        if (testOracleFactory.size() == 1) {</span>
+<span class="nc" id="L99">            return testOracleFactory.get(0).create(globalState);</span>
+        } else {
+<span class="nc" id="L101">            return new CompositeTestOracle&lt;G&gt;(testOracleFactory.stream().map(o -&gt; {</span>
+                try {
+<span class="nc" id="L103">                    return o.create(globalState);</span>
+<span class="nc" id="L104">                } catch (Exception e1) {</span>
+<span class="nc" id="L105">                    throw new AssertionError(e1);</span>
+                }
+<span class="nc" id="L107">            }).collect(Collectors.toList()), globalState);</span>
+        }
+    }
+
+    public abstract void generateDatabase(G globalState) throws Exception;
+
+    // QPG: entry function
+    @Override
+    public void generateAndTestDatabaseWithQueryPlanGuidance(G globalState) throws Exception {
+<span class="nc bnc" id="L116" title="All 2 branches missed.">        if (weightedAverageReward == null) {</span>
+<span class="nc" id="L117">            weightedAverageReward = initializeWeightedAverageReward(); // Same length as the list of mutators</span>
+        }
+        try {
+<span class="nc" id="L120">            generateDatabase(globalState);</span>
+<span class="nc" id="L121">            checkViewsAreValid(globalState);</span>
+<span class="nc" id="L122">            globalState.getManager().incrementCreateDatabase();</span>
+
+<span class="nc" id="L124">            Long executedQueryCount = 0L;</span>
+<span class="nc bnc" id="L125" title="All 2 branches missed.">            while (executedQueryCount &lt; globalState.getOptions().getNrQueries()) {</span>
+<span class="nc" id="L126">                int numOfNoNewQueryPlans = 0;</span>
+<span class="nc" id="L127">                TestOracle&lt;G&gt; oracle = getTestOracle(globalState);</span>
+                while (true) {
+<span class="nc" id="L129">                    try (OracleRunReproductionState localState = globalState.getState().createLocalState()) {</span>
+<span class="nc bnc" id="L130" title="All 2 branches missed.">                        assert localState != null;</span>
+                        try {
+<span class="nc" id="L132">                            oracle.check();</span>
+<span class="nc" id="L133">                            String query = oracle.getLastQueryString();</span>
+<span class="nc" id="L134">                            executedQueryCount += 1;</span>
+<span class="nc bnc" id="L135" title="All 2 branches missed.">                            if (addQueryPlan(query, globalState)) {</span>
+<span class="nc" id="L136">                                numOfNoNewQueryPlans = 0;</span>
+<span class="nc" id="L137">                            } else {</span>
+<span class="nc" id="L138">                                numOfNoNewQueryPlans++;</span>
+                            }
+<span class="nc" id="L140">                            globalState.getManager().incrementSelectQueryCount();</span>
+<span class="nc" id="L141">                        } catch (IgnoreMeException e) {</span>
+
+                        }
+<span class="nc bnc" id="L144" title="All 2 branches missed.">                        assert localState != null;</span>
+<span class="nc" id="L145">                        localState.executedWithoutError();</span>
+                    }
+                    // exit loop to mutate tables if no new query plans have been found after a while
+<span class="nc bnc" id="L148" title="All 2 branches missed.">                    if (numOfNoNewQueryPlans &gt; globalState.getOptions().getQPGMaxMutationInterval()) {</span>
+<span class="nc" id="L149">                        mutateTables(globalState);</span>
+                        break;
+                    }
+                }
+            }
+<span class="nc" id="L154">        } finally {</span>
+<span class="nc" id="L155">            globalState.getConnection().close();</span>
+        }
+<span class="nc" id="L157">    }</span>
+
+    // QPG: mutate tables for a new database state
+    private synchronized boolean mutateTables(G globalState) throws Exception {
+        // Update rewards based on a set of newly generated queries in last iteration
+<span class="nc bnc" id="L162" title="All 2 branches missed.">        if (currentMutationOperator != -1) {</span>
+<span class="nc" id="L163">            weightedAverageReward[currentMutationOperator] += ((double) currentSelectRewards</span>
+<span class="nc" id="L164">                    / (double) currentSelectCounts) * globalState.getOptions().getQPGk();</span>
+        }
+<span class="nc" id="L166">        currentMutationOperator = -1;</span>
+
+        // Choose mutator based on the rewards
+<span class="nc" id="L169">        int selectedActionIndex = 0;</span>
+<span class="nc bnc" id="L170" title="All 2 branches missed.">        if (Randomly.getPercentage() &lt; globalState.getOptions().getQPGProbability()) {</span>
+<span class="nc" id="L171">            selectedActionIndex = globalState.getRandomly().getInteger(0, weightedAverageReward.length);</span>
+<span class="nc" id="L172">        } else {</span>
+<span class="nc" id="L173">            selectedActionIndex = DBMSCommon.getMaxIndexInDoubleArrary(weightedAverageReward);</span>
+        }
+<span class="nc" id="L175">        int reward = 0;</span>
+
+        try {
+<span class="nc" id="L178">            executeMutator(selectedActionIndex, globalState);</span>
+<span class="nc" id="L179">            checkViewsAreValid(globalState); // Remove the invalid views</span>
+<span class="nc" id="L180">            reward = checkQueryPlan(globalState);</span>
+<span class="nc" id="L181">        } catch (IgnoreMeException | AssertionError e) {</span>
+        } finally {
+            // Update rewards based on existing queries associated with the query plan pool
+<span class="nc" id="L184">            updateReward(selectedActionIndex, (double) reward / (double) queryPlanPool.size(), globalState);</span>
+<span class="nc" id="L185">            currentMutationOperator = selectedActionIndex;</span>
+        }
+
+        // Clear the variables for storing the rewards of the action on a set of newly generated queries
+<span class="nc" id="L189">        currentSelectRewards = 0;</span>
+<span class="nc" id="L190">        currentSelectCounts = 0;</span>
+<span class="nc" id="L191">        return true;</span>
+    }
+
+    // QPG: add a query plan to the query plan pool and return true if the query plan is new
+    private boolean addQueryPlan(String selectStr, G globalState) throws Exception {
+<span class="nc" id="L196">        String queryPlan = getQueryPlan(selectStr, globalState);</span>
+
+<span class="nc bnc" id="L198" title="All 2 branches missed.">        if (globalState.getOptions().logQueryPlan()) {</span>
+<span class="nc" id="L199">            globalState.getLogger().writeQueryPlan(queryPlan);</span>
+        }
+
+<span class="nc" id="L202">        currentSelectCounts += 1;</span>
+<span class="nc bnc" id="L203" title="All 2 branches missed.">        if (queryPlanPool.containsKey(queryPlan)) {</span>
+<span class="nc" id="L204">            return false;</span>
+        } else {
+<span class="nc" id="L206">            queryPlanPool.put(queryPlan, selectStr);</span>
+<span class="nc" id="L207">            currentSelectRewards += 1;</span>
+<span class="nc" id="L208">            return true;</span>
+        }
+    }
+
+    // Obtain the reward of the current action based on the queries associated with the query plan pool
+    private int checkQueryPlan(G globalState) throws Exception {
+<span class="nc" id="L214">        int newQueryPlanFound = 0;</span>
+<span class="nc" id="L215">        HashMap&lt;String, String&gt; modifiedQueryPlan = new HashMap&lt;&gt;();</span>
+<span class="nc bnc" id="L216" title="All 2 branches missed.">        for (Iterator&lt;Map.Entry&lt;String, String&gt;&gt; it = queryPlanPool.entrySet().iterator(); it.hasNext();) {</span>
+<span class="nc" id="L217">            Map.Entry&lt;String, String&gt; item = it.next();</span>
+<span class="nc" id="L218">            String queryPlan = item.getKey();</span>
+<span class="nc" id="L219">            String selectStr = item.getValue();</span>
+<span class="nc" id="L220">            String newQueryPlan = getQueryPlan(selectStr, globalState);</span>
+<span class="nc bnc" id="L221" title="All 2 branches missed.">            if (newQueryPlan.isEmpty()) { // Invalid query</span>
+<span class="nc" id="L222">                it.remove();</span>
+<span class="nc bnc" id="L223" title="All 2 branches missed.">            } else if (!queryPlan.equals(newQueryPlan)) { // A query plan has been changed</span>
+<span class="nc" id="L224">                it.remove();</span>
+<span class="nc" id="L225">                modifiedQueryPlan.put(newQueryPlan, selectStr);</span>
+<span class="nc bnc" id="L226" title="All 2 branches missed.">                if (!queryPlanPool.containsKey(newQueryPlan)) { // A new query plan is found</span>
+<span class="nc" id="L227">                    newQueryPlanFound++;</span>
+                }
+            }
+        }
+<span class="nc" id="L231">        queryPlanPool.putAll(modifiedQueryPlan);</span>
+<span class="nc" id="L232">        return newQueryPlanFound;</span>
+    }
+
+    // QPG: update the reward of current action
+    private void updateReward(int actionIndex, double reward, G globalState) {
+<span class="nc" id="L237">        weightedAverageReward[actionIndex] += (reward - weightedAverageReward[actionIndex])</span>
+<span class="nc" id="L238">                * globalState.getOptions().getQPGk();</span>
+<span class="nc" id="L239">    }</span>
+
+    // QPG: initialize the weighted average reward of all mutation operators (required implementation in specific DBMS)
+    protected double[] initializeWeightedAverageReward() {
+<span class="nc" id="L243">        throw new UnsupportedOperationException();</span>
+    }
+
+    // QPG: obtain the query plan of a query (required implementation in specific DBMS)
+    protected String getQueryPlan(String selectStr, G globalState) throws Exception {
+<span class="nc" id="L248">        throw new UnsupportedOperationException();</span>
+    }
+
+    // QPG: execute a mutation operator (required implementation in specific DBMS)
+    protected void executeMutator(int index, G globalState) throws Exception {
+<span class="nc" id="L253">        throw new UnsupportedOperationException();</span>
+    }
+
+    // QPG: add rows to all tables (required implementation in specific DBMS when enabling PQS oracle for QPG)
+    protected boolean addRowsToAllTables(G globalState) throws Exception {
+<span class="nc" id="L258">        throw new UnsupportedOperationException();</span>
+    }
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.8.202204050719</span></div></body></html>

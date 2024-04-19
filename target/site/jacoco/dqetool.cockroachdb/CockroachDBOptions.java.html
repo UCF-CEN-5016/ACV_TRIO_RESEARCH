@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>CockroachDBOptions.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">dqetool</a> &gt; <a href="index.source.html" class="el_package">dqetool.cockroachdb</a> &gt; <span class="el_source">CockroachDBOptions.java</span></div><h1>CockroachDBOptions.java</h1><pre class="source lang-java linenums">package dqetool.cockroachdb;
+
+import java.util.Arrays;
+import java.util.List;
+
+import com.beust.jcommander.Parameter;
+import com.beust.jcommander.Parameters;
+
+import dqetool.DBMSSpecificOptions;
+import dqetool.OracleFactory;
+import dqetool.cockroachdb.CockroachDBOptions.CockroachDBOracleFactory;
+import dqetool.cockroachdb.CockroachDBProvider.CockroachDBGlobalState;
+import dqetool.cockroachdb.oracle.CockroachDBDQEOracle;
+import dqetool.common.oracle.TestOracle;
+
+@Parameters(separators = &quot;=&quot;, commandDescription = &quot;CockroachDB (default port: &quot; + CockroachDBOptions.DEFAULT_PORT
+        + &quot; default host: &quot; + CockroachDBOptions.DEFAULT_HOST + &quot;)&quot;)
+<span class="nc" id="L18">public class CockroachDBOptions implements DBMSSpecificOptions&lt;CockroachDBOracleFactory&gt; {</span>
+    public static final String DEFAULT_HOST = &quot;localhost&quot;;
+    public static final int DEFAULT_PORT = 26257;
+
+    @Parameter(names = &quot;--oracle&quot;)
+<span class="nc" id="L23">    public CockroachDBOracleFactory oracle = CockroachDBOracleFactory.DQE;</span>
+
+<span class="nc" id="L25">    public enum CockroachDBOracleFactory implements OracleFactory&lt;CockroachDBGlobalState&gt; {</span>
+<span class="nc" id="L26">        DQE {</span>
+
+            public TestOracle&lt;CockroachDBGlobalState&gt; create(CockroachDBGlobalState globalState) throws Exception {
+<span class="nc" id="L29">                return new CockroachDBDQEOracle(globalState);</span>
+            }
+
+        },
+
+    }
+
+    @Parameter(names = {
+            &quot;--test-hash-indexes&quot; }, description = &quot;Test the USING HASH WITH BUCKET_COUNT=n_buckets option in CREATE INDEX&quot;)
+<span class="nc" id="L38">    public boolean testHashIndexes = true;</span>
+
+    @Parameter(names = { &quot;--test-temp-tables&quot; }, description = &quot;Test TEMPORARY tables&quot;)
+    public boolean testTempTables; // default: false https://github.com/cockroachdb/cockroach/issues/85388
+
+    @Parameter(names = { &quot;--max-num-tables&quot; }, description = &quot;The maximum number of tables that can be created&quot;)
+<span class="nc" id="L44">    public int maxNumTables = 10;</span>
+
+    @Parameter(names = { &quot;--max-num-indexes&quot; }, description = &quot;The maximum number of indexes that can be created&quot;)
+<span class="nc" id="L47">    public int maxNumIndexes = 20;</span>
+
+    @Override
+    public List&lt;CockroachDBOracleFactory&gt; getTestOracleFactory() {
+<span class="nc" id="L51">        return Arrays.asList(oracle);</span>
+    }
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.8.202204050719</span></div></body></html>

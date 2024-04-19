@@ -1,0 +1,236 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>SQLite3PragmaGenerator.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">dqetool</a> &gt; <a href="index.source.html" class="el_package">dqetool.sqlite3.gen</a> &gt; <span class="el_source">SQLite3PragmaGenerator.java</span></div><h1>SQLite3PragmaGenerator.java</h1><pre class="source lang-java linenums">package dqetool.sqlite3.gen;
+
+import java.sql.SQLException;
+import java.util.function.Supplier;
+
+import dqetool.Randomly;
+import dqetool.common.query.ExpectedErrors;
+import dqetool.common.query.SQLQueryAdapter;
+import dqetool.sqlite3.SQLite3GlobalState;
+
+<span class="nc" id="L11">public class SQLite3PragmaGenerator {</span>
+
+    /**
+     * Not all pragmas are generated.
+     *
+     * &lt;ul&gt;
+     * &lt;li&gt;case_sensitive_like is not generated since the tool discovered that it has some conceptual issues, see
+     * https://www.sqlite.org/src/info/a340eef47b0cad5.&lt;/li&gt;
+     * &lt;li&gt;legacy_alter_table is not generated since it does not work well with the ALTER command (see docs)&lt;/li&gt;
+     * &lt;li&gt;journal_mode=off is generated, since it can corrupt the database, see
+     * https://www.sqlite.org/src/tktview?name=f4ec250930&lt;/li&gt;
+     * &lt;li&gt;temp_store deletes all existing temporary tables&lt;/li&gt;
+     * &lt;/ul&gt;
+     */
+<span class="nc" id="L25">    private enum Pragma {</span>
+<span class="nc" id="L26">        APPLICATION_ID, //</span>
+<span class="nc" id="L27">        AUTO_VACUUM, //</span>
+<span class="nc" id="L28">        AUTOMATIC_INDEX, //</span>
+<span class="nc" id="L29">        BUSY_TIMEOUT, //</span>
+<span class="nc" id="L30">        CACHE_SIZE, //</span>
+<span class="nc" id="L31">        CACHE_SPILL_ENABLED, //</span>
+<span class="nc" id="L32">        CACHE_SPILL_SIZE, /* CASE_SENSITIVE_LIKE */ CELL_SIZE_CHECK, CHECKPOINT_FULLSYNC, DEFAULT_CACHE_SIZE,</span>
+<span class="nc" id="L33">        DEFER_FOREIGN_KEY, /*</span>
+                            * ENCODING,
+                            */
+<span class="nc" id="L36">        FOREIGN_KEYS, IGNORE_CHECK_CONSTRAINTS, INCREMENTAL_VACUUM, INTEGRITY_CHECK, JOURNAL_MODE, JOURNAL_SIZE_LIMIT,</span>
+<span class="nc" id="L37">        /*</span>
+         * LEGACY_ALTER_TABLE
+<span class="nc" id="L39">         */ OPTIMIZE, LEGACY_FORMAT, LOCKING_MODE, MMAP_SIZE, RECURSIVE_TRIGGERS, REVERSE_UNORDERED_SELECTS,</span>
+<span class="nc" id="L40">        SECURE_DELETE, SHRINK_MEMORY, SOFT_HEAP_LIMIT, //</span>
+<span class="nc" id="L41">        STATS, //</span>
+<span class="nc" id="L42">        SHORT_COLUMN_NAMES,</span>
+<span class="nc" id="L43">        /* TEMP_STORE, */ //</span>
+<span class="nc" id="L44">        THREADS, //</span>
+<span class="nc" id="L45">        WAL_AUTOCHECKPOINT, //</span>
+<span class="nc" id="L46">        WAL_CHECKPOINT; //</span>
+        // WRITEABLE_SCHEMA
+
+    }
+
+<span class="nc" id="L51">    private final StringBuilder sb = new StringBuilder();</span>
+<span class="nc" id="L52">    private final ExpectedErrors errors = new ExpectedErrors();</span>
+
+    public void createPragma(String pragmaName, Supplier&lt;Object&gt; supplier) {
+<span class="nc" id="L55">        boolean setSchema = Randomly.getBoolean();</span>
+<span class="nc" id="L56">        boolean setValue = Randomly.getBoolean();</span>
+<span class="nc" id="L57">        sb.append(&quot;PRAGMA &quot;);</span>
+<span class="nc bnc" id="L58" title="All 2 branches missed.">        if (setSchema) {</span>
+<span class="nc" id="L59">            sb.append(Randomly.fromOptions(&quot;main.&quot;, &quot;temp.&quot;));</span>
+        }
+<span class="nc" id="L61">        sb.append(pragmaName);</span>
+<span class="nc bnc" id="L62" title="All 2 branches missed.">        if (setValue) {</span>
+<span class="nc" id="L63">            Object value = supplier.get();</span>
+<span class="nc bnc" id="L64" title="All 2 branches missed.">            if (value != null) {</span>
+<span class="nc" id="L65">                sb.append(&quot; = &quot;);</span>
+<span class="nc" id="L66">                sb.append(supplier.get());</span>
+            }
+        }
+<span class="nc" id="L69">    }</span>
+
+    public SQLQueryAdapter insert(SQLite3GlobalState globalState) {
+<span class="nc" id="L72">        Randomly r = globalState.getRandomly();</span>
+<span class="nc" id="L73">        Pragma p = Randomly.fromOptions(Pragma.values());</span>
+<span class="nc bnc" id="L74" title="All 32 branches missed.">        switch (p) {</span>
+        case APPLICATION_ID:
+<span class="nc" id="L76">            createPragma(&quot;application_id&quot;, () -&gt; Randomly.getNonCachedInteger());</span>
+<span class="nc" id="L77">            break;</span>
+        case AUTO_VACUUM:
+<span class="nc" id="L79">            createPragma(&quot;auto_vacuum&quot;, () -&gt; Randomly.fromOptions(&quot;NONE&quot;, &quot;FULL&quot;, &quot;INCREMENTAL&quot;));</span>
+<span class="nc" id="L80">            break;</span>
+        case AUTOMATIC_INDEX:
+<span class="nc" id="L82">            createPragma(&quot;automatic_index&quot;, () -&gt; getRandomTextBoolean());</span>
+<span class="nc" id="L83">            break;</span>
+        case BUSY_TIMEOUT:
+<span class="nc" id="L85">            createPragma(&quot;busy_timeout&quot;, () -&gt; {</span>
+<span class="nc bnc" id="L86" title="All 2 branches missed.">                if (Randomly.getBoolean()) {</span>
+<span class="nc" id="L87">                    return 0;</span>
+                } else {
+<span class="nc" id="L89">                    return Math.max(10000, Randomly.getNonCachedInteger());</span>
+                }
+
+            });
+<span class="nc" id="L93">            break;</span>
+        case CACHE_SIZE:
+<span class="nc" id="L95">            createPragma(&quot;cache_size&quot;, () -&gt; {</span>
+<span class="nc bnc" id="L96" title="All 2 branches missed.">                if (Randomly.getBoolean()) {</span>
+<span class="nc" id="L97">                    return 0;</span>
+                } else {
+<span class="nc" id="L99">                    return Randomly.getNonCachedInteger();</span>
+                }
+            });
+<span class="nc" id="L102">            break;</span>
+        case CACHE_SPILL_ENABLED:
+<span class="nc" id="L104">            createPragma(&quot;cache_spill&quot;, () -&gt; getRandomTextBoolean());</span>
+<span class="nc" id="L105">            break;</span>
+        case CACHE_SPILL_SIZE:
+<span class="nc" id="L107">            createPragma(&quot;cache_spill&quot;, () -&gt; Randomly.getNonCachedInteger());</span>
+<span class="nc" id="L108">            break;</span>
+        case CELL_SIZE_CHECK:
+<span class="nc" id="L110">            createPragma(&quot;cell_size_check&quot;, () -&gt; getRandomTextBoolean());</span>
+<span class="nc" id="L111">            break;</span>
+        case CHECKPOINT_FULLSYNC:
+<span class="nc" id="L113">            createPragma(&quot;checkpoint_fullfsync&quot;, () -&gt; getRandomTextBoolean());</span>
+<span class="nc" id="L114">            break;</span>
+        case DEFAULT_CACHE_SIZE:
+<span class="nc" id="L116">            createPragma(&quot;default_cache_size&quot;, () -&gt; r.getInteger());</span>
+<span class="nc" id="L117">            break;</span>
+        case DEFER_FOREIGN_KEY:
+<span class="nc" id="L119">            createPragma(&quot;defer_foreign_keys&quot;, () -&gt; getRandomTextBoolean());</span>
+<span class="nc" id="L120">            break;</span>
+        // TODO: [SQLITE_ERROR] SQL error or missing database (attached databases must
+        // use the same text encoding as main database)
+        // case ENCODING:
+        // sb.append(&quot;PRAGMA main.encoding = \&quot;&quot;);
+        // String encoding = Randomly.fromOptions(&quot;UTF-8&quot;, &quot;UTF-16&quot;, &quot;UTF-16be&quot;, &quot;UTF-16le&quot;);
+        // sb.append(encoding);
+        // sb.append(&quot;\&quot;;\n&quot;);
+        // sb.append(&quot;PRAGMA temp.encoding = \&quot;&quot;);
+        // sb.append(encoding);
+        // sb.append(&quot;\&quot;&quot;);
+        // break;
+        case FOREIGN_KEYS:
+<span class="nc" id="L133">            createPragma(&quot;foreign_keys&quot;, () -&gt; getRandomTextBoolean());</span>
+<span class="nc" id="L134">            break;</span>
+        case IGNORE_CHECK_CONSTRAINTS:
+<span class="nc" id="L136">            createPragma(&quot;ignore_check_constraints&quot;, () -&gt; getRandomTextBoolean());</span>
+<span class="nc" id="L137">            break;</span>
+        case INCREMENTAL_VACUUM:
+<span class="nc bnc" id="L139" title="All 2 branches missed.">            if (Randomly.getBoolean()) {</span>
+<span class="nc" id="L140">                createPragma(&quot;incremental_vacuum&quot;, () -&gt; null);</span>
+<span class="nc" id="L141">            } else {</span>
+<span class="nc" id="L142">                sb.append(String.format(&quot;PRAGMA incremental_vacuum(%d)&quot;, r.getInteger()));</span>
+            }
+<span class="nc" id="L144">            break;</span>
+        case INTEGRITY_CHECK:
+<span class="nc" id="L146">            createPragma(&quot;integrity_check&quot;, () -&gt; null);</span>
+<span class="nc" id="L147">            break;</span>
+        case JOURNAL_MODE:
+            // OFF is no longer generated, since it might corrupt the database upon failed
+            // index creation, see https://www.sqlite.org/src/tktview?name=f4ec250930.
+<span class="nc" id="L151">            createPragma(&quot;journal_mode&quot;, () -&gt; Randomly.fromOptions(&quot;DELETE&quot;, &quot;TRUNCATE&quot;, &quot;PERSIST&quot;, &quot;MEMORY&quot;, &quot;WAL&quot;));</span>
+<span class="nc" id="L152">            errors.add(&quot;from within a transaction&quot;);</span>
+<span class="nc" id="L153">            break;</span>
+        case JOURNAL_SIZE_LIMIT:
+<span class="nc" id="L155">            createPragma(&quot;journal_size_limit&quot;, () -&gt; {</span>
+<span class="nc bnc" id="L156" title="All 2 branches missed.">                if (Randomly.getBoolean()) {</span>
+<span class="nc" id="L157">                    return 0;</span>
+                } else {
+<span class="nc" id="L159">                    return Randomly.getNonCachedInteger();</span>
+                }
+
+            });
+<span class="nc" id="L163">            break;</span>
+        case LEGACY_FORMAT:
+<span class="nc" id="L165">            createPragma(&quot;legacy_file_format&quot;, () -&gt; getRandomTextBoolean());</span>
+<span class="nc" id="L166">            break;</span>
+        case LOCKING_MODE:
+<span class="nc" id="L168">            createPragma(&quot;locking_mode&quot;, () -&gt; Randomly.fromOptions(&quot;NORMAL&quot;, &quot;EXCLUSIVE&quot;));</span>
+<span class="nc" id="L169">            break;</span>
+        case MMAP_SIZE:
+<span class="nc" id="L171">            createPragma(&quot;mmap_size&quot;, () -&gt; Randomly.getNonCachedInteger());</span>
+<span class="nc" id="L172">            break;</span>
+        case OPTIMIZE:
+<span class="nc" id="L174">            createPragma(&quot;optimize&quot;, () -&gt; null);</span>
+<span class="nc" id="L175">            break;</span>
+        case RECURSIVE_TRIGGERS:
+<span class="nc" id="L177">            createPragma(&quot;recursive_triggers&quot;, () -&gt; getRandomTextBoolean());</span>
+<span class="nc" id="L178">            break;</span>
+        case REVERSE_UNORDERED_SELECTS:
+<span class="nc" id="L180">            createPragma(&quot;reverse_unordered_selects&quot;, () -&gt; getRandomTextBoolean());</span>
+<span class="nc" id="L181">            break;</span>
+        case SECURE_DELETE:
+<span class="nc" id="L183">            createPragma(&quot;secure_delete&quot;, () -&gt; Randomly.fromOptions(&quot;true&quot;, &quot;false&quot;, &quot;FAST&quot;));</span>
+<span class="nc" id="L184">            break;</span>
+        case SHORT_COLUMN_NAMES:
+<span class="nc" id="L186">            createPragma(&quot;short_column_names&quot;, () -&gt; getRandomTextBoolean());</span>
+<span class="nc" id="L187">            break;</span>
+        case SHRINK_MEMORY:
+<span class="nc" id="L189">            createPragma(&quot;shrink_memory&quot;, () -&gt; null);</span>
+<span class="nc" id="L190">            break;</span>
+        case SOFT_HEAP_LIMIT:
+<span class="nc" id="L192">            createPragma(&quot;soft_heap_limit&quot;, () -&gt; {</span>
+<span class="nc bnc" id="L193" title="All 2 branches missed.">                if (Randomly.getBoolean()) {</span>
+<span class="nc" id="L194">                    return 0;</span>
+                } else {
+<span class="nc" id="L196">                    return r.getPositiveInteger();</span>
+                }
+            });
+<span class="nc" id="L199">            break;</span>
+        case STATS:
+<span class="nc" id="L201">            createPragma(&quot;stats&quot;, () -&gt; null);</span>
+<span class="nc" id="L202">            break;</span>
+        // case TEMP_STORE:
+        // createPragma(&quot;temp_store&quot;, () -&gt; Randomly.fromOptions(&quot;DEFAULT&quot;, &quot;FILE&quot;, &quot;MEMORY&quot;));
+        // break;
+        case THREADS:
+<span class="nc" id="L207">            createPragma(&quot;threads&quot;, () -&gt; Randomly.getNonCachedInteger());</span>
+<span class="nc" id="L208">            break;</span>
+        case WAL_AUTOCHECKPOINT:
+<span class="nc" id="L210">            createPragma(&quot;wal_autocheckpoint&quot;, () -&gt; Randomly.getNonCachedInteger());</span>
+<span class="nc" id="L211">            break;</span>
+        case WAL_CHECKPOINT:
+<span class="nc" id="L213">            sb.append(&quot;PRAGMA wal_checkpoint(&quot;);</span>
+<span class="nc" id="L214">            sb.append(Randomly.fromOptions(&quot;PASSIVE&quot;, &quot;FULL&quot;, &quot;RESTART&quot;, &quot;TRUNCATE&quot;));</span>
+<span class="nc" id="L215">            sb.append(&quot;)&quot;);</span>
+<span class="nc" id="L216">            errors.add(&quot;database table is locked&quot;);</span>
+<span class="nc" id="L217">            break;</span>
+        default:
+<span class="nc" id="L219">            throw new AssertionError(p);</span>
+        }
+<span class="nc" id="L221">        sb.append(&quot;;&quot;);</span>
+<span class="nc" id="L222">        String pragmaString = sb.toString();</span>
+<span class="nc" id="L223">        errors.add(&quot;The database file is locked&quot;);</span>
+<span class="nc" id="L224">        return new SQLQueryAdapter(pragmaString, errors);</span>
+    }
+
+    public static SQLQueryAdapter insertPragma(SQLite3GlobalState globalState) throws SQLException {
+<span class="nc" id="L228">        return new SQLite3PragmaGenerator().insert(globalState);</span>
+    }
+
+    private static String getRandomTextBoolean() {
+<span class="nc" id="L232">        return Randomly.fromOptions(&quot;true&quot;, &quot;false&quot;);</span>
+    }
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.8.202204050719</span></div></body></html>

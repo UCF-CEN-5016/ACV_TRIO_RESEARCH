@@ -1,0 +1,141 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>SQLite3Select.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">dqetool</a> &gt; <a href="index.source.html" class="el_package">dqetool.sqlite3.ast</a> &gt; <span class="el_source">SQLite3Select.java</span></div><h1>SQLite3Select.java</h1><pre class="source lang-java linenums">package dqetool.sqlite3.ast;
+
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+
+import dqetool.sqlite3.schema.SQLite3Schema.SQLite3Column.SQLite3CollateSequence;
+
+<span class="nc" id="L9">public class SQLite3Select extends SQLite3Expression {</span>
+
+<span class="nc" id="L11">    private SelectType fromOptions = SelectType.ALL;</span>
+<span class="nc" id="L12">    private List&lt;SQLite3Expression&gt; fromList = Collections.emptyList();</span>
+    private SQLite3Expression whereClause;
+<span class="nc" id="L14">    private List&lt;SQLite3Expression&gt; groupByClause = Collections.emptyList();</span>
+    private SQLite3Expression limitClause;
+<span class="nc" id="L16">    private List&lt;SQLite3Expression&gt; orderByClause = Collections.emptyList();</span>
+    private SQLite3Expression offsetClause;
+<span class="nc" id="L18">    private List&lt;SQLite3Expression&gt; fetchColumns = Collections.emptyList();</span>
+<span class="nc" id="L19">    private List&lt;Join&gt; joinStatements = Collections.emptyList();</span>
+    private SQLite3Expression havingClause;
+
+<span class="nc" id="L22">    public SQLite3Select() {</span>
+<span class="nc" id="L23">    }</span>
+
+<span class="nc" id="L25">    public SQLite3Select(SQLite3Select other) {</span>
+<span class="nc" id="L26">        fromOptions = other.fromOptions;</span>
+<span class="nc" id="L27">        fromList = new ArrayList&lt;&gt;(other.fromList);</span>
+<span class="nc" id="L28">        whereClause = other.whereClause;</span>
+<span class="nc" id="L29">        groupByClause = other.groupByClause;</span>
+<span class="nc" id="L30">        limitClause = other.limitClause;</span>
+<span class="nc" id="L31">        orderByClause = new ArrayList&lt;&gt;(other.orderByClause);</span>
+<span class="nc" id="L32">        offsetClause = other.offsetClause;</span>
+<span class="nc" id="L33">        fetchColumns = new ArrayList&lt;&gt;(other.fetchColumns);</span>
+<span class="nc" id="L34">        joinStatements = new ArrayList&lt;&gt;();</span>
+<span class="nc bnc" id="L35" title="All 2 branches missed.">        for (Join j : other.joinStatements) {</span>
+<span class="nc" id="L36">            joinStatements.add(new Join(j));</span>
+        }
+<span class="nc" id="L38">        havingClause = other.havingClause;</span>
+<span class="nc" id="L39">    }</span>
+
+<span class="nc" id="L41">    public enum SelectType {</span>
+<span class="nc" id="L42">        DISTINCT, ALL;</span>
+    }
+
+    public void setSelectType(SelectType fromOptions) {
+<span class="nc" id="L46">        this.setFromOptions(fromOptions);</span>
+<span class="nc" id="L47">    }</span>
+
+    public void setFromTables(List&lt;SQLite3Expression&gt; fromTables) {
+<span class="nc" id="L50">        this.setFromList(fromTables);</span>
+<span class="nc" id="L51">    }</span>
+
+    public SelectType getFromOptions() {
+<span class="nc" id="L54">        return fromOptions;</span>
+    }
+
+    public void setFromOptions(SelectType fromOptions) {
+<span class="nc" id="L58">        this.fromOptions = fromOptions;</span>
+<span class="nc" id="L59">    }</span>
+
+    public List&lt;SQLite3Expression&gt; getFromList() {
+<span class="nc" id="L62">        return fromList;</span>
+    }
+
+    public void setFromList(List&lt;SQLite3Expression&gt; fromList) {
+<span class="nc" id="L66">        this.fromList = fromList;</span>
+<span class="nc" id="L67">    }</span>
+
+    public SQLite3Expression getWhereClause() {
+<span class="nc" id="L70">        return whereClause;</span>
+    }
+
+    public void setWhereClause(SQLite3Expression whereClause) {
+<span class="nc" id="L74">        this.whereClause = whereClause;</span>
+<span class="nc" id="L75">    }</span>
+
+    public void setGroupByClause(List&lt;SQLite3Expression&gt; groupByClause) {
+<span class="nc" id="L78">        this.groupByClause = groupByClause;</span>
+<span class="nc" id="L79">    }</span>
+
+    public List&lt;SQLite3Expression&gt; getGroupByClause() {
+<span class="nc" id="L82">        return groupByClause;</span>
+    }
+
+    public void setLimitClause(SQLite3Expression limitClause) {
+<span class="nc" id="L86">        this.limitClause = limitClause;</span>
+<span class="nc" id="L87">    }</span>
+
+    public SQLite3Expression getLimitClause() {
+<span class="nc" id="L90">        return limitClause;</span>
+    }
+
+    public List&lt;SQLite3Expression&gt; getOrderByClause() {
+<span class="nc" id="L94">        return orderByClause;</span>
+    }
+
+    public void setOrderByExpressions(List&lt;SQLite3Expression&gt; orderBy) {
+<span class="nc" id="L98">        this.orderByClause = orderBy;</span>
+<span class="nc" id="L99">    }</span>
+
+    public void setOffsetClause(SQLite3Expression offsetClause) {
+<span class="nc" id="L102">        this.offsetClause = offsetClause;</span>
+<span class="nc" id="L103">    }</span>
+
+    public SQLite3Expression getOffsetClause() {
+<span class="nc" id="L106">        return offsetClause;</span>
+    }
+
+    public void setFetchColumns(List&lt;SQLite3Expression&gt; fetchColumns) {
+<span class="nc" id="L110">        this.fetchColumns = fetchColumns;</span>
+<span class="nc" id="L111">    }</span>
+
+    public List&lt;SQLite3Expression&gt; getFetchColumns() {
+<span class="nc" id="L114">        return fetchColumns;</span>
+    }
+
+    public void setJoinClauses(List&lt;Join&gt; joinStatements) {
+<span class="nc" id="L118">        this.joinStatements = joinStatements;</span>
+<span class="nc" id="L119">    }</span>
+
+    public List&lt;Join&gt; getJoinClauses() {
+<span class="nc" id="L122">        return joinStatements;</span>
+    }
+
+    @Override
+    public SQLite3CollateSequence getExplicitCollateSequence() {
+        // TODO implement?
+<span class="nc" id="L128">        return null;</span>
+    }
+
+    public void setHavingClause(SQLite3Expression havingClause) {
+<span class="nc" id="L132">        this.havingClause = havingClause;</span>
+<span class="nc" id="L133">    }</span>
+
+    public SQLite3Expression getHavingClause() {
+<span class="nc bnc" id="L136" title="All 2 branches missed.">        assert orderByClause != null;</span>
+<span class="nc" id="L137">        return havingClause;</span>
+    }
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.8.202204050719</span></div></body></html>

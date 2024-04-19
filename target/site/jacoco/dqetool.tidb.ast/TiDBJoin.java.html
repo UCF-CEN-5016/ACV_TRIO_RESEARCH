@@ -1,0 +1,121 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>TiDBJoin.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">dqetool</a> &gt; <a href="index.source.html" class="el_package">dqetool.tidb.ast</a> &gt; <span class="el_source">TiDBJoin.java</span></div><h1>TiDBJoin.java</h1><pre class="source lang-java linenums">package dqetool.tidb.ast;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import dqetool.Randomly;
+import dqetool.tidb.TiDBExpressionGenerator;
+import dqetool.tidb.TiDBProvider.TiDBGlobalState;
+import dqetool.tidb.TiDBSchema.TiDBColumn;
+
+public class TiDBJoin implements TiDBExpression {
+
+    private final TiDBExpression leftTable;
+    private final TiDBExpression rightTable;
+    private final JoinType joinType;
+    private final TiDBExpression onCondition;
+    private NaturalJoinType outerType;
+
+<span class="nc" id="L19">    public enum JoinType {</span>
+<span class="nc" id="L20">        INNER, NATURAL, STRAIGHT, LEFT, RIGHT;</span>
+
+        public static JoinType getRandom() {
+<span class="nc" id="L23">            return Randomly.fromOptions(values());</span>
+        }
+    }
+
+<span class="nc" id="L27">    public enum NaturalJoinType {</span>
+<span class="nc" id="L28">        INNER, LEFT, RIGHT;</span>
+
+        public static NaturalJoinType getRandom() {
+<span class="nc" id="L31">            return Randomly.fromOptions(values());</span>
+        }
+    }
+
+<span class="nc" id="L35">    public TiDBJoin(TiDBExpression leftTable, TiDBExpression rightTable, JoinType joinType,</span>
+            TiDBExpression whereCondition) {
+<span class="nc" id="L37">        this.leftTable = leftTable;</span>
+<span class="nc" id="L38">        this.rightTable = rightTable;</span>
+<span class="nc" id="L39">        this.joinType = joinType;</span>
+<span class="nc" id="L40">        this.onCondition = whereCondition;</span>
+<span class="nc" id="L41">    }</span>
+
+    public TiDBExpression getLeftTable() {
+<span class="nc" id="L44">        return leftTable;</span>
+    }
+
+    public TiDBExpression getRightTable() {
+<span class="nc" id="L48">        return rightTable;</span>
+    }
+
+    public JoinType getJoinType() {
+<span class="nc" id="L52">        return joinType;</span>
+    }
+
+    public TiDBExpression getOnCondition() {
+<span class="nc" id="L56">        return onCondition;</span>
+    }
+
+    public static TiDBJoin createNaturalJoin(TiDBExpression left, TiDBExpression right, NaturalJoinType type) {
+<span class="nc" id="L60">        TiDBJoin tiDBJoin = new TiDBJoin(left, right, JoinType.NATURAL, null);</span>
+<span class="nc" id="L61">        tiDBJoin.setNaturalJoinType(type);</span>
+<span class="nc" id="L62">        return tiDBJoin;</span>
+    }
+
+    public static TiDBJoin createInnerJoin(TiDBExpression left, TiDBExpression right, TiDBExpression onClause) {
+<span class="nc" id="L66">        return new TiDBJoin(left, right, JoinType.INNER, onClause);</span>
+    }
+
+    public static TiDBJoin createLeftOuterJoin(TiDBExpression left, TiDBExpression right, TiDBExpression onClause) {
+<span class="nc" id="L70">        return new TiDBJoin(left, right, JoinType.LEFT, onClause);</span>
+    }
+
+    public static TiDBJoin createRightOuterJoin(TiDBExpression left, TiDBExpression right, TiDBExpression onClause) {
+<span class="nc" id="L74">        return new TiDBJoin(left, right, JoinType.RIGHT, onClause);</span>
+    }
+
+    public static TiDBJoin createStraightJoin(TiDBExpression left, TiDBExpression right, TiDBExpression onClause) {
+<span class="nc" id="L78">        return new TiDBJoin(left, right, JoinType.STRAIGHT, onClause);</span>
+    }
+
+    private void setNaturalJoinType(NaturalJoinType outerType) {
+<span class="nc" id="L82">        this.outerType = outerType;</span>
+<span class="nc" id="L83">    }</span>
+
+    public NaturalJoinType getNaturalJoinType() {
+<span class="nc" id="L86">        return outerType;</span>
+    }
+
+    public static List&lt;TiDBExpression&gt; getJoins(List&lt;TiDBExpression&gt; tableList, TiDBGlobalState globalState) {
+<span class="nc" id="L90">        List&lt;TiDBExpression&gt; joinExpressions = new ArrayList&lt;&gt;();</span>
+<span class="nc bnc" id="L91" title="All 4 branches missed.">        while (tableList.size() &gt;= 2 &amp;&amp; Randomly.getBoolean()) {</span>
+<span class="nc" id="L92">            TiDBTableReference leftTable = (TiDBTableReference) tableList.remove(0);</span>
+<span class="nc" id="L93">            TiDBTableReference rightTable = (TiDBTableReference) tableList.remove(0);</span>
+<span class="nc" id="L94">            List&lt;TiDBColumn&gt; columns = new ArrayList&lt;&gt;(leftTable.getTable().getColumns());</span>
+<span class="nc" id="L95">            columns.addAll(rightTable.getTable().getColumns());</span>
+<span class="nc" id="L96">            TiDBExpressionGenerator joinGen = new TiDBExpressionGenerator(globalState).setColumns(columns);</span>
+<span class="nc bnc" id="L97" title="All 6 branches missed.">            switch (TiDBJoin.JoinType.getRandom()) {</span>
+            case INNER:
+<span class="nc" id="L99">                joinExpressions.add(TiDBJoin.createInnerJoin(leftTable, rightTable, joinGen.generateExpression()));</span>
+<span class="nc" id="L100">                break;</span>
+            case NATURAL:
+<span class="nc" id="L102">                joinExpressions.add(TiDBJoin.createNaturalJoin(leftTable, rightTable, NaturalJoinType.getRandom()));</span>
+<span class="nc" id="L103">                break;</span>
+            case STRAIGHT:
+<span class="nc" id="L105">                joinExpressions.add(TiDBJoin.createStraightJoin(leftTable, rightTable, joinGen.generateExpression()));</span>
+<span class="nc" id="L106">                break;</span>
+            case LEFT:
+<span class="nc" id="L108">                joinExpressions.add(TiDBJoin.createLeftOuterJoin(leftTable, rightTable, joinGen.generateExpression()));</span>
+<span class="nc" id="L109">                break;</span>
+            case RIGHT:
+<span class="nc" id="L111">                joinExpressions.add(TiDBJoin.createRightOuterJoin(leftTable, rightTable, joinGen.generateExpression()));</span>
+<span class="nc" id="L112">                break;</span>
+            default:
+<span class="nc" id="L114">                throw new AssertionError();</span>
+            }
+        }
+<span class="nc" id="L117">        return joinExpressions;</span>
+    }
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.8.202204050719</span></div></body></html>

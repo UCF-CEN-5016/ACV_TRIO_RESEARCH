@@ -1,0 +1,136 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>StateToReproduce.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">dqetool</a> &gt; <a href="index.source.html" class="el_package">dqetool</a> &gt; <span class="el_source">StateToReproduce.java</span></div><h1>StateToReproduce.java</h1><pre class="source lang-java linenums">package dqetool;
+
+import java.io.Closeable;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+
+import dqetool.common.query.Query;
+
+public class StateToReproduce {
+
+<span class="nc" id="L12">    private List&lt;Query&lt;?&gt;&gt; statements = new ArrayList&lt;&gt;();</span>
+
+    private final String databaseName;
+
+    private final DatabaseProvider&lt;?, ?, ?&gt; databaseProvider;
+
+    public String databaseVersion;
+
+    protected long seedValue;
+
+    String exception;
+
+    public OracleRunReproductionState localState;
+
+<span class="nc" id="L26">    public StateToReproduce(String databaseName, DatabaseProvider&lt;?, ?, ?&gt; databaseProvider) {</span>
+<span class="nc" id="L27">        this.databaseName = databaseName;</span>
+<span class="nc" id="L28">        this.databaseProvider = databaseProvider;</span>
+<span class="nc" id="L29">    }</span>
+
+    public String getException() {
+<span class="nc" id="L32">        return exception;</span>
+    }
+
+    public String getDatabaseName() {
+<span class="nc" id="L36">        return databaseName;</span>
+    }
+
+    public String getDatabaseVersion() {
+<span class="nc" id="L40">        return databaseVersion;</span>
+    }
+
+    /**
+     * Logs the statement string without executing the corresponding statement.
+     *
+     * @param queryString
+     *            the query string to be logged
+     */
+    public void logStatement(String queryString) {
+<span class="nc bnc" id="L50" title="All 2 branches missed.">        if (queryString == null) {</span>
+<span class="nc" id="L51">            throw new IllegalArgumentException();</span>
+        }
+<span class="nc" id="L53">        logStatement(databaseProvider.getLoggableFactory().getQueryForStateToReproduce(queryString));</span>
+<span class="nc" id="L54">    }</span>
+
+    /**
+     * Logs the statement without executing it.
+     *
+     * @param query
+     *            the query to be logged
+     */
+    public void logStatement(Query&lt;?&gt; query) {
+<span class="nc bnc" id="L63" title="All 2 branches missed.">        if (query == null) {</span>
+<span class="nc" id="L64">            throw new IllegalArgumentException();</span>
+        }
+<span class="nc" id="L66">        statements.add(query);</span>
+<span class="nc" id="L67">    }</span>
+
+    public List&lt;Query&lt;?&gt;&gt; getStatements() {
+<span class="nc" id="L70">        return Collections.unmodifiableList(statements);</span>
+    }
+
+    @Deprecated
+    public void commentStatements() {
+<span class="nc bnc" id="L75" title="All 2 branches missed.">        for (int i = 0; i &lt; statements.size(); i++) {</span>
+<span class="nc" id="L76">            Query&lt;?&gt; statement = statements.get(i);</span>
+<span class="nc" id="L77">            Query&lt;?&gt; newQuery = databaseProvider.getLoggableFactory().commentOutQuery(statement);</span>
+<span class="nc" id="L78">            statements.set(i, newQuery);</span>
+        }
+<span class="nc" id="L80">    }</span>
+
+    public long getSeedValue() {
+<span class="nc" id="L83">        return seedValue;</span>
+    }
+
+    /**
+     * Returns a local state in which a test oracle can save useful information about a single run. If the local state
+     * is closed without indicating access to it, the local statements will be added to the global state.
+     *
+     * @return the local state for logging
+     */
+    public OracleRunReproductionState getLocalState() {
+<span class="nc" id="L93">        return localState;</span>
+    }
+
+    /**
+     * State information that is logged if the test oracle finds a bug or if an exception is thrown.
+     */
+    public class OracleRunReproductionState implements Closeable {
+
+<span class="nc" id="L101">        private final List&lt;Query&lt;?&gt;&gt; statements = new ArrayList&lt;&gt;();</span>
+
+        public boolean success;
+
+<span class="nc" id="L105">        public OracleRunReproductionState() {</span>
+<span class="nc" id="L106">            StateToReproduce.this.localState = this;</span>
+<span class="nc" id="L107">        }</span>
+
+        public void executedWithoutError() {
+<span class="nc" id="L110">            this.success = true;</span>
+<span class="nc" id="L111">        }</span>
+
+        public void log(String s) {
+<span class="nc" id="L114">            statements.add(databaseProvider.getLoggableFactory().getQueryForStateToReproduce(s));</span>
+<span class="nc" id="L115">        }</span>
+
+        @Override
+        public void close() {
+<span class="nc bnc" id="L119" title="All 2 branches missed.">            if (!success) {</span>
+<span class="nc" id="L120">                StateToReproduce.this.statements.addAll(statements);</span>
+            }
+
+<span class="nc" id="L123">        }</span>
+
+    }
+
+    public OracleRunReproductionState createLocalState() {
+<span class="nc" id="L128">        return new OracleRunReproductionState();</span>
+    }
+
+    public void setStatements(List&lt;Query&lt;?&gt;&gt; statements) {
+<span class="nc" id="L132">        this.statements = statements;</span>
+<span class="nc" id="L133">    }</span>
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.8.202204050719</span></div></body></html>

@@ -1,0 +1,127 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>SQLite3IndexGenerator.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">dqetool</a> &gt; <a href="index.source.html" class="el_package">dqetool.sqlite3.gen.ddl</a> &gt; <span class="el_source">SQLite3IndexGenerator.java</span></div><h1>SQLite3IndexGenerator.java</h1><pre class="source lang-java linenums">package dqetool.sqlite3.gen.ddl;
+
+import java.sql.SQLException;
+import java.util.List;
+
+import dqetool.IgnoreMeException;
+import dqetool.Randomly;
+import dqetool.common.query.ExpectedErrors;
+import dqetool.common.query.SQLQueryAdapter;
+import dqetool.sqlite3.SQLite3Errors;
+import dqetool.sqlite3.SQLite3GlobalState;
+import dqetool.sqlite3.SQLite3Provider;
+import dqetool.sqlite3.SQLite3ToStringVisitor;
+import dqetool.sqlite3.ast.SQLite3Expression;
+import dqetool.sqlite3.gen.SQLite3Common;
+import dqetool.sqlite3.gen.SQLite3ExpressionGenerator;
+import dqetool.sqlite3.schema.SQLite3Schema.SQLite3Column;
+import dqetool.sqlite3.schema.SQLite3Schema.SQLite3Table;
+
+// see https://www.sqlite.org/lang_createindex.html
+public class SQLite3IndexGenerator {
+
+<span class="nc" id="L23">    private final ExpectedErrors errors = new ExpectedErrors();</span>
+    private final SQLite3GlobalState globalState;
+
+    public static SQLQueryAdapter insertIndex(SQLite3GlobalState globalState) throws SQLException {
+<span class="nc bnc" id="L27" title="All 2 branches missed.">        if (globalState.getSchema().getIndexNames().size() &gt;= globalState.getDbmsSpecificOptions().maxNumIndexes) {</span>
+<span class="nc" id="L28">            throw new IgnoreMeException();</span>
+        }
+<span class="nc" id="L30">        return new SQLite3IndexGenerator(globalState).create();</span>
+    }
+
+<span class="nc" id="L33">    public SQLite3IndexGenerator(SQLite3GlobalState globalState) throws SQLException {</span>
+<span class="nc" id="L34">        this.globalState = globalState;</span>
+<span class="nc" id="L35">    }</span>
+
+    private SQLQueryAdapter create() throws SQLException {
+<span class="nc" id="L38">        SQLite3Table t = globalState.getSchema()</span>
+<span class="nc bnc" id="L39" title="All 6 branches missed.">                .getRandomTableOrBailout(tab -&gt; !tab.isView() &amp;&amp; !tab.isVirtual() &amp;&amp; !tab.isReadOnly());</span>
+<span class="nc" id="L40">        String q = createIndex(t, t.getColumns());</span>
+<span class="nc" id="L41">        errors.add(&quot;no such collation sequence: UINT&quot;);</span>
+<span class="nc" id="L42">        errors.add(&quot;[SQLITE_ERROR] SQL error or missing database (parser stack overflow)&quot;);</span>
+<span class="nc" id="L43">        errors.add(&quot;subqueries prohibited in index expressions&quot;);</span>
+<span class="nc" id="L44">        errors.add(&quot;subqueries prohibited in partial index WHERE clauses&quot;);</span>
+<span class="nc" id="L45">        errors.add(&quot;non-deterministic use of time() in an index&quot;);</span>
+<span class="nc" id="L46">        errors.add(&quot;non-deterministic use of strftime() in an index&quot;);</span>
+<span class="nc" id="L47">        errors.add(&quot;non-deterministic use of julianday() in an index&quot;);</span>
+<span class="nc" id="L48">        errors.add(&quot;non-deterministic use of date() in an index&quot;);</span>
+<span class="nc" id="L49">        errors.add(&quot;non-deterministic use of datetime() in an index&quot;);</span>
+<span class="nc" id="L50">        errors.add(&quot;The database file is locked&quot;);</span>
+<span class="nc" id="L51">        SQLite3Errors.addExpectedExpressionErrors(errors);</span>
+<span class="nc bnc" id="L52" title="All 2 branches missed.">        if (!SQLite3Provider.mustKnowResult) {</span>
+            // can only happen when PRAGMA case_sensitive_like=ON;
+<span class="nc" id="L54">            errors.add(&quot;non-deterministic functions prohibited&quot;);</span>
+        }
+
+        /*
+         * Strings in single quotes are sometimes interpreted as column names. Since we found an issue with double
+         * quotes, they can no longer be used (see https://sqlite.org/src/info/9b78184b). Single quotes are interpreted
+         * as column names in certain contexts (see
+         * https://www.mail-archive.com/sqlite-users@mailinglists.sqlite.org/msg115014.html).
+         */
+<span class="nc" id="L63">        errors.add(&quot;[SQLITE_ERROR] SQL error or missing database (no such column:&quot;);</span>
+<span class="nc" id="L64">        return new SQLQueryAdapter(q, errors, true);</span>
+    }
+
+    private String createIndex(SQLite3Table t, List&lt;SQLite3Column&gt; columns) {
+<span class="nc" id="L68">        StringBuilder sb = new StringBuilder();</span>
+<span class="nc" id="L69">        sb.append(&quot;CREATE&quot;);</span>
+<span class="nc bnc" id="L70" title="All 2 branches missed.">        if (Randomly.getBoolean()) {</span>
+<span class="nc" id="L71">            errors.add(&quot;UNIQUE constraint failed &quot;);</span>
+<span class="nc" id="L72">            sb.append(&quot; UNIQUE&quot;);</span>
+        }
+<span class="nc" id="L74">        sb.append(&quot; INDEX&quot;);</span>
+<span class="nc bnc" id="L75" title="All 2 branches missed.">        if (Randomly.getBoolean()) {</span>
+<span class="nc" id="L76">            sb.append(&quot; IF NOT EXISTS&quot;);</span>
+<span class="nc" id="L77">        } else {</span>
+<span class="nc" id="L78">            errors.add(&quot;already exists&quot;);</span>
+        }
+<span class="nc" id="L80">        sb.append(&quot; &quot;);</span>
+<span class="nc" id="L81">        sb.append(SQLite3Common.getFreeIndexName(globalState.getSchema()));</span>
+<span class="nc" id="L82">        sb.append(&quot; ON &quot;);</span>
+<span class="nc" id="L83">        sb.append(t.getName());</span>
+<span class="nc" id="L84">        sb.append(&quot;(&quot;);</span>
+<span class="nc bnc" id="L85" title="All 2 branches missed.">        for (int i = 0; i &lt; columns.size(); i++) {</span>
+<span class="nc bnc" id="L86" title="All 2 branches missed.">            if (i != 0) {</span>
+<span class="nc" id="L87">                sb.append(&quot;,&quot;);</span>
+            }
+<span class="nc" id="L89">            SQLite3Expression expr = new SQLite3ExpressionGenerator(globalState).setColumns(columns).deterministicOnly()</span>
+<span class="nc" id="L90">                    .generateExpression();</span>
+<span class="nc" id="L91">            SQLite3ToStringVisitor visitor = new SQLite3ToStringVisitor();</span>
+<span class="nc" id="L92">            visitor.fullyQualifiedNames = false;</span>
+<span class="nc" id="L93">            visitor.visit(expr);</span>
+<span class="nc" id="L94">            sb.append(visitor.get());</span>
+<span class="nc bnc" id="L95" title="All 2 branches missed.">            if (Randomly.getBoolean()) {</span>
+<span class="nc" id="L96">                sb.append(SQLite3Common.getRandomCollate());</span>
+            }
+<span class="nc" id="L98">            appendPotentialOrdering(sb);</span>
+        }
+<span class="nc" id="L100">        sb.append(&quot;)&quot;);</span>
+<span class="nc bnc" id="L101" title="All 2 branches missed.">        if (Randomly.getBoolean()) {</span>
+<span class="nc" id="L102">            sb.append(&quot; WHERE &quot;);</span>
+<span class="nc" id="L103">            SQLite3Expression expr = new SQLite3ExpressionGenerator(globalState).setColumns(columns).deterministicOnly()</span>
+<span class="nc" id="L104">                    .generateExpression();</span>
+<span class="nc" id="L105">            SQLite3ToStringVisitor visitor = new SQLite3ToStringVisitor();</span>
+<span class="nc" id="L106">            visitor.fullyQualifiedNames = false;</span>
+<span class="nc" id="L107">            visitor.visit(expr);</span>
+<span class="nc" id="L108">            sb.append(visitor.get());</span>
+        }
+<span class="nc" id="L110">        return sb.toString();</span>
+    }
+
+    /*
+     * Appends ASC, DESC, or nothing.
+     */
+    private void appendPotentialOrdering(StringBuilder sb) {
+<span class="nc bnc" id="L117" title="All 2 branches missed.">        if (Randomly.getBoolean()) {</span>
+<span class="nc bnc" id="L118" title="All 2 branches missed.">            if (Randomly.getBoolean()) {</span>
+<span class="nc" id="L119">                sb.append(&quot; ASC&quot;);</span>
+<span class="nc" id="L120">            } else {</span>
+<span class="nc" id="L121">                sb.append(&quot; DESC&quot;);</span>
+            }
+        }
+<span class="nc" id="L124">    }</span>
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.8.202204050719</span></div></body></html>

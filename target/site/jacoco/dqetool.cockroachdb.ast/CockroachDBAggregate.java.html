@@ -1,0 +1,110 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>CockroachDBAggregate.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">dqetool</a> &gt; <a href="index.source.html" class="el_package">dqetool.cockroachdb.ast</a> &gt; <span class="el_source">CockroachDBAggregate.java</span></div><h1>CockroachDBAggregate.java</h1><pre class="source lang-java linenums">package dqetool.cockroachdb.ast;
+
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+import java.util.stream.Collectors;
+
+import dqetool.Randomly;
+import dqetool.cockroachdb.CockroachDBSchema.CockroachDBDataType;
+
+public class CockroachDBAggregate implements CockroachDBExpression {
+
+    private CockroachDBAggregateFunction func;
+    private List&lt;CockroachDBExpression&gt; expr;
+
+<span class="nc" id="L16">    public enum CockroachDBAggregateFunction {</span>
+<span class="nc" id="L17">        SUM(CockroachDBDataType.INT, CockroachDBDataType.FLOAT, CockroachDBDataType.DECIMAL), //</span>
+<span class="nc" id="L18">        SUM_INT(CockroachDBDataType.INT), //</span>
+<span class="nc" id="L19">        AVG(CockroachDBDataType.INT, CockroachDBDataType.FLOAT, CockroachDBDataType.DECIMAL), //</span>
+<span class="nc" id="L20">        MIN() {</span>
+            @Override
+            public boolean supportsReturnType(CockroachDBDataType returnType) {
+<span class="nc" id="L23">                return true;</span>
+            }
+<span class="nc" id="L25">        }, //</span>
+<span class="nc" id="L26">        MAX() {</span>
+            @Override
+            public boolean supportsReturnType(CockroachDBDataType returnType) {
+<span class="nc" id="L29">                return true;</span>
+            }
+<span class="nc" id="L31">        }, //</span>
+<span class="nc" id="L32">        COUNT_ROWS(CockroachDBDataType.INT) {</span>
+            @Override
+            public List&lt;CockroachDBDataType&gt; getTypes(CockroachDBDataType returnType) {
+<span class="nc" id="L35">                return Collections.emptyList();</span>
+            }
+<span class="nc" id="L37">        }, //</span>
+<span class="nc" id="L38">        COUNT(CockroachDBDataType.INT) {</span>
+
+            @Override
+            public List&lt;CockroachDBDataType&gt; getTypes(CockroachDBDataType returnType) {
+<span class="nc" id="L42">                return Arrays.asList(CockroachDBDataType.getRandom());</span>
+            }
+<span class="nc" id="L44">        }, //</span>
+<span class="nc" id="L45">        SQRDIFF(CockroachDBDataType.INT, CockroachDBDataType.FLOAT, CockroachDBDataType.DECIMAL), //</span>
+<span class="nc" id="L46">        STDDEV(CockroachDBDataType.INT, CockroachDBDataType.FLOAT, CockroachDBDataType.DECIMAL), //</span>
+<span class="nc" id="L47">        VARIANCE(CockroachDBDataType.INT, CockroachDBDataType.FLOAT, CockroachDBDataType.DECIMAL), //</span>
+<span class="nc" id="L48">        XOR_AGG(CockroachDBDataType.BYTES, CockroachDBDataType.INT), //</span>
+<span class="nc" id="L49">        BIT_AND(CockroachDBDataType.INT), //</span>
+<span class="nc" id="L50">        BIT_OR(CockroachDBDataType.INT), //</span>
+<span class="nc" id="L51">        BOOL_AND(CockroachDBDataType.BOOL), //</span>
+<span class="nc" id="L52">        BOOL_OR(CockroachDBDataType.BOOL), STRING_AGG(CockroachDBDataType.STRING, CockroachDBDataType.BYTES) {</span>
+            @Override
+            public List&lt;CockroachDBDataType&gt; getTypes(CockroachDBDataType returnType) {
+<span class="nc" id="L55">                return Arrays.asList(returnType, returnType);</span>
+            }
+<span class="nc" id="L57">        }, //</span>
+<span class="nc" id="L58">        CONCAT_AGG(CockroachDBDataType.STRING, CockroachDBDataType.BYTES);</span>
+
+        private CockroachDBDataType[] supportedReturnTypes;
+
+        public List&lt;CockroachDBDataType&gt; getTypes(CockroachDBDataType returnType) {
+<span class="nc" id="L63">            return Arrays.asList(returnType);</span>
+        }
+
+        public boolean supportsReturnType(CockroachDBDataType returnType) {
+<span class="nc bnc" id="L67" title="All 4 branches missed.">            return Arrays.asList(supportedReturnTypes).stream().anyMatch(t -&gt; t == returnType)</span>
+<span class="nc bnc" id="L68" title="All 2 branches missed.">                    || supportedReturnTypes.length == 0;</span>
+        }
+
+        public static List&lt;CockroachDBAggregateFunction&gt; getAggregates(CockroachDBDataType type) {
+<span class="nc" id="L72">            return Arrays.asList(values()).stream().filter(p -&gt; p.supportsReturnType(type))</span>
+<span class="nc" id="L73">                    .collect(Collectors.toList());</span>
+        }
+
+        //
+<span class="nc" id="L77">        CockroachDBAggregateFunction(CockroachDBDataType... supportedReturnTypes) {</span>
+<span class="nc" id="L78">            this.supportedReturnTypes = supportedReturnTypes.clone();</span>
+<span class="nc" id="L79">        }</span>
+
+        public static CockroachDBAggregateFunction getRandomMetamorphicOracle() {
+            // not: VARIANCE, STDDEV, SQRDIFF
+<span class="nc" id="L83">            return Randomly.fromOptions(SUM, SUM_INT, MIN, MAX, XOR_AGG, BIT_AND, BIT_OR, BOOL_AND, BOOL_OR, COUNT, AVG,</span>
+<span class="nc" id="L84">                    COUNT_ROWS);</span>
+        }
+
+        public CockroachDBDataType getRandomReturnType() {
+<span class="nc bnc" id="L88" title="All 2 branches missed.">            if (supportedReturnTypes.length == 0) {</span>
+<span class="nc" id="L89">                return Randomly.fromOptions(CockroachDBDataType.getRandom());</span>
+            } else {
+<span class="nc" id="L91">                return Randomly.fromOptions(supportedReturnTypes);</span>
+            }
+        }
+    }
+
+<span class="nc" id="L96">    public CockroachDBAggregate(CockroachDBAggregateFunction func, List&lt;CockroachDBExpression&gt; expr) {</span>
+<span class="nc" id="L97">        this.func = func;</span>
+<span class="nc" id="L98">        this.expr = expr;</span>
+<span class="nc" id="L99">    }</span>
+
+    public CockroachDBAggregateFunction getFunc() {
+<span class="nc" id="L102">        return func;</span>
+    }
+
+    public List&lt;CockroachDBExpression&gt; getExpr() {
+<span class="nc" id="L106">        return expr;</span>
+    }
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.8.202204050719</span></div></body></html>

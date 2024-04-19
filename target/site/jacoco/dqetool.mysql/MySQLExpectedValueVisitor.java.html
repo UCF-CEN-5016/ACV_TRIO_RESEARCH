@@ -1,0 +1,157 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>MySQLExpectedValueVisitor.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">dqetool</a> &gt; <a href="index.source.html" class="el_package">dqetool.mysql</a> &gt; <span class="el_source">MySQLExpectedValueVisitor.java</span></div><h1>MySQLExpectedValueVisitor.java</h1><pre class="source lang-java linenums">package dqetool.mysql;
+
+import dqetool.IgnoreMeException;
+import dqetool.mysql.ast.MySQLBetweenOperation;
+import dqetool.mysql.ast.MySQLBinaryComparisonOperation;
+import dqetool.mysql.ast.MySQLBinaryLogicalOperation;
+import dqetool.mysql.ast.MySQLBinaryOperation;
+import dqetool.mysql.ast.MySQLCastOperation;
+import dqetool.mysql.ast.MySQLCollate;
+import dqetool.mysql.ast.MySQLColumnReference;
+import dqetool.mysql.ast.MySQLComputableFunction;
+import dqetool.mysql.ast.MySQLConstant;
+import dqetool.mysql.ast.MySQLExists;
+import dqetool.mysql.ast.MySQLExpression;
+import dqetool.mysql.ast.MySQLInOperation;
+import dqetool.mysql.ast.MySQLOrderByTerm;
+import dqetool.mysql.ast.MySQLSelect;
+import dqetool.mysql.ast.MySQLStringExpression;
+import dqetool.mysql.ast.MySQLTableReference;
+import dqetool.mysql.ast.MySQLUnaryPostfixOperation;
+
+<span class="nc" id="L22">public class MySQLExpectedValueVisitor implements MySQLVisitor {</span>
+
+<span class="nc" id="L24">    private final StringBuilder sb = new StringBuilder();</span>
+    private int nrTabs;
+
+    private void print(MySQLExpression expr) {
+<span class="nc" id="L28">        MySQLToStringVisitor v = new MySQLToStringVisitor();</span>
+<span class="nc" id="L29">        v.visit(expr);</span>
+<span class="nc bnc" id="L30" title="All 2 branches missed.">        for (int i = 0; i &lt; nrTabs; i++) {</span>
+<span class="nc" id="L31">            sb.append(&quot;\t&quot;);</span>
+        }
+<span class="nc" id="L33">        sb.append(v.get());</span>
+<span class="nc" id="L34">        sb.append(&quot; -- &quot;);</span>
+<span class="nc" id="L35">        sb.append(expr.getExpectedValue());</span>
+<span class="nc" id="L36">        sb.append(&quot;\n&quot;);</span>
+<span class="nc" id="L37">    }</span>
+
+    @Override
+    public void visit(MySQLExpression expr) {
+<span class="nc" id="L41">        nrTabs++;</span>
+        try {
+<span class="nc" id="L43">            MySQLVisitor.super.visit(expr);</span>
+<span class="nc" id="L44">        } catch (IgnoreMeException e) {</span>
+
+        }
+<span class="nc" id="L47">        nrTabs--;</span>
+<span class="nc" id="L48">    }</span>
+
+    @Override
+    public void visit(MySQLConstant constant) {
+<span class="nc" id="L52">        print(constant);</span>
+<span class="nc" id="L53">    }</span>
+
+    @Override
+    public void visit(MySQLColumnReference column) {
+<span class="nc" id="L57">        print(column);</span>
+<span class="nc" id="L58">    }</span>
+
+    @Override
+    public void visit(MySQLUnaryPostfixOperation op) {
+<span class="nc" id="L62">        print(op);</span>
+<span class="nc" id="L63">        visit(op.getExpression());</span>
+<span class="nc" id="L64">    }</span>
+
+    @Override
+    public void visit(MySQLComputableFunction f) {
+<span class="nc" id="L68">        print(f);</span>
+<span class="nc bnc" id="L69" title="All 2 branches missed.">        for (MySQLExpression expr : f.getArguments()) {</span>
+<span class="nc" id="L70">            visit(expr);</span>
+        }
+<span class="nc" id="L72">    }</span>
+
+    @Override
+    public void visit(MySQLBinaryLogicalOperation op) {
+<span class="nc" id="L76">        print(op);</span>
+<span class="nc" id="L77">        visit(op.getLeft());</span>
+<span class="nc" id="L78">        visit(op.getRight());</span>
+<span class="nc" id="L79">    }</span>
+
+    public String get() {
+<span class="nc" id="L82">        return sb.toString();</span>
+    }
+
+    @Override
+    public void visit(MySQLSelect select) {
+<span class="nc bnc" id="L87" title="All 2 branches missed.">        for (MySQLExpression j : select.getJoinList()) {</span>
+<span class="nc" id="L88">            visit(j);</span>
+        }
+<span class="nc bnc" id="L90" title="All 2 branches missed.">        if (select.getWhereClause() != null) {</span>
+<span class="nc" id="L91">            visit(select.getWhereClause());</span>
+        }
+<span class="nc" id="L93">    }</span>
+
+    @Override
+    public void visit(MySQLBinaryComparisonOperation op) {
+<span class="nc" id="L97">        print(op);</span>
+<span class="nc" id="L98">        visit(op.getLeft());</span>
+<span class="nc" id="L99">        visit(op.getRight());</span>
+<span class="nc" id="L100">    }</span>
+
+    @Override
+    public void visit(MySQLCastOperation op) {
+<span class="nc" id="L104">        print(op);</span>
+<span class="nc" id="L105">        visit(op.getExpr());</span>
+<span class="nc" id="L106">    }</span>
+
+    @Override
+    public void visit(MySQLInOperation op) {
+<span class="nc" id="L110">        print(op);</span>
+<span class="nc bnc" id="L111" title="All 2 branches missed.">        for (MySQLExpression right : op.getListElements()) {</span>
+<span class="nc" id="L112">            visit(right);</span>
+        }
+<span class="nc" id="L114">    }</span>
+
+    @Override
+    public void visit(MySQLBinaryOperation op) {
+<span class="nc" id="L118">        print(op);</span>
+<span class="nc" id="L119">        visit(op.getLeft());</span>
+<span class="nc" id="L120">        visit(op.getRight());</span>
+<span class="nc" id="L121">    }</span>
+
+    @Override
+    public void visit(MySQLOrderByTerm op) {
+<span class="nc" id="L125">    }</span>
+
+    @Override
+    public void visit(MySQLExists op) {
+<span class="nc" id="L129">        print(op);</span>
+<span class="nc" id="L130">        visit(op.getExpr());</span>
+<span class="nc" id="L131">    }</span>
+
+    @Override
+    public void visit(MySQLStringExpression op) {
+<span class="nc" id="L135">        print(op);</span>
+<span class="nc" id="L136">    }</span>
+
+    @Override
+    public void visit(MySQLBetweenOperation op) {
+<span class="nc" id="L140">        print(op);</span>
+<span class="nc" id="L141">        visit(op.getExpr());</span>
+<span class="nc" id="L142">        visit(op.getLeft());</span>
+<span class="nc" id="L143">        visit(op.getRight());</span>
+<span class="nc" id="L144">    }</span>
+
+    @Override
+    public void visit(MySQLTableReference ref) {
+<span class="nc" id="L148">    }</span>
+
+    @Override
+    public void visit(MySQLCollate collate) {
+<span class="nc" id="L152">        print(collate);</span>
+<span class="nc" id="L153">        visit(collate.getExpectedValue());</span>
+<span class="nc" id="L154">    }</span>
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.8.202204050719</span></div></body></html>

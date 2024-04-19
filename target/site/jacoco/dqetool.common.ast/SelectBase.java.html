@@ -1,0 +1,111 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>SelectBase.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">dqetool</a> &gt; <a href="index.source.html" class="el_package">dqetool.common.ast</a> &gt; <span class="el_source">SelectBase.java</span></div><h1>SelectBase.java</h1><pre class="source lang-java linenums">package dqetool.common.ast;
+
+import java.util.Collections;
+import java.util.List;
+
+<span class="nc" id="L6">public class SelectBase&lt;T&gt; {</span>
+
+    List&lt;T&gt; fetchColumns;
+<span class="nc" id="L9">    List&lt;T&gt; groupByExpressions = Collections.emptyList();</span>
+<span class="nc" id="L10">    List&lt;T&gt; orderByExpressions = Collections.emptyList();</span>
+<span class="nc" id="L11">    List&lt;T&gt; joinList = Collections.emptyList();</span>
+    List&lt;T&gt; fromList;
+    T whereClause;
+    T havingClause;
+    T limitClause;
+    T offsetClause;
+
+    public void setFetchColumns(List&lt;T&gt; fetchColumns) {
+<span class="nc bnc" id="L19" title="All 4 branches missed.">        if (fetchColumns == null || fetchColumns.isEmpty()) {</span>
+<span class="nc" id="L20">            throw new IllegalArgumentException();</span>
+        }
+<span class="nc" id="L22">        this.fetchColumns = fetchColumns;</span>
+<span class="nc" id="L23">    }</span>
+
+    public List&lt;T&gt; getFetchColumns() {
+<span class="nc bnc" id="L26" title="All 2 branches missed.">        if (fetchColumns == null) {</span>
+<span class="nc" id="L27">            throw new IllegalStateException();</span>
+        }
+<span class="nc" id="L29">        return fetchColumns;</span>
+    }
+
+    public void setFromList(List&lt;T&gt; fromList) {
+<span class="nc bnc" id="L33" title="All 2 branches missed.">        if (fromList == null /* || fromList.size() == 0 TODO: refactor the CockroachDB implementation */) {</span>
+<span class="nc" id="L34">            throw new IllegalArgumentException();</span>
+        }
+<span class="nc" id="L36">        this.fromList = fromList;</span>
+<span class="nc" id="L37">    }</span>
+
+    public List&lt;T&gt; getFromList() {
+<span class="nc bnc" id="L40" title="All 2 branches missed.">        if (fromList == null) {</span>
+<span class="nc" id="L41">            throw new IllegalStateException();</span>
+        }
+<span class="nc" id="L43">        return fromList;</span>
+    }
+
+    public void setGroupByExpressions(List&lt;T&gt; groupByExpressions) {
+<span class="nc bnc" id="L47" title="All 2 branches missed.">        if (groupByExpressions == null) {</span>
+<span class="nc" id="L48">            throw new IllegalArgumentException();</span>
+        }
+<span class="nc" id="L50">        this.groupByExpressions = groupByExpressions;</span>
+<span class="nc" id="L51">    }</span>
+
+    public List&lt;T&gt; getGroupByExpressions() {
+<span class="nc bnc" id="L54" title="All 2 branches missed.">        assert groupByExpressions != null;</span>
+<span class="nc" id="L55">        return groupByExpressions;</span>
+    }
+
+    public void setOrderByExpressions(List&lt;T&gt; orderByExpressions) {
+<span class="nc bnc" id="L59" title="All 2 branches missed.">        if (orderByExpressions == null) {</span>
+<span class="nc" id="L60">            throw new IllegalArgumentException();</span>
+        }
+<span class="nc" id="L62">        this.orderByExpressions = orderByExpressions;</span>
+<span class="nc" id="L63">    }</span>
+
+    public List&lt;T&gt; getOrderByExpressions() {
+<span class="nc bnc" id="L66" title="All 2 branches missed.">        assert orderByExpressions != null;</span>
+<span class="nc" id="L67">        return orderByExpressions;</span>
+    }
+
+    public void setWhereClause(T whereClause) {
+<span class="nc" id="L71">        this.whereClause = whereClause;</span>
+<span class="nc" id="L72">    }</span>
+
+    public T getWhereClause() {
+<span class="nc" id="L75">        return whereClause;</span>
+    }
+
+    public void setHavingClause(T havingClause) {
+<span class="nc" id="L79">        this.havingClause = havingClause;</span>
+<span class="nc" id="L80">    }</span>
+
+    public T getHavingClause() {
+<span class="nc" id="L83">        return havingClause;</span>
+    }
+
+    public void setLimitClause(T limitClause) {
+<span class="nc" id="L87">        this.limitClause = limitClause;</span>
+<span class="nc" id="L88">    }</span>
+
+    public T getLimitClause() {
+<span class="nc" id="L91">        return limitClause;</span>
+    }
+
+    public void setOffsetClause(T offsetClause) {
+<span class="nc" id="L95">        this.offsetClause = offsetClause;</span>
+<span class="nc" id="L96">    }</span>
+
+    public T getOffsetClause() {
+<span class="nc" id="L99">        return offsetClause;</span>
+    }
+
+    public List&lt;T&gt; getJoinList() {
+<span class="nc" id="L103">        return joinList;</span>
+    }
+
+    public void setJoinList(List&lt;T&gt; joinList) {
+<span class="nc" id="L107">        this.joinList = joinList;</span>
+<span class="nc" id="L108">    }</span>
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.8.202204050719</span></div></body></html>

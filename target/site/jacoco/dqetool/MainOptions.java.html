@@ -1,0 +1,289 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>MainOptions.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">dqetool</a> &gt; <a href="index.source.html" class="el_package">dqetool</a> &gt; <span class="el_source">MainOptions.java</span></div><h1>MainOptions.java</h1><pre class="source lang-java linenums">package dqetool;
+
+import java.util.Objects;
+
+import com.beust.jcommander.Parameter;
+import com.beust.jcommander.Parameters;
+
+import dqetool.Randomly.StringGenerationStrategy;
+
+@Parameters(separators = &quot;=&quot;, commandDescription = &quot;Options applicable to all DBMS&quot;)
+<span class="nc" id="L11">public class MainOptions {</span>
+    public static final int NO_SET_PORT = -1;
+<span class="nc" id="L13">    public static final MainOptions DEFAULT_OPTIONS = new MainOptions();</span>
+
+    @Parameter(names = { &quot;--help&quot;, &quot;-h&quot; }, description = &quot;Lists all supported options and commands&quot;, help = true)
+    private boolean help; // NOPMD
+
+    @Parameter(names = {
+            &quot;--num-threads&quot; }, description = &quot;How many threads should run concurrently to test separate databases&quot;)
+<span class="nc" id="L20">    private int nrConcurrentThreads = 16; // NOPMD</span>
+
+    @Parameter(names = {
+            &quot;--random-seed&quot; }, description = &quot;A seed value != -1 that can be set to make the query and database generation deterministic&quot;)
+<span class="nc" id="L24">    private long randomSeed = -1; // NOPMD</span>
+
+    @Parameter(names = { &quot;--num-tries&quot; }, description = &quot;Specifies after how many found errors to stop testing&quot;)
+<span class="nc" id="L27">    private int totalNumberTries = 100; // NOPMD</span>
+
+    @Parameter(names = { &quot;--max-num-inserts&quot; }, description = &quot;Specifies how many INSERT statements should be issued&quot;)
+<span class="nc" id="L30">    private int maxNumberInserts = 30; // NOPMD</span>
+
+    @Parameter(names = {
+            &quot;--max-expression-depth&quot; }, description = &quot;Specifies the maximum depth of randomly-generated expressions&quot;)
+<span class="nc" id="L34">    private int maxExpressionDepth = 3; // NOPMD</span>
+
+    @Parameter(names = {
+            &quot;--num-queries&quot; }, description = &quot;Specifies the number of queries to be issued to a database before creating a new database&quot;)
+<span class="nc" id="L38">    private int nrQueries = 100000; // NOPMD</span>
+
+    @Parameter(names = {
+            &quot;--num-statement-kind-retries&quot; }, description = &quot;Specifies the number of times a specific statement kind (e.g., INSERT) should be retried when the DBMS indicates that it failed&quot;)
+<span class="nc" id="L42">    private int nrStatementRetryCount = 1000; // NOPMD</span>
+
+    @Parameter(names = &quot;--log-each-select&quot;, description = &quot;Logs every statement issued&quot;, arity = 1)
+<span class="nc" id="L45">    private boolean logEachSelect = true; // NOPMD</span>
+
+    @Parameter(names = &quot;--log-execution-time&quot;, description = &quot;Logs the execution time of each statement (requires --log-each-select to be enabled)&quot;, arity = 1)
+<span class="nc" id="L48">    private boolean logExecutionTime = true; // NOPMD</span>
+
+    @Parameter(names = &quot;--print-failed&quot;, description = &quot;Logs failed insert, create and other statements without results&quot;, arity = 1)
+<span class="nc" id="L51">    private boolean loggerPrintFailed = true; // NOPMD</span>
+
+    @Parameter(names = &quot;--qpg-enable&quot;, description = &quot;Enable the experimental feature Query Plan Guidance (QPG)&quot;, arity = 1)
+    private boolean enableQPG;
+
+    @Parameter(names = &quot;--qpg-log-query-plan&quot;, description = &quot;Logs the query plans of each query (requires --qpg-enable)&quot;, arity = 1)
+    private boolean logQueryPlan;
+
+    @Parameter(names = &quot;--qpg-max-interval&quot;, description = &quot;The maximum number of iterations to mutate tables if no new query plans (requires --qpg-enable)&quot;)
+<span class="nc" id="L60">    private static int qpgMaxInterval = 1000;</span>
+
+    @Parameter(names = &quot;--qpg-reward-weight&quot;, description = &quot;The weight (0-1) of last reward when updating weighted average reward. A higher value denotes average reward is more affected by the last reward (requires --qpg-enable)&quot;)
+<span class="nc" id="L63">    private static double qpgk = 0.25;</span>
+
+    @Parameter(names = &quot;--qpg-selection-probability&quot;, description = &quot;The probability (0-1) of the random selection of mutators. A higher value (&gt;0.5) favors exploration over exploitation. (requires --qpg-enable)&quot;)
+<span class="nc" id="L66">    private static double qpgProbability = 0.7;</span>
+
+    @Parameter(names = &quot;--username&quot;, description = &quot;The user name used to log into the DBMS&quot;)
+<span class="nc" id="L69">    private String userName = &quot;dqetool&quot;; // NOPMD</span>
+
+    @Parameter(names = &quot;--password&quot;, description = &quot;The password used to log into the DBMS&quot;)
+<span class="nc" id="L72">    private String password = &quot;dqetool&quot;; // NOPMD</span>
+
+    @Parameter(names = &quot;--host&quot;, description = &quot;The host used to log into the DBMS&quot;)
+<span class="nc" id="L75">    private String host = null; // NOPMD</span>
+
+    @Parameter(names = &quot;--port&quot;, description = &quot;The port used to log into the DBMS&quot;)
+<span class="nc" id="L78">    private int port = MainOptions.NO_SET_PORT; // NOPMD</span>
+
+    @Parameter(names = &quot;--print-progress-information&quot;, description = &quot;Whether to print progress information such as the number of databases generated or queries issued&quot;, arity = 1)
+<span class="nc" id="L81">    private boolean printProgressInformation = true; // NOPMD</span>
+
+    @Parameter(names = &quot;--print-progress-summary&quot;, description = &quot;Whether to print an execution summary when exiting SQLancer&quot;, arity = 1)
+    private boolean printProgressSummary; // NOPMD
+
+    @Parameter(names = &quot;--timeout-seconds&quot;, description = &quot;The timeout in seconds&quot;)
+<span class="nc" id="L87">    private int timeoutSeconds = -1; // NOPMD</span>
+
+    @Parameter(names = &quot;--max-generated-databases&quot;, description = &quot;The maximum number of databases that are generated by each thread&quot;)
+<span class="nc" id="L90">    private int maxGeneratedDatabases = -1; // NOPMD</span>
+
+    @Parameter(names = &quot;--exit-code-error&quot;, description = &quot;The exit code that should be returned when an error is encountered (or a bug is found)&quot;)
+<span class="nc" id="L93">    private int errorExitCode = -1; // NOPMD</span>
+
+    @Parameter(names = &quot;--print-statements&quot;, description = &quot;Print all statements to stdout, before they are sent to the DBMS (not yet implemented for all oracles)&quot;, arity = 1)
+    private boolean printStatements; // NOPMD
+
+    @Parameter(names = &quot;--print-succeeding-statements&quot;, description = &quot;Print statements that are successfully processed by the DBMS to stdout (not yet implemented for all oracles)&quot;, arity = 1)
+    private boolean printSucceedingStatements; // NOPMD
+
+    @Parameter(names = &quot;--test-only-nonempty-tables&quot;, description = &quot;Test only databases each of whose tables contain at least a single row&quot;, arity = 1)
+    private boolean testOnlyWithMoreThanZeroRows; // NOPMD
+
+    @Parameter(names = &quot;--pqs-test-aggregates&quot;, description = &quot;Partially test aggregate functions when all tables contain only a single row.&quot;, arity = 1)
+    private boolean testAggregateFunctions; // NOPMD
+
+    @Parameter(names = &quot;--random-string-generation&quot;, description = &quot;Select the random-string eneration approach&quot;)
+<span class="nc" id="L108">    private StringGenerationStrategy randomStringGenerationStrategy = StringGenerationStrategy.SOPHISTICATED; // NOPMD</span>
+
+    @Parameter(names = &quot;--string-constant-max-length&quot;, description = &quot;Specify the maximum-length of generated string constants&quot;)
+<span class="nc" id="L111">    private int maxStringConstantLength = 10; // NOPMD</span>
+
+    @Parameter(names = &quot;--use-constant-caching&quot;, description = &quot;Specifies whether constants should be cached and re-used with a certain probability&quot;, arity = 1)
+<span class="nc" id="L114">    private boolean useConstantCaching = true; // NOPMD</span>
+
+    @Parameter(names = &quot;--use-connection-test&quot;, description = &quot;Test whether the DBMS is accessible before trying to connect using multiple threads&quot;, arity = 1)
+<span class="nc" id="L117">    private boolean useConnectionTest = true; // NOPMD</span>
+
+    @Parameter(names = &quot;--constant-cache-size&quot;, description = &quot;Specifies the size of the constant cache. This option only takes effect when constant caching is enabled&quot;)
+<span class="nc" id="L120">    private int constantCacheSize = 100; // NOPMD</span>
+
+    @Parameter(names = &quot;--database-prefix&quot;, description = &quot;The prefix used for each database created&quot;)
+<span class="nc" id="L123">    private String databasePrefix = &quot;database&quot;; // NOPMD</span>
+
+    @Parameter(names = &quot;--use-reducer&quot;, description = &quot;EXPERIMENTAL Attempt to reduce queries using a simple reducer&quot;)
+<span class="nc" id="L126">    private boolean useReducer = false; // NOPMD</span>
+
+    public int getMaxExpressionDepth() {
+<span class="nc" id="L129">        return maxExpressionDepth;</span>
+    }
+
+    public int getTotalNumberTries() {
+<span class="nc" id="L133">        return totalNumberTries;</span>
+    }
+
+    public int getNumberConcurrentThreads() {
+<span class="nc" id="L137">        return nrConcurrentThreads;</span>
+    }
+
+    public boolean logEachSelect() {
+<span class="nc" id="L141">        return logEachSelect;</span>
+    }
+
+    public boolean printAllStatements() {
+<span class="nc bnc" id="L145" title="All 4 branches missed.">        if (printSucceedingStatements &amp;&amp; printStatements) {</span>
+<span class="nc" id="L146">            throw new AssertionError();</span>
+        }
+<span class="nc" id="L148">        return printStatements;</span>
+    }
+
+    public boolean printSucceedingStatements() {
+<span class="nc bnc" id="L152" title="All 4 branches missed.">        if (printStatements &amp;&amp; printSucceedingStatements) {</span>
+<span class="nc" id="L153">            throw new AssertionError();</span>
+        }
+<span class="nc" id="L155">        return printSucceedingStatements;</span>
+    }
+
+    public boolean logExecutionTime() {
+<span class="nc bnc" id="L159" title="All 2 branches missed.">        if (!logEachSelect) {</span>
+<span class="nc" id="L160">            throw new AssertionError();</span>
+        }
+<span class="nc" id="L162">        return logExecutionTime;</span>
+    }
+
+    public boolean loggerPrintFailed() {
+<span class="nc" id="L166">        return loggerPrintFailed;</span>
+    }
+
+    public boolean logQueryPlan() {
+<span class="nc" id="L170">        return logQueryPlan;</span>
+    }
+
+    public boolean enableQPG() {
+<span class="nc" id="L174">        return enableQPG;</span>
+    }
+
+    public int getQPGMaxMutationInterval() {
+<span class="nc" id="L178">        return qpgMaxInterval;</span>
+    }
+
+    public double getQPGk() {
+<span class="nc" id="L182">        return qpgk;</span>
+    }
+
+    public double getQPGProbability() {
+<span class="nc" id="L186">        return qpgProbability;</span>
+    }
+
+    public int getNrQueries() {
+<span class="nc" id="L190">        return nrQueries;</span>
+    }
+
+    public int getMaxNumberInserts() {
+<span class="nc" id="L194">        return maxNumberInserts;</span>
+    }
+
+    public int getNrStatementRetryCount() {
+<span class="nc" id="L198">        return nrStatementRetryCount;</span>
+    }
+
+    public String getUserName() {
+<span class="nc" id="L202">        return userName;</span>
+    }
+
+    public String getPassword() {
+<span class="nc" id="L206">        return password;</span>
+    }
+
+    public String getHost() {
+<span class="nc" id="L210">        return host;</span>
+    }
+
+    public int getPort() {
+<span class="nc" id="L214">        return port;</span>
+    }
+
+    public boolean printProgressInformation() {
+<span class="nc" id="L218">        return printProgressInformation;</span>
+    }
+
+    public boolean printProgressSummary() {
+<span class="nc" id="L222">        return printProgressSummary;</span>
+    }
+
+    public int getTimeoutSeconds() {
+<span class="nc" id="L226">        return timeoutSeconds;</span>
+    }
+
+    public int getMaxGeneratedDatabases() {
+<span class="nc" id="L230">        return maxGeneratedDatabases;</span>
+    }
+
+    public int getErrorExitCode() {
+<span class="nc" id="L234">        return errorExitCode;</span>
+    }
+
+    public long getRandomSeed() {
+<span class="nc" id="L238">        return randomSeed;</span>
+    }
+
+    public boolean testAggregateFunctionsPQS() {
+<span class="nc" id="L242">        return testAggregateFunctions;</span>
+    }
+
+    public boolean testOnlyWithMoreThanZeroRows() {
+<span class="nc" id="L246">        return testOnlyWithMoreThanZeroRows;</span>
+    }
+
+    public StringGenerationStrategy getRandomStringGenerationStrategy() {
+<span class="nc" id="L250">        return randomStringGenerationStrategy;</span>
+    }
+
+    public int getMaxStringConstantLength() {
+<span class="nc" id="L254">        return maxStringConstantLength;</span>
+    }
+
+    public boolean useConstantCaching() {
+<span class="nc" id="L258">        return useConstantCaching;</span>
+    }
+
+    public int getConstantCacheSize() {
+<span class="nc" id="L262">        return constantCacheSize;</span>
+    }
+
+    public boolean isHelp() {
+<span class="nc" id="L266">        return help;</span>
+    }
+
+    public boolean isDefaultPassword() {
+<span class="nc" id="L270">        return Objects.equals(password, DEFAULT_OPTIONS.password);</span>
+    }
+
+    public boolean isDefaultUsername() {
+<span class="nc" id="L274">        return Objects.equals(userName, DEFAULT_OPTIONS.userName);</span>
+    }
+
+    public String getDatabasePrefix() {
+<span class="nc" id="L278">        return databasePrefix;</span>
+    }
+
+    public boolean performConnectionTest() {
+<span class="nc" id="L282">        return useConnectionTest;</span>
+    }
+
+    public boolean useReducer() {
+<span class="nc" id="L286">        return useReducer;</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.8.202204050719</span></div></body></html>

@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>MySQLDeleteGenerator.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">dqetool</a> &gt; <a href="index.source.html" class="el_package">dqetool.mysql.gen</a> &gt; <span class="el_source">MySQLDeleteGenerator.java</span></div><h1>MySQLDeleteGenerator.java</h1><pre class="source lang-java linenums">package dqetool.mysql.gen;
+
+import java.util.Arrays;
+
+import dqetool.Randomly;
+import dqetool.common.query.ExpectedErrors;
+import dqetool.common.query.SQLQueryAdapter;
+import dqetool.mysql.MySQLErrors;
+import dqetool.mysql.MySQLGlobalState;
+import dqetool.mysql.MySQLSchema.MySQLTable;
+import dqetool.mysql.MySQLVisitor;
+
+public class MySQLDeleteGenerator {
+
+<span class="nc" id="L15">    private final StringBuilder sb = new StringBuilder();</span>
+    private final MySQLGlobalState globalState;
+
+<span class="nc" id="L18">    public MySQLDeleteGenerator(MySQLGlobalState globalState) {</span>
+<span class="nc" id="L19">        this.globalState = globalState;</span>
+<span class="nc" id="L20">    }</span>
+
+    public static SQLQueryAdapter delete(MySQLGlobalState globalState) {
+<span class="nc" id="L23">        return new MySQLDeleteGenerator(globalState).generate();</span>
+    }
+
+    private SQLQueryAdapter generate() {
+<span class="nc" id="L27">        MySQLTable randomTable = globalState.getSchema().getRandomTable();</span>
+<span class="nc" id="L28">        MySQLExpressionGenerator gen = new MySQLExpressionGenerator(globalState).setColumns(randomTable.getColumns());</span>
+<span class="nc" id="L29">        ExpectedErrors errors = new ExpectedErrors();</span>
+<span class="nc" id="L30">        sb.append(&quot;DELETE&quot;);</span>
+<span class="nc bnc" id="L31" title="All 2 branches missed.">        if (Randomly.getBoolean()) {</span>
+<span class="nc" id="L32">            sb.append(&quot; LOW_PRIORITY&quot;);</span>
+        }
+<span class="nc bnc" id="L34" title="All 2 branches missed.">        if (Randomly.getBoolean()) {</span>
+<span class="nc" id="L35">            sb.append(&quot; QUICK&quot;);</span>
+        }
+<span class="nc bnc" id="L37" title="All 2 branches missed.">        if (Randomly.getBoolean()) {</span>
+<span class="nc" id="L38">            sb.append(&quot; IGNORE&quot;);</span>
+        }
+        // TODO: support partitions
+<span class="nc" id="L41">        sb.append(&quot; FROM &quot;);</span>
+<span class="nc" id="L42">        sb.append(randomTable.getName());</span>
+<span class="nc bnc" id="L43" title="All 2 branches missed.">        if (Randomly.getBoolean()) {</span>
+<span class="nc" id="L44">            sb.append(&quot; WHERE &quot;);</span>
+<span class="nc" id="L45">            sb.append(MySQLVisitor.asString(gen.generateExpression()));</span>
+<span class="nc" id="L46">            MySQLErrors.addExpressionErrors(errors);</span>
+        }
+<span class="nc" id="L48">        errors.addAll(Arrays.asList(&quot;doesn't have this option&quot;,</span>
+<span class="nc" id="L49">                &quot;Truncated incorrect DOUBLE value&quot; /*</span>
+                                                    * ignore as a workaround for https://bugs.mysql.com/bug.php?id=95997
+<span class="nc" id="L51">                                                    */, &quot;Truncated incorrect INTEGER value&quot;,</span>
+<span class="nc" id="L52">                &quot;Truncated incorrect DECIMAL value&quot;, &quot;Data truncated for functional index&quot;));</span>
+        // TODO: support ORDER BY
+<span class="nc" id="L54">        return new SQLQueryAdapter(sb.toString(), errors);</span>
+    }
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.8.202204050719</span></div></body></html>

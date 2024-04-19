@@ -1,0 +1,626 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>SQLite3Constant.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">dqetool</a> &gt; <a href="index.source.html" class="el_package">dqetool.sqlite3.ast</a> &gt; <span class="el_source">SQLite3Constant.java</span></div><h1>SQLite3Constant.java</h1><pre class="source lang-java linenums">package dqetool.sqlite3.ast;
+
+import java.math.BigDecimal;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
+import dqetool.Randomly;
+import dqetool.sqlite3.SQLite3Visitor;
+import dqetool.sqlite3.schema.SQLite3DataType;
+import dqetool.sqlite3.schema.SQLite3Schema.SQLite3Column.SQLite3CollateSequence;
+
+<span class="nc" id="L12">public abstract class SQLite3Constant extends SQLite3Expression {</span>
+
+<span class="nc" id="L14">    public static class SQLite3NullConstant extends SQLite3Constant {</span>
+
+        @Override
+        public boolean isNull() {
+<span class="nc" id="L18">            return true;</span>
+        }
+
+        @Override
+        public Object getValue() {
+<span class="nc" id="L23">            return null;</span>
+        }
+
+        @Override
+        public SQLite3DataType getDataType() {
+<span class="nc" id="L28">            return SQLite3DataType.NULL;</span>
+        }
+
+        @Override
+        public SQLite3Constant applyEquals(SQLite3Constant right, SQLite3CollateSequence collate) {
+<span class="nc" id="L33">            return SQLite3Constant.createNullConstant();</span>
+        }
+
+        @Override
+        public SQLite3Constant applyNumericAffinity() {
+<span class="nc" id="L38">            return this;</span>
+        }
+
+        @Override
+        public SQLite3Constant applyTextAffinity() {
+<span class="nc" id="L43">            return this;</span>
+        }
+
+        @Override
+        String getStringRepresentation() {
+<span class="nc" id="L48">            return &quot;NULL&quot;;</span>
+        }
+
+        @Override
+        public SQLite3Constant castToBoolean() {
+<span class="nc" id="L53">            return SQLite3Cast.asBoolean(this);</span>
+        }
+
+        @Override
+        public SQLite3Constant applyLess(SQLite3Constant right, SQLite3CollateSequence collate) {
+<span class="nc" id="L58">            return SQLite3Constant.createNullConstant();</span>
+        }
+
+    }
+
+<span class="nc" id="L63">    public static class SQLite3IntConstant extends SQLite3Constant {</span>
+
+        private final long value;
+        private final boolean isHex;
+
+<span class="nc" id="L68">        public SQLite3IntConstant(long value, boolean isHex) {</span>
+<span class="nc" id="L69">            this.value = value;</span>
+<span class="nc" id="L70">            this.isHex = isHex;</span>
+<span class="nc" id="L71">        }</span>
+
+<span class="nc" id="L73">        public SQLite3IntConstant(long value) {</span>
+<span class="nc" id="L74">            this.value = value;</span>
+<span class="nc" id="L75">            this.isHex = false;</span>
+<span class="nc" id="L76">        }</span>
+
+        @Override
+        public boolean isHex() {
+<span class="nc" id="L80">            return isHex;</span>
+        }
+
+        @Override
+        public boolean isNull() {
+<span class="nc" id="L85">            return false;</span>
+        }
+
+        @Override
+        public long asInt() {
+<span class="nc" id="L90">            return value;</span>
+        }
+
+        @Override
+        public Object getValue() {
+<span class="nc" id="L95">            return value;</span>
+        }
+
+        @Override
+        public SQLite3DataType getDataType() {
+<span class="nc" id="L100">            return SQLite3DataType.INT;</span>
+        }
+
+        @Override
+        public SQLite3Constant applyEquals(SQLite3Constant right, SQLite3CollateSequence collate) {
+<span class="nc bnc" id="L105" title="All 2 branches missed.">            if (right instanceof SQLite3RealConstant) {</span>
+<span class="nc bnc" id="L106" title="All 2 branches missed.">                if (Double.isInfinite(right.asDouble())) {</span>
+<span class="nc" id="L107">                    return SQLite3Constant.createFalse();</span>
+                }
+<span class="nc" id="L109">                BigDecimal otherColumnValue = BigDecimal.valueOf(right.asDouble());</span>
+<span class="nc" id="L110">                BigDecimal thisColumnValue = BigDecimal.valueOf(value);</span>
+<span class="nc bnc" id="L111" title="All 2 branches missed.">                return SQLite3Constant.createBoolean(thisColumnValue.compareTo(otherColumnValue) == 0);</span>
+<span class="nc bnc" id="L112" title="All 2 branches missed.">            } else if (right instanceof SQLite3IntConstant) {</span>
+<span class="nc bnc" id="L113" title="All 2 branches missed.">                return SQLite3Constant.createBoolean(value == right.asInt());</span>
+<span class="nc bnc" id="L114" title="All 2 branches missed.">            } else if (right instanceof SQLite3NullConstant) {</span>
+<span class="nc" id="L115">                return SQLite3Constant.createNullConstant();</span>
+            } else {
+<span class="nc" id="L117">                return SQLite3Constant.createFalse();</span>
+            }
+        }
+
+        @Override
+        public SQLite3Constant applyNumericAffinity() {
+<span class="nc" id="L123">            return this;</span>
+        }
+
+        @Override
+        public SQLite3Constant applyTextAffinity() {
+<span class="nc" id="L128">            return SQLite3Constant.createTextConstant(String.valueOf(value));</span>
+        }
+
+        @Override
+        String getStringRepresentation() {
+<span class="nc" id="L133">            return String.valueOf(value);</span>
+        }
+
+        @Override
+        public SQLite3Constant castToBoolean() {
+<span class="nc" id="L138">            return SQLite3Cast.asBoolean(this);</span>
+        }
+
+        @Override
+        public SQLite3Constant applyLess(SQLite3Constant right, SQLite3CollateSequence collate) {
+<span class="nc bnc" id="L143" title="All 2 branches missed.">            if (right.isNull()) {</span>
+<span class="nc" id="L144">                return right;</span>
+<span class="nc bnc" id="L145" title="All 4 branches missed.">            } else if (right.getDataType() == SQLite3DataType.TEXT || right.getDataType() == SQLite3DataType.BINARY) {</span>
+<span class="nc" id="L146">                return SQLite3Constant.createTrue();</span>
+<span class="nc bnc" id="L147" title="All 2 branches missed.">            } else if (right.getDataType() == SQLite3DataType.INT) {</span>
+<span class="nc" id="L148">                long rightValue = right.asInt();</span>
+<span class="nc bnc" id="L149" title="All 2 branches missed.">                return SQLite3Constant.createBoolean(value &lt; rightValue);</span>
+            } else {
+<span class="nc bnc" id="L151" title="All 2 branches missed.">                if (Double.POSITIVE_INFINITY == right.asDouble()) {</span>
+<span class="nc" id="L152">                    return SQLite3Constant.createTrue();</span>
+<span class="nc bnc" id="L153" title="All 2 branches missed.">                } else if (Double.NEGATIVE_INFINITY == right.asDouble()) {</span>
+<span class="nc" id="L154">                    return SQLite3Constant.createFalse();</span>
+                }
+<span class="nc bnc" id="L156" title="All 2 branches missed.">                assert right.getDataType() == SQLite3DataType.REAL;</span>
+<span class="nc" id="L157">                BigDecimal otherColumnValue = BigDecimal.valueOf(right.asDouble());</span>
+<span class="nc" id="L158">                BigDecimal thisColumnValue = BigDecimal.valueOf(value);</span>
+<span class="nc bnc" id="L159" title="All 2 branches missed.">                return SQLite3Constant.createBoolean(thisColumnValue.compareTo(otherColumnValue) &lt; 0);</span>
+            }
+        }
+
+    }
+
+<span class="nc" id="L165">    public static class SQLite3RealConstant extends SQLite3Constant {</span>
+
+        private final double value;
+
+<span class="nc" id="L169">        public SQLite3RealConstant(double value) {</span>
+<span class="nc" id="L170">            this.value = value;</span>
+<span class="nc" id="L171">        }</span>
+
+        @Override
+        public boolean isNull() {
+<span class="nc" id="L175">            return false;</span>
+        }
+
+        @Override
+        public double asDouble() {
+<span class="nc" id="L180">            return value;</span>
+        }
+
+        @Override
+        public Object getValue() {
+<span class="nc" id="L185">            return value;</span>
+        }
+
+        @Override
+        public SQLite3DataType getDataType() {
+<span class="nc" id="L190">            return SQLite3DataType.REAL;</span>
+        }
+
+        @Override
+        public SQLite3Constant applyEquals(SQLite3Constant right, SQLite3CollateSequence collate) {
+<span class="nc bnc" id="L195" title="All 2 branches missed.">            if (right instanceof SQLite3RealConstant) {</span>
+<span class="nc bnc" id="L196" title="All 2 branches missed.">                return SQLite3Constant.createBoolean(value == right.asDouble());</span>
+<span class="nc bnc" id="L197" title="All 2 branches missed.">            } else if (right instanceof SQLite3IntConstant) {</span>
+<span class="nc bnc" id="L198" title="All 2 branches missed.">                if (Double.isInfinite(value)) {</span>
+<span class="nc" id="L199">                    return SQLite3Constant.createFalse();</span>
+                }
+<span class="nc" id="L201">                BigDecimal thisColumnValue = BigDecimal.valueOf(value);</span>
+<span class="nc" id="L202">                BigDecimal otherColumnValue = BigDecimal.valueOf(right.asInt());</span>
+<span class="nc bnc" id="L203" title="All 2 branches missed.">                return SQLite3Constant.createBoolean(thisColumnValue.compareTo(otherColumnValue) == 0);</span>
+<span class="nc bnc" id="L204" title="All 2 branches missed.">            } else if (right instanceof SQLite3NullConstant) {</span>
+<span class="nc" id="L205">                return SQLite3Constant.createNullConstant();</span>
+            } else {
+<span class="nc" id="L207">                return SQLite3Constant.createFalse();</span>
+            }
+        }
+
+        @Override
+        public SQLite3Constant applyNumericAffinity() {
+<span class="nc" id="L213">            return this;</span>
+        }
+
+        @Override
+        public SQLite3Constant applyTextAffinity() {
+<span class="nc" id="L218">            return SQLite3Cast.castToText(this);</span>
+        }
+
+        @Override
+        String getStringRepresentation() {
+<span class="nc" id="L223">            return String.valueOf(value);</span>
+        }
+
+        @Override
+        public SQLite3Constant castToBoolean() {
+<span class="nc" id="L228">            return SQLite3Cast.asBoolean(this);</span>
+        }
+
+        @Override
+        public SQLite3Constant applyLess(SQLite3Constant right, SQLite3CollateSequence collate) {
+<span class="nc bnc" id="L233" title="All 2 branches missed.">            if (right.isNull()) {</span>
+<span class="nc" id="L234">                return right;</span>
+<span class="nc bnc" id="L235" title="All 4 branches missed.">            } else if (right.getDataType() == SQLite3DataType.TEXT || right.getDataType() == SQLite3DataType.BINARY) {</span>
+<span class="nc" id="L236">                return SQLite3Constant.createTrue();</span>
+<span class="nc bnc" id="L237" title="All 2 branches missed.">            } else if (right.getDataType() == SQLite3DataType.REAL) {</span>
+<span class="nc" id="L238">                double rightValue = right.asDouble();</span>
+<span class="nc bnc" id="L239" title="All 2 branches missed.">                return SQLite3Constant.createBoolean(value &lt; rightValue);</span>
+            } else {
+<span class="nc bnc" id="L241" title="All 2 branches missed.">                if (Double.POSITIVE_INFINITY == value) {</span>
+<span class="nc" id="L242">                    return SQLite3Constant.createFalse();</span>
+<span class="nc bnc" id="L243" title="All 2 branches missed.">                } else if (Double.NEGATIVE_INFINITY == value) {</span>
+<span class="nc" id="L244">                    return SQLite3Constant.createTrue();</span>
+                }
+<span class="nc bnc" id="L246" title="All 2 branches missed.">                assert right.getDataType() == SQLite3DataType.INT;</span>
+<span class="nc" id="L247">                BigDecimal otherColumnValue = BigDecimal.valueOf(right.asInt());</span>
+<span class="nc" id="L248">                BigDecimal thisColumnValue = BigDecimal.valueOf(value);</span>
+<span class="nc bnc" id="L249" title="All 2 branches missed.">                return SQLite3Constant.createBoolean(thisColumnValue.compareTo(otherColumnValue) &lt; 0);</span>
+            }
+        }
+
+    }
+
+<span class="nc" id="L255">    public static class SQLite3TextConstant extends SQLite3Constant {</span>
+
+        private final String text;
+
+<span class="nc" id="L259">        public SQLite3TextConstant(String text) {</span>
+<span class="nc" id="L260">            this.text = text;</span>
+<span class="nc" id="L261">        }</span>
+
+        @Override
+        public boolean isNull() {
+<span class="nc" id="L265">            return false;</span>
+        }
+
+        @Override
+        public String asString() {
+<span class="nc" id="L270">            return text;</span>
+        }
+
+        @Override
+        public Object getValue() {
+<span class="nc" id="L275">            return text;</span>
+        }
+
+        @Override
+        public SQLite3DataType getDataType() {
+<span class="nc" id="L280">            return SQLite3DataType.TEXT;</span>
+        }
+
+        @Override
+        public SQLite3Constant applyEquals(SQLite3Constant right, SQLite3CollateSequence collate) {
+<span class="nc bnc" id="L285" title="All 2 branches missed.">            if (right.isNull()) {</span>
+<span class="nc" id="L286">                return SQLite3Constant.createNullConstant();</span>
+<span class="nc bnc" id="L287" title="All 2 branches missed.">            } else if (right instanceof SQLite3TextConstant) {</span>
+<span class="nc" id="L288">                String other = right.asString();</span>
+                boolean equals;
+<span class="nc bnc" id="L290" title="All 4 branches missed.">                switch (collate) {</span>
+                case BINARY:
+<span class="nc" id="L292">                    equals = text.equals(other);</span>
+<span class="nc" id="L293">                    break;</span>
+                case NOCASE:
+<span class="nc" id="L295">                    equals = toLower(text).equals(toLower(other));</span>
+<span class="nc" id="L296">                    break;</span>
+                case RTRIM:
+<span class="nc" id="L298">                    equals = trimTrailing(text).equals(trimTrailing(other));</span>
+<span class="nc" id="L299">                    break;</span>
+                default:
+<span class="nc" id="L301">                    throw new AssertionError(collate);</span>
+                }
+<span class="nc" id="L303">                return SQLite3Constant.createBoolean(equals);</span>
+            } else {
+<span class="nc" id="L305">                return SQLite3Constant.createFalse();</span>
+            }
+        }
+
+        public static String toLower(String t) {
+<span class="nc" id="L310">            StringBuilder text = new StringBuilder(t);</span>
+<span class="nc bnc" id="L311" title="All 2 branches missed.">            for (int i = 0; i &lt; text.length(); i++) {</span>
+<span class="nc" id="L312">                char c = text.charAt(i);</span>
+<span class="nc bnc" id="L313" title="All 4 branches missed.">                if (c &gt;= 'A' &amp;&amp; c &lt;= 'Z') {</span>
+<span class="nc" id="L314">                    text.setCharAt(i, Character.toLowerCase(c));</span>
+                }
+            }
+<span class="nc" id="L317">            return text.toString();</span>
+        }
+
+        public static String toUpper(String t) {
+<span class="nc" id="L321">            StringBuilder text = new StringBuilder(t);</span>
+<span class="nc bnc" id="L322" title="All 2 branches missed.">            for (int i = 0; i &lt; text.length(); i++) {</span>
+<span class="nc" id="L323">                char c = text.charAt(i);</span>
+<span class="nc bnc" id="L324" title="All 4 branches missed.">                if (c &gt;= 'a' &amp;&amp; c &lt;= 'z') {</span>
+<span class="nc" id="L325">                    text.setCharAt(i, Character.toUpperCase(c));</span>
+                }
+            }
+<span class="nc" id="L328">            return text.toString();</span>
+        }
+
+        public static String trim(String str) {
+<span class="nc" id="L332">            return trimLeading(trimTrailing(str));</span>
+        }
+
+        public static String trimLeading(String str) {
+<span class="nc bnc" id="L336" title="All 2 branches missed.">            if (str != null) {</span>
+<span class="nc bnc" id="L337" title="All 2 branches missed.">                for (int i = 0; i &lt; str.length(); i++) {</span>
+<span class="nc bnc" id="L338" title="All 2 branches missed.">                    if (str.charAt(i) != ' ') {</span>
+<span class="nc" id="L339">                        return str.substring(i);</span>
+                    }
+                }
+            }
+<span class="nc" id="L343">            return &quot;&quot;;</span>
+        }
+
+        public static String trimTrailing(String str) {
+<span class="nc bnc" id="L347" title="All 2 branches missed.">            if (str != null) {</span>
+<span class="nc bnc" id="L348" title="All 2 branches missed.">                for (int i = str.length() - 1; i &gt;= 0; --i) {</span>
+<span class="nc bnc" id="L349" title="All 2 branches missed.">                    if (str.charAt(i) != ' ') {</span>
+<span class="nc" id="L350">                        return str.substring(0, i + 1);</span>
+                    }
+                }
+            }
+<span class="nc" id="L354">            return &quot;&quot;;</span>
+        }
+
+        @Override
+        public SQLite3Constant applyNumericAffinity() {
+<span class="nc" id="L359">            Pattern leadingDigitPattern = Pattern</span>
+<span class="nc" id="L360">                    .compile(&quot;[-+]?((\\d(\\d)*(\\.(\\d)*)?)|\\.(\\d)(\\d)*)([Ee][+-]?(\\d)(\\d)*)?&quot;);</span>
+<span class="nc" id="L361">            String trimmedString = text.trim();</span>
+<span class="nc bnc" id="L362" title="All 2 branches missed.">            if (trimmedString.isEmpty()) {</span>
+<span class="nc" id="L363">                return this;</span>
+            }
+<span class="nc" id="L365">            Matcher matcher = leadingDigitPattern.matcher(trimmedString);</span>
+<span class="nc bnc" id="L366" title="All 2 branches missed.">            if (matcher.matches()) {</span>
+<span class="nc" id="L367">                return SQLite3Cast.castToNumeric(this);</span>
+            } else {
+<span class="nc" id="L369">                return this;</span>
+            }
+        }
+
+        @Override
+        public SQLite3Constant applyTextAffinity() {
+<span class="nc" id="L375">            return this;</span>
+        }
+
+        @Override
+        String getStringRepresentation() {
+<span class="nc" id="L380">            return text;</span>
+        }
+
+        @Override
+        public SQLite3Constant castToBoolean() {
+<span class="nc" id="L385">            return SQLite3Cast.asBoolean(this);</span>
+        }
+
+        @Override
+        public SQLite3Constant applyLess(SQLite3Constant right, SQLite3CollateSequence collate) {
+<span class="nc bnc" id="L390" title="All 2 branches missed.">            if (right.isNull()) {</span>
+<span class="nc" id="L391">                return right;</span>
+<span class="nc bnc" id="L392" title="All 2 branches missed.">            } else if (right.getDataType() == SQLite3DataType.BINARY) {</span>
+<span class="nc" id="L393">                return SQLite3Constant.createTrue();</span>
+<span class="nc bnc" id="L394" title="All 2 branches missed.">            } else if (right.getDataType() == SQLite3DataType.TEXT) {</span>
+<span class="nc" id="L395">                String other = right.asString();</span>
+                boolean lessThan;
+<span class="nc bnc" id="L397" title="All 4 branches missed.">                switch (collate) {</span>
+                case BINARY:
+<span class="nc bnc" id="L399" title="All 2 branches missed.">                    lessThan = text.compareTo(other) &lt; 0;</span>
+<span class="nc" id="L400">                    break;</span>
+                case NOCASE:
+<span class="nc bnc" id="L402" title="All 2 branches missed.">                    lessThan = toLower(text).compareTo(toLower(other)) &lt; 0;</span>
+<span class="nc" id="L403">                    break;</span>
+                case RTRIM:
+<span class="nc bnc" id="L405" title="All 2 branches missed.">                    lessThan = trimTrailing(text).compareTo(trimTrailing(other)) &lt; 0;</span>
+<span class="nc" id="L406">                    break;</span>
+                default:
+<span class="nc" id="L408">                    throw new AssertionError(collate);</span>
+                }
+<span class="nc" id="L410">                return SQLite3Constant.createBoolean(lessThan);</span>
+            } else {
+<span class="nc bnc" id="L412" title="All 4 branches missed.">                assert right.getDataType() == SQLite3DataType.REAL || right.getDataType() == SQLite3DataType.INT;</span>
+<span class="nc" id="L413">                return SQLite3Constant.createFalse();</span>
+            }
+        }
+    }
+
+    public static class SQLite3BinaryConstant extends SQLite3Constant {
+
+        private final byte[] bytes;
+
+<span class="nc" id="L422">        public SQLite3BinaryConstant(byte[] bytes) {</span>
+<span class="nc" id="L423">            this.bytes = bytes.clone();</span>
+<span class="nc" id="L424">        }</span>
+
+        @Override
+        public boolean isNull() {
+<span class="nc" id="L428">            return false;</span>
+        }
+
+        @Override
+        public SQLite3DataType getDataType() {
+<span class="nc" id="L433">            return SQLite3DataType.BINARY;</span>
+        }
+
+        @Override
+        public Object getValue() {
+<span class="nc" id="L438">            return bytes;</span>
+        }
+
+        @Override
+        public byte[] asBinary() {
+<span class="nc" id="L443">            return bytes.clone();</span>
+        }
+
+        @Override
+        public SQLite3Constant applyNumericAffinity() {
+<span class="nc" id="L448">            return this;</span>
+        }
+
+        @Override
+        public SQLite3Constant applyTextAffinity() {
+<span class="nc" id="L453">            return this;</span>
+            /*
+             * if (bytes.length == 0) { return this; } else { StringBuilder sb = new StringBuilder(); for (byte b :
+             * bytes) { if (isPrintableChar(b)) { sb.append((char) b); } } return
+             * SQLite3Constant.createTextConstant(sb.toString()); }
+             */
+        }
+
+        public boolean isPrintableChar(byte b) {
+<span class="nc bnc" id="L462" title="All 2 branches missed.">            return Math.abs(b) &gt;= 32;</span>
+        }
+
+        @Override
+        String getStringRepresentation() {
+<span class="nc" id="L467">            String hexRepr = SQLite3Visitor.byteArrayToHex(bytes);</span>
+<span class="nc" id="L468">            return String.format(&quot;x'%s'&quot;, hexRepr);</span>
+        }
+
+        @Override
+        public SQLite3Constant applyEquals(SQLite3Constant right, SQLite3CollateSequence collate) {
+<span class="nc bnc" id="L473" title="All 2 branches missed.">            if (right.isNull()) {</span>
+<span class="nc" id="L474">                return SQLite3Constant.createNullConstant();</span>
+<span class="nc bnc" id="L475" title="All 2 branches missed.">            } else if (right.getDataType() == SQLite3DataType.BINARY) {</span>
+<span class="nc" id="L476">                byte[] otherArr = right.asBinary();</span>
+<span class="nc bnc" id="L477" title="All 2 branches missed.">                if (bytes.length == otherArr.length) {</span>
+<span class="nc bnc" id="L478" title="All 2 branches missed.">                    for (int i = 0; i &lt; bytes.length; i++) {</span>
+<span class="nc bnc" id="L479" title="All 2 branches missed.">                        if (bytes[i] != otherArr[i]) {</span>
+<span class="nc" id="L480">                            return SQLite3Constant.createFalse();</span>
+                        }
+                    }
+<span class="nc" id="L483">                    return SQLite3Constant.createTrue();</span>
+                } else {
+<span class="nc" id="L485">                    return SQLite3Constant.createFalse();</span>
+                }
+            } else {
+<span class="nc" id="L488">                return SQLite3Constant.createFalse();</span>
+            }
+        }
+
+        @Override
+        public SQLite3Constant castToBoolean() {
+<span class="nc" id="L494">            return SQLite3Cast.asBoolean(this);</span>
+        }
+
+        @Override
+        public SQLite3Constant applyLess(SQLite3Constant right, SQLite3CollateSequence collate) {
+<span class="nc bnc" id="L499" title="All 2 branches missed.">            if (right.isNull()) {</span>
+<span class="nc" id="L500">                return right;</span>
+<span class="nc bnc" id="L501" title="All 4 branches missed.">            } else if (right.getDataType() == SQLite3DataType.TEXT || right.getDataType() == SQLite3DataType.INT</span>
+<span class="nc bnc" id="L502" title="All 2 branches missed.">                    || right.getDataType() == SQLite3DataType.REAL) {</span>
+<span class="nc" id="L503">                return SQLite3Constant.createFalse();</span>
+            } else {
+<span class="nc" id="L505">                byte[] otherArr = right.asBinary();</span>
+<span class="nc" id="L506">                int minLength = Math.min(bytes.length, otherArr.length);</span>
+<span class="nc bnc" id="L507" title="All 2 branches missed.">                for (int i = 0; i &lt; minLength; i++) {</span>
+<span class="nc bnc" id="L508" title="All 2 branches missed.">                    if (bytes[i] != otherArr[i]) {</span>
+<span class="nc bnc" id="L509" title="All 2 branches missed.">                        return SQLite3Constant.createBoolean((bytes[i] &amp; 0xff) &lt; (otherArr[i] &amp; 0xff));</span>
+<span class="nc bnc" id="L510" title="All 2 branches missed.">                    } else if (bytes[i] &gt; otherArr[i]) {</span>
+<span class="nc" id="L511">                        return SQLite3Constant.createFalse();</span>
+                    }
+                }
+<span class="nc bnc" id="L514" title="All 2 branches missed.">                return SQLite3Constant.createBoolean(bytes.length &lt; otherArr.length);</span>
+            }
+        }
+
+    }
+
+    abstract String getStringRepresentation();
+
+    public abstract boolean isNull();
+
+    public abstract Object getValue();
+
+    public boolean isHex() {
+<span class="nc" id="L527">        throw new UnsupportedOperationException(this.getDataType().toString());</span>
+    }
+
+    public long asInt() {
+<span class="nc" id="L531">        throw new UnsupportedOperationException(this.getDataType().toString());</span>
+    }
+
+    public double asDouble() {
+<span class="nc" id="L535">        throw new UnsupportedOperationException(this.getDataType().toString());</span>
+    }
+
+    public byte[] asBinary() {
+<span class="nc" id="L539">        throw new UnsupportedOperationException(this.getDataType().toString());</span>
+    }
+
+    public String asString() {
+<span class="nc" id="L543">        throw new UnsupportedOperationException(this.getDataType().toString());</span>
+    }
+
+    public abstract SQLite3DataType getDataType();
+
+    public static SQLite3Constant createIntConstant(long val) {
+<span class="nc" id="L549">        return new SQLite3IntConstant(val);</span>
+    }
+
+    public static SQLite3Constant createIntConstant(long val, boolean isHex) {
+<span class="nc" id="L553">        return new SQLite3IntConstant(val, isHex);</span>
+    }
+
+    public static SQLite3Constant createBinaryConstant(byte[] val) {
+<span class="nc" id="L557">        return new SQLite3BinaryConstant(val);</span>
+    }
+
+    public static SQLite3Constant createBinaryConstant(String val) {
+<span class="nc" id="L561">        return new SQLite3BinaryConstant(SQLite3Visitor.hexStringToByteArray(val));</span>
+    }
+
+    public static SQLite3Constant createRealConstant(double real) {
+<span class="nc" id="L565">        return new SQLite3RealConstant(real);</span>
+    }
+
+    public static SQLite3Constant createTextConstant(String text) {
+<span class="nc" id="L569">        return new SQLite3TextConstant(text);</span>
+    }
+
+    public static SQLite3Constant createNullConstant() {
+<span class="nc" id="L573">        return new SQLite3NullConstant();</span>
+    }
+
+    public static SQLite3Constant getRandomBinaryConstant(Randomly r) {
+<span class="nc" id="L577">        return new SQLite3BinaryConstant(r.getBytes());</span>
+    }
+
+    @Override
+    public SQLite3Constant getExpectedValue() {
+<span class="nc" id="L582">        return this;</span>
+    }
+
+    @Override
+    public SQLite3CollateSequence getExplicitCollateSequence() {
+<span class="nc" id="L587">        return null;</span>
+    }
+
+    @Override
+    public String toString() {
+<span class="nc" id="L592">        return String.format(&quot;(%s) %s&quot;, getDataType(), getStringRepresentation());</span>
+    }
+
+    public abstract SQLite3Constant applyNumericAffinity();
+
+    public abstract SQLite3Constant applyTextAffinity();
+
+    public static SQLite3Constant createTrue() {
+<span class="nc" id="L600">        return new SQLite3Constant.SQLite3IntConstant(1);</span>
+    }
+
+    public static SQLite3Constant createFalse() {
+<span class="nc" id="L604">        return new SQLite3Constant.SQLite3IntConstant(0);</span>
+    }
+
+    public static SQLite3Constant createBoolean(boolean tr) {
+<span class="nc bnc" id="L608" title="All 2 branches missed.">        return new SQLite3Constant.SQLite3IntConstant(tr ? 1 : 0);</span>
+    }
+
+    public abstract SQLite3Constant applyEquals(SQLite3Constant right, SQLite3CollateSequence collate);
+
+    public abstract SQLite3Constant applyLess(SQLite3Constant right, SQLite3CollateSequence collate);
+
+    public abstract SQLite3Constant castToBoolean();
+
+    public SQLite3Constant applyEquals(SQLite3Constant right) {
+<span class="nc" id="L618">        return applyEquals(right, SQLite3CollateSequence.BINARY);</span>
+    }
+
+    public boolean isReal() {
+<span class="nc bnc" id="L622" title="All 2 branches missed.">        return getDataType() == SQLite3DataType.REAL;</span>
+    }
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.8.202204050719</span></div></body></html>

@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>CockroachDBIndexReference.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">dqetool</a> &gt; <a href="index.source.html" class="el_package">dqetool.cockroachdb.ast</a> &gt; <span class="el_source">CockroachDBIndexReference.java</span></div><h1>CockroachDBIndexReference.java</h1><pre class="source lang-java linenums">package dqetool.cockroachdb.ast;
+
+import dqetool.Randomly;
+import dqetool.common.schema.TableIndex;
+import dqetool.common.visitor.UnaryOperation;
+
+public class CockroachDBIndexReference extends CockroachDBTableReference
+        implements UnaryOperation&lt;CockroachDBExpression&gt; {
+
+    private final CockroachDBTableReference tableReference;
+    private final TableIndex index;
+
+    public CockroachDBIndexReference(CockroachDBTableReference tableReference, TableIndex index) {
+<span class="nc" id="L14">        super(tableReference.getTable());</span>
+<span class="nc" id="L15">        this.tableReference = tableReference;</span>
+<span class="nc" id="L16">        this.index = index;</span>
+<span class="nc" id="L17">    }</span>
+
+    @Override
+    public CockroachDBExpression getExpression() {
+<span class="nc" id="L21">        return tableReference;</span>
+    }
+
+    @Override
+    public String getOperatorRepresentation() {
+<span class="nc bnc" id="L26" title="All 2 branches missed.">        if (Randomly.getBoolean()) {</span>
+<span class="nc" id="L27">            return String.format(&quot;@{FORCE_INDEX=%s}&quot;, index.getIndexName());</span>
+        } else {
+<span class="nc" id="L29">            return String.format(&quot;@{FORCE_INDEX=%s,%s}&quot;, index.getIndexName(), Randomly.fromOptions(&quot;ASC&quot;, &quot;DESC&quot;));</span>
+        }
+    }
+
+    @Override
+    public OperatorKind getOperatorKind() {
+<span class="nc" id="L35">        return OperatorKind.POSTFIX;</span>
+    }
+
+    @Override
+    public boolean omitBracketsWhenPrinting() {
+<span class="nc" id="L40">        return true;</span>
+    }
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.8.202204050719</span></div></body></html>

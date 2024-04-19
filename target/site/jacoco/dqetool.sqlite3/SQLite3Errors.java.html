@@ -1,0 +1,132 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>SQLite3Errors.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">dqetool</a> &gt; <a href="index.source.html" class="el_package">dqetool.sqlite3</a> &gt; <span class="el_source">SQLite3Errors.java</span></div><h1>SQLite3Errors.java</h1><pre class="source lang-java linenums">package dqetool.sqlite3;
+
+import java.util.Arrays;
+
+import dqetool.common.query.ExpectedErrors;
+
+public final class SQLite3Errors {
+
+    private SQLite3Errors() {
+    }
+
+    public static void addDeleteErrors(ExpectedErrors errors) {
+        // DELETE trigger for a view/table to which colomns were added or deleted
+<span class="nc" id="L14">        errors.add(&quot;columns but&quot;);</span>
+        // trigger with on conflict clause
+<span class="nc" id="L16">        errors.add(&quot;ON CONFLICT clause does not match any PRIMARY KEY or UNIQUE constraint&quot;);</span>
+<span class="nc" id="L17">    }</span>
+
+    public static void addExpectedExpressionErrors(ExpectedErrors errors) {
+<span class="nc" id="L20">        errors.add(&quot;[SQLITE_BUSY]  The database file is locked&quot;);</span>
+<span class="nc" id="L21">        errors.add(&quot;FTS expression tree is too large&quot;);</span>
+<span class="nc" id="L22">        errors.add(&quot;String or BLOB exceeds size limit&quot;);</span>
+<span class="nc" id="L23">        errors.add(&quot;[SQLITE_ERROR] SQL error or missing database (integer overflow)&quot;);</span>
+<span class="nc" id="L24">        errors.add(&quot;ORDER BY term out of range&quot;);</span>
+<span class="nc" id="L25">        errors.add(&quot;GROUP BY term out of range&quot;);</span>
+<span class="nc" id="L26">        errors.add(&quot;not authorized&quot;); // load_extension</span>
+<span class="nc" id="L27">        errors.add(&quot;aggregate functions are not allowed in the GROUP BY clause&quot;);</span>
+<span class="nc" id="L28">        errors.add(&quot;parser stack overflow&quot;);</span>
+
+        // nested query
+<span class="nc" id="L31">        errors.add(&quot;misuse of aggregate&quot;);</span>
+<span class="nc" id="L32">        errors.add(&quot;second argument to nth_value must be a positive integer&quot;);</span>
+<span class="nc" id="L33">        errors.add(&quot;parser stack overflow&quot;);</span>
+
+        // window functions
+<span class="nc" id="L36">        errors.add(&quot;RANGE with offset PRECEDING/FOLLOWING requires one ORDER BY expression&quot;);</span>
+<span class="nc" id="L37">        errors.add(&quot;frame starting offset must be a non-negative integer&quot;);</span>
+<span class="nc" id="L38">        errors.add(&quot;frame starting offset must be a non-negative number&quot;);</span>
+<span class="nc" id="L39">        errors.add(&quot;unsupported frame specification&quot;);</span>
+<span class="nc" id="L40">        errors.add(&quot;frame ending offset must be a non-negative integer&quot;);</span>
+<span class="nc" id="L41">        errors.add(&quot;frame ending offset must be a non-negative number&quot;);</span>
+<span class="nc" id="L42">        errors.add(&quot;argument of ntile must be a positive integer&quot;);</span>
+
+<span class="nc" id="L44">        errors.add(&quot;malformed JSON&quot;);</span>
+<span class="nc" id="L45">        errors.add(&quot;JSON cannot hold BLOB values&quot;);</span>
+<span class="nc" id="L46">        errors.add(&quot;JSON path error&quot;);</span>
+<span class="nc" id="L47">        errors.add(&quot;json_insert() needs an odd number of arguments&quot;);</span>
+<span class="nc" id="L48">        errors.add(&quot;json_object() labels must be TEXT&quot;);</span>
+<span class="nc" id="L49">        errors.add(&quot;json_object() requires an even number of arguments&quot;);</span>
+<span class="nc" id="L50">        errors.add(&quot;argument of ntile must be a positive integer&quot;);</span>
+
+        // fts5 functions
+<span class="nc" id="L53">        errors.add(&quot;unable to use function highlight in the requested context&quot;);</span>
+<span class="nc" id="L54">        errors.add(&quot;no such cursor&quot;);</span>
+
+        // INDEXED BY
+<span class="nc" id="L57">        errors.add(&quot;no query solution&quot;);</span>
+<span class="nc" id="L58">        errors.add(&quot;no such index&quot;);</span>
+
+        // UNION/INTERSECT ...
+<span class="nc" id="L61">        errors.add(&quot;ORDER BY term does not match any column in the result set&quot;);</span>
+<span class="nc" id="L62">        errors.add(&quot;ORDER BY clause should come after&quot;);</span>
+<span class="nc" id="L63">        errors.add(&quot;LIMIT clause should come after&quot;);</span>
+
+<span class="nc" id="L65">        errors.add(&quot;unsafe use of load_extension&quot;);</span>
+<span class="nc" id="L66">        errors.add(&quot;table does not support scanning&quot;);</span>
+<span class="nc" id="L67">        errors.add(&quot;circularly defined&quot;);</span>
+<span class="nc" id="L68">        errors.add(&quot;[SQLITE_ERROR] SQL error or missing database&quot;); // A possible delay in the execution of DROP TABLE</span>
+                                                                    // statement.
+
+        // highlight function
+<span class="nc" id="L72">        errors.add(&quot;unable to use function highlight in the requested context&quot;);</span>
+
+        // JSON function
+<span class="nc" id="L75">        errors.add(&quot;JSON cannot hold BLOB values&quot;);</span>
+<span class="nc" id="L76">        errors.add(&quot;malformed JSON&quot;);</span>
+<span class="nc" id="L77">        errors.add(&quot;json_object() labels must be TEXT&quot;);</span>
+<span class="nc" id="L78">        errors.add(&quot;JSON path error near&quot;);</span>
+
+        // load extension
+<span class="nc" id="L81">        errors.add(&quot;not authorized&quot;);</span>
+<span class="nc" id="L82">    }</span>
+
+    public static void addMatchQueryErrors(ExpectedErrors errors) {
+<span class="nc" id="L85">        errors.add(&quot;unable to use function MATCH in the requested context&quot;);</span>
+<span class="nc" id="L86">        errors.add(&quot;malformed MATCH expression&quot;);</span>
+<span class="nc" id="L87">        errors.add(&quot;fts5: syntax error near&quot;);</span>
+<span class="nc" id="L88">        errors.add(&quot;no such column&quot;); // vt0.c0 MATCH '-799256540'</span>
+<span class="nc" id="L89">        errors.add(&quot;unknown special query&quot;); // vt0.c1 MATCH '*YD)LC3^cG|'</span>
+<span class="nc" id="L90">        errors.add(&quot;fts5: column queries are not supported&quot;); // vt0.c0 MATCH '2016456922'</span>
+<span class="nc" id="L91">        errors.add(&quot;fts5: phrase queries are not supported&quot;);</span>
+<span class="nc" id="L92">        errors.add(&quot;unterminated string&quot;);</span>
+<span class="nc" id="L93">    }</span>
+
+    public static void addTableManipulationErrors(ExpectedErrors errors) {
+<span class="nc" id="L96">        errors.add(&quot;unsupported frame specification&quot;);</span>
+<span class="nc" id="L97">        errors.add(&quot;non-deterministic functions prohibited in CHECK constraints&quot;);</span>
+<span class="nc" id="L98">        errors.addAll(Arrays.asList(&quot;subqueries prohibited in CHECK constraints&quot;,</span>
+<span class="nc" id="L99">                &quot;generated columns cannot be part of the PRIMARY KEY&quot;, &quot;must have at least one non-generated column&quot;));</span>
+<span class="nc" id="L100">    }</span>
+
+    public static void addQueryErrors(ExpectedErrors errors) {
+<span class="nc" id="L103">        errors.add(&quot;ON clause references tables to its right&quot;);</span>
+<span class="nc" id="L104">    }</span>
+
+    public static void addInsertNowErrors(ExpectedErrors errors) {
+<span class="nc" id="L107">        errors.add(&quot;non-deterministic use of strftime()&quot;);</span>
+<span class="nc" id="L108">        errors.add(&quot;non-deterministic use of time()&quot;);</span>
+<span class="nc" id="L109">        errors.add(&quot;non-deterministic use of datetime()&quot;);</span>
+<span class="nc" id="L110">        errors.add(&quot;non-deterministic use of julianday()&quot;);</span>
+<span class="nc" id="L111">        errors.add(&quot;non-deterministic use of date()&quot;);</span>
+<span class="nc" id="L112">    }</span>
+
+    public static void addInsertUpdateErrors(ExpectedErrors errors) {
+<span class="nc" id="L115">        errors.add(&quot;String or BLOB exceeds size limit&quot;);</span>
+<span class="nc" id="L116">        errors.add(&quot;[SQLITE_CONSTRAINT_CHECK]&quot;);</span>
+<span class="nc" id="L117">        errors.add(&quot;[SQLITE_CONSTRAINT_PRIMARYKEY]&quot;);</span>
+<span class="nc" id="L118">        errors.add(&quot;[SQLITE_CONSTRAINT]&quot;);</span>
+<span class="nc" id="L119">        errors.add(&quot;[SQLITE_CONSTRAINT_NOTNULL]&quot;);</span>
+<span class="nc" id="L120">        errors.add(&quot;[SQLITE_CONSTRAINT_UNIQUE]&quot;);</span>
+<span class="nc" id="L121">        errors.add(&quot;cannot INSERT into generated column&quot;); // TODO: filter out generated columns</span>
+<span class="nc" id="L122">        errors.add(&quot;A table in the database is locked&quot;); // https://www.sqlite.org/src/tktview?name=56a74875be</span>
+<span class="nc" id="L123">        errors.add(&quot;The database file is locked&quot;);</span>
+<span class="nc" id="L124">        errors.add(&quot;too many levels of trigger recursion&quot;);</span>
+<span class="nc" id="L125">        errors.add(&quot;cannot UPDATE generated column&quot;);</span>
+<span class="nc" id="L126">        errors.add(&quot;[SQLITE_ERROR] SQL error or missing database (no such table:&quot;);</span>
+<span class="nc" id="L127">        errors.add(&quot;[SQLITE_ERROR] SQL error or missing database (foreign key mismatch&quot;);</span>
+<span class="nc" id="L128">        errors.add(&quot;no such column&quot;); // trigger</span>
+<span class="nc" id="L129">    }</span>
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.8.202204050719</span></div></body></html>
