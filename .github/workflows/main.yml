@@ -33,8 +33,8 @@ jobs:
           distribution: 'temurin'
           java-version: '11'
           cache: 'maven'
-      # - name: Verify
-      #   run: mvn -B verify -DskipTests=true
+      - name: Verify
+        run: mvn -B verify -DskipTests=false
 
   sqlite:
     name: DBMS Tests (SQLite)
@@ -50,8 +50,8 @@ jobs:
           distribution: 'temurin'
           java-version: '11'
           cache: 'maven'
-      # - name: Build
-      #   run: mvn -B package -DskipTests=true
+      - name: Build
+        run: mvn -B package -DskipTests=false
       - name: SQLite Tests
         run: |
           mvn -Dtest=TestSQLitePQS test
