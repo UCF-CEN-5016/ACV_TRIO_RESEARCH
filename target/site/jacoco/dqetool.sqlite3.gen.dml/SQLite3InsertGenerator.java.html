@@ -1,0 +1,168 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>SQLite3InsertGenerator.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">dqetool</a> &gt; <a href="index.source.html" class="el_package">dqetool.sqlite3.gen.dml</a> &gt; <span class="el_source">SQLite3InsertGenerator.java</span></div><h1>SQLite3InsertGenerator.java</h1><pre class="source lang-java linenums">package dqetool.sqlite3.gen.dml;
+
+import java.sql.SQLException;
+import java.util.List;
+import java.util.stream.Collectors;
+
+import dqetool.Randomly;
+import dqetool.common.query.ExpectedErrors;
+import dqetool.common.query.SQLQueryAdapter;
+import dqetool.sqlite3.SQLite3Errors;
+import dqetool.sqlite3.SQLite3GlobalState;
+import dqetool.sqlite3.SQLite3ToStringVisitor;
+import dqetool.sqlite3.SQLite3Visitor;
+import dqetool.sqlite3.ast.SQLite3Constant;
+import dqetool.sqlite3.ast.SQLite3Expression;
+import dqetool.sqlite3.gen.SQLite3ExpressionGenerator;
+import dqetool.sqlite3.schema.SQLite3Schema.SQLite3Column;
+import dqetool.sqlite3.schema.SQLite3Schema.SQLite3Table;
+
+<span class="nc" id="L20">public class SQLite3InsertGenerator {</span>
+
+    private final Randomly r;
+    private final ExpectedErrors errors;
+    private final SQLite3GlobalState globalState;
+
+<span class="nc" id="L26">    public SQLite3InsertGenerator(SQLite3GlobalState globalState, Randomly r) {</span>
+<span class="nc" id="L27">        this.globalState = globalState;</span>
+<span class="nc" id="L28">        this.r = r;</span>
+<span class="nc" id="L29">        errors = new ExpectedErrors();</span>
+<span class="nc" id="L30">    }</span>
+
+    public static SQLQueryAdapter insertRow(SQLite3GlobalState globalState) throws SQLException {
+<span class="nc bnc" id="L33" title="All 4 branches missed.">        SQLite3Table randomTable = globalState.getSchema().getRandomTableOrBailout(t -&gt; !t.isView() &amp;&amp; !t.isReadOnly());</span>
+<span class="nc" id="L34">        return insertRow(globalState, randomTable);</span>
+    }
+
+    public static SQLQueryAdapter insertRow(SQLite3GlobalState globalState, SQLite3Table randomTable) {
+<span class="nc" id="L38">        SQLite3InsertGenerator generator = new SQLite3InsertGenerator(globalState, globalState.getRandomly());</span>
+<span class="nc" id="L39">        String query = generator.insertRow(randomTable);</span>
+<span class="nc" id="L40">        return new SQLQueryAdapter(query, generator.errors, true);</span>
+    }
+
+    private String insertRow(SQLite3Table table) {
+<span class="nc" id="L44">        SQLite3Errors.addInsertUpdateErrors(errors);</span>
+<span class="nc" id="L45">        errors.add(&quot;[SQLITE_FULL]&quot;);</span>
+        // // TODO: also check if the table is really missing (caused by a DROP TABLE)
+<span class="nc" id="L47">        errors.add(&quot;ON CONFLICT clause does not match any PRIMARY KEY or UNIQUE constraint&quot;); // trigger</span>
+<span class="nc" id="L48">        errors.add(&quot;values were supplied&quot;); // trigger</span>
+<span class="nc" id="L49">        errors.add(&quot;Data type mismatch (datatype mismatch)&quot;); // trigger</span>
+
+<span class="nc" id="L51">        errors.add(&quot;load_extension() prohibited in triggers and views&quot;);</span>
+<span class="nc" id="L52">        SQLite3Errors.addInsertNowErrors(errors);</span>
+<span class="nc" id="L53">        SQLite3Errors.addExpectedExpressionErrors(errors);</span>
+<span class="nc" id="L54">        StringBuilder sb = new StringBuilder();</span>
+<span class="nc" id="L55">        sb.append(&quot;INSERT &quot;);</span>
+<span class="nc bnc" id="L56" title="All 2 branches missed.">        if (Randomly.getBoolean()) {</span>
+<span class="nc" id="L57">            sb.append(&quot;OR IGNORE &quot;); // TODO: try to generate REPLACE</span>
+<span class="nc" id="L58">        } else {</span>
+<span class="nc" id="L59">            String fromOptions = Randomly.fromOptions(&quot;OR REPLACE &quot;, &quot;OR ABORT &quot;, &quot;OR FAIL &quot;, &quot;OR ROLLBACK &quot;);</span>
+<span class="nc" id="L60">            sb.append(fromOptions);</span>
+        }
+<span class="nc" id="L62">        boolean defaultValues = false;</span>
+<span class="nc" id="L63">        sb.append(&quot;INTO &quot;);</span>
+<span class="nc" id="L64">        sb.append(table.getName());</span>
+<span class="nc" id="L65">        List&lt;SQLite3Column&gt; cols = table.getRandomNonEmptyColumnSubset();</span>
+<span class="nc bnc" id="L66" title="All 4 branches missed.">        if (cols.size() != table.getColumns().size() || Randomly.getBoolean()) {</span>
+<span class="nc" id="L67">            sb.append(&quot;(&quot;);</span>
+<span class="nc" id="L68">            appendColumnNames(cols, sb);</span>
+<span class="nc" id="L69">            sb.append(&quot;)&quot;);</span>
+<span class="nc" id="L70">        } else {</span>
+            // If the column-name list after table-name is omitted then the number of values
+            // inserted into each row must be the same as the number of columns in the
+            // table.
+<span class="nc" id="L74">            cols = table.getColumns(); // get them again in sorted order</span>
+<span class="nc bnc" id="L75" title="All 2 branches missed.">            assert cols.size() == table.getColumns().size();</span>
+        }
+<span class="nc" id="L77">        sb.append(&quot; VALUES &quot;);</span>
+<span class="nc" id="L78">        int nrRows = 1 + Randomly.smallNumber();</span>
+<span class="nc" id="L79">        appendNrValues(sb, cols, nrRows);</span>
+<span class="nc" id="L80">        boolean columnsInConflictClause = Randomly.getBoolean();</span>
+<span class="nc bnc" id="L81" title="All 6 branches missed.">        if (!defaultValues &amp;&amp; Randomly.getBooleanWithSmallProbability() &amp;&amp; !table.isVirtual()) {</span>
+<span class="nc" id="L82">            sb.append(&quot; ON CONFLICT&quot;);</span>
+<span class="nc bnc" id="L83" title="All 2 branches missed.">            if (columnsInConflictClause) {</span>
+<span class="nc" id="L84">                sb.append(&quot;(&quot;);</span>
+<span class="nc" id="L85">                sb.append(table.getRandomNonEmptyColumnSubset().stream().map(c -&gt; c.getName())</span>
+<span class="nc" id="L86">                        .collect(Collectors.joining(&quot;, &quot;)));</span>
+<span class="nc" id="L87">                sb.append(&quot;)&quot;);</span>
+<span class="nc" id="L88">                errors.add(&quot;ON CONFLICT clause does not match any PRIMARY KEY or UNIQUE constraint&quot;);</span>
+            }
+<span class="nc" id="L90">            sb.append(&quot; DO &quot;);</span>
+<span class="nc bnc" id="L91" title="All 4 branches missed.">            if (Randomly.getBoolean() || !columnsInConflictClause) {</span>
+<span class="nc" id="L92">                sb.append(&quot;NOTHING&quot;);</span>
+<span class="nc" id="L93">            } else {</span>
+<span class="nc" id="L94">                sb.append(&quot;UPDATE SET &quot;);</span>
+<span class="nc" id="L95">                List&lt;SQLite3Column&gt; columns = table.getRandomNonEmptyColumnSubset();</span>
+<span class="nc bnc" id="L96" title="All 2 branches missed.">                for (int i = 0; i &lt; columns.size(); i++) {</span>
+<span class="nc bnc" id="L97" title="All 2 branches missed.">                    if (i != 0) {</span>
+<span class="nc" id="L98">                        sb.append(&quot;, &quot;);</span>
+                    }
+<span class="nc" id="L100">                    sb.append(columns.get(i).getName());</span>
+<span class="nc" id="L101">                    sb.append(&quot;=&quot;);</span>
+<span class="nc bnc" id="L102" title="All 2 branches missed.">                    if (Randomly.getBoolean()) {</span>
+<span class="nc" id="L103">                        sb.append(</span>
+<span class="nc" id="L104">                                SQLite3Visitor.asString(SQLite3ExpressionGenerator.getRandomLiteralValue(globalState)));</span>
+<span class="nc" id="L105">                    } else {</span>
+<span class="nc bnc" id="L106" title="All 2 branches missed.">                        if (Randomly.getBoolean()) {</span>
+<span class="nc" id="L107">                            sb.append(&quot;excluded.&quot;);</span>
+                        }
+<span class="nc" id="L109">                        sb.append(table.getRandomColumn().getName());</span>
+                    }
+
+                }
+<span class="nc" id="L113">                errors.add(&quot;Abort due to constraint violation&quot;);</span>
+<span class="nc" id="L114">                errors.add(&quot;Data type mismatch (datatype mismatch)&quot;);</span>
+<span class="nc bnc" id="L115" title="All 2 branches missed.">                if (Randomly.getBoolean()) {</span>
+<span class="nc" id="L116">                    sb.append(&quot; WHERE &quot;);</span>
+<span class="nc" id="L117">                    sb.append(SQLite3Visitor.asString(new SQLite3ExpressionGenerator(globalState)</span>
+<span class="nc" id="L118">                            .setColumns(table.getColumns()).generateExpression()));</span>
+                }
+            }
+        }
+<span class="nc" id="L122">        return sb.toString();</span>
+    }
+
+    private void appendNrValues(StringBuilder sb, List&lt;SQLite3Column&gt; columns, int nrValues) {
+<span class="nc bnc" id="L126" title="All 2 branches missed.">        for (int i = 0; i &lt; nrValues; i++) {</span>
+<span class="nc bnc" id="L127" title="All 2 branches missed.">            if (i != 0) {</span>
+<span class="nc" id="L128">                sb.append(&quot;, &quot;);</span>
+            }
+<span class="nc" id="L130">            sb.append(&quot;(&quot;);</span>
+<span class="nc" id="L131">            appendValue(sb, columns);</span>
+<span class="nc" id="L132">            sb.append(&quot;)&quot;);</span>
+        }
+<span class="nc" id="L134">    }</span>
+
+    private void appendValue(StringBuilder sb, List&lt;SQLite3Column&gt; columns) {
+<span class="nc bnc" id="L137" title="All 2 branches missed.">        for (int i = 0; i &lt; columns.size(); i++) {</span>
+<span class="nc bnc" id="L138" title="All 2 branches missed.">            if (i != 0) {</span>
+<span class="nc" id="L139">                sb.append(&quot;, &quot;);</span>
+            }
+            SQLite3Expression literal;
+<span class="nc bnc" id="L142" title="All 2 branches missed.">            if (columns.get(i).isIntegerPrimaryKey()) {</span>
+<span class="nc" id="L143">                literal = SQLite3Constant.createIntConstant(r.getInteger(0, 1000));</span>
+<span class="nc" id="L144">            } else {</span>
+<span class="nc bnc" id="L145" title="All 2 branches missed.">                if (Randomly.getBooleanWithSmallProbability()) {</span>
+<span class="nc" id="L146">                    literal = new SQLite3ExpressionGenerator(globalState).generateExpression();</span>
+<span class="nc" id="L147">                } else {</span>
+<span class="nc" id="L148">                    literal = SQLite3ExpressionGenerator.getRandomLiteralValue(globalState);</span>
+                }
+            }
+<span class="nc" id="L151">            SQLite3ToStringVisitor visitor = new SQLite3ToStringVisitor();</span>
+<span class="nc" id="L152">            visitor.visit(literal);</span>
+<span class="nc" id="L153">            sb.append(visitor.get());</span>
+        }
+<span class="nc" id="L155">    }</span>
+
+    private static List&lt;SQLite3Column&gt; appendColumnNames(List&lt;SQLite3Column&gt; columns, StringBuilder sb) {
+<span class="nc bnc" id="L158" title="All 2 branches missed.">        for (int i = 0; i &lt; columns.size(); i++) {</span>
+<span class="nc bnc" id="L159" title="All 2 branches missed.">            if (i != 0) {</span>
+<span class="nc" id="L160">                sb.append(&quot;, &quot;);</span>
+            }
+<span class="nc" id="L162">            sb.append(columns.get(i).getName());</span>
+        }
+<span class="nc" id="L164">        return columns;</span>
+    }
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.8.202204050719</span></div></body></html>

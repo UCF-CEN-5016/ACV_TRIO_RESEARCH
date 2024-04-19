@@ -1,0 +1,139 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>PivotedQuerySynthesisBase.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">dqetool</a> &gt; <a href="index.source.html" class="el_package">dqetool.common.oracle</a> &gt; <span class="el_source">PivotedQuerySynthesisBase.java</span></div><h1>PivotedQuerySynthesisBase.java</h1><pre class="source lang-java linenums">package dqetool.common.oracle;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import dqetool.GlobalState;
+import dqetool.IgnoreMeException;
+import dqetool.SQLancerDBConnection;
+import dqetool.common.query.ExpectedErrors;
+import dqetool.common.query.Query;
+import dqetool.common.query.SQLancerResultSet;
+import dqetool.common.schema.AbstractRowValue;
+
+public abstract class PivotedQuerySynthesisBase&lt;S extends GlobalState&lt;?, ?, C&gt;, R extends AbstractRowValue&lt;?, ?, ?&gt;, E, C extends SQLancerDBConnection&gt;
+        implements TestOracle&lt;S&gt; {
+
+<span class="nc" id="L17">    protected final ExpectedErrors errors = new ExpectedErrors();</span>
+
+    /**
+     * The predicates used in WHERE and JOIN clauses, which yield TRUE for the pivot row.
+     */
+<span class="nc" id="L22">    protected final List&lt;E&gt; rectifiedPredicates = new ArrayList&lt;&gt;();</span>
+
+    /**
+     * The generalization of a pivot row, as explained in the &quot;Checking arbitrary expressions&quot; paragraph of the PQS
+     * paper.
+     */
+<span class="nc" id="L28">    protected List&lt;E&gt; pivotRowExpression = new ArrayList&lt;&gt;();</span>
+    protected final S globalState;
+    protected R pivotRow;
+
+<span class="nc" id="L32">    public PivotedQuerySynthesisBase(S globalState) {</span>
+<span class="nc" id="L33">        this.globalState = globalState;</span>
+<span class="nc" id="L34">    }</span>
+
+    @Override
+    public final void check() throws Exception {
+<span class="nc" id="L38">        rectifiedPredicates.clear();</span>
+<span class="nc" id="L39">        Query&lt;C&gt; pivotRowQuery = getRectifiedQuery();</span>
+<span class="nc bnc" id="L40" title="All 2 branches missed.">        if (globalState.getOptions().logEachSelect()) {</span>
+<span class="nc" id="L41">            globalState.getLogger().writeCurrent(pivotRowQuery.getQueryString());</span>
+        }
+<span class="nc" id="L43">        Query&lt;C&gt; isContainedQuery = getContainmentCheckQuery(pivotRowQuery);</span>
+<span class="nc bnc" id="L44" title="All 2 branches missed.">        if (globalState.getOptions().logEachSelect()) {</span>
+<span class="nc" id="L45">            globalState.getLogger().writeCurrent(isContainedQuery.getQueryString());</span>
+        }
+<span class="nc" id="L47">        globalState.getState().getLocalState().log(isContainedQuery.getQueryString());</span>
+        // combines step 6 and 7 described in the PQS paper
+<span class="nc" id="L49">        boolean pivotRowIsContained = containsRows(isContainedQuery);</span>
+<span class="nc bnc" id="L50" title="All 2 branches missed.">        if (!pivotRowIsContained) {</span>
+<span class="nc" id="L51">            reportMissingPivotRow(pivotRowQuery);</span>
+        }
+<span class="nc" id="L53">    }</span>
+
+    /**
+     * Checks whether the result set contains at least a single row.
+     *
+     * @param query
+     *            the query for which to check whether its result set contains any rows
+     *
+     * @return true if at least one row is contained, false otherwise
+     *
+     * @throws Exception
+     *             if the query unexpectedly fails
+     */
+    private boolean containsRows(Query&lt;C&gt; query) throws Exception {
+<span class="nc" id="L67">        try (SQLancerResultSet result = query.executeAndGet(globalState)) {</span>
+<span class="nc bnc" id="L68" title="All 2 branches missed.">            if (result == null) {</span>
+<span class="nc" id="L69">                throw new IgnoreMeException();</span>
+            }
+<span class="nc bnc" id="L71" title="All 2 branches missed.">            return !result.isClosed();</span>
+        }
+    }
+
+    protected void reportMissingPivotRow(Query&lt;?&gt; query) {
+<span class="nc" id="L76">        globalState.getState().getLocalState().log(&quot;-- pivot row values:&quot;);</span>
+<span class="nc" id="L77">        String expectedPivotRowString = pivotRow.asStringGroupedByTables();</span>
+<span class="nc" id="L78">        globalState.getState().getLocalState().log(expectedPivotRowString);</span>
+
+<span class="nc" id="L80">        StringBuilder sb = new StringBuilder();</span>
+<span class="nc bnc" id="L81" title="All 2 branches missed.">        if (!rectifiedPredicates.isEmpty()) {</span>
+<span class="nc" id="L82">            sb.append(&quot;--\n-- rectified predicates and their expected values:\n&quot;);</span>
+<span class="nc bnc" id="L83" title="All 2 branches missed.">            for (E rectifiedPredicate : rectifiedPredicates) {</span>
+<span class="nc" id="L84">                sb.append(&quot;--&quot;);</span>
+<span class="nc" id="L85">                sb.append(getExpectedValues(rectifiedPredicate).replace(&quot;\n&quot;, &quot;\n-- &quot;));</span>
+            }
+<span class="nc" id="L87">            sb.append(&quot;\n&quot;);</span>
+        }
+<span class="nc bnc" id="L89" title="All 2 branches missed.">        if (!pivotRowExpression.isEmpty()) {</span>
+<span class="nc" id="L90">            sb.append(&quot;-- pivot row expressions and their expected values:\n&quot;);</span>
+<span class="nc bnc" id="L91" title="All 2 branches missed.">            for (E pivotRowExpression : pivotRowExpression) {</span>
+<span class="nc" id="L92">                sb.append(&quot;--&quot;);</span>
+<span class="nc" id="L93">                sb.append(getExpectedValues(pivotRowExpression).replace(&quot;\n&quot;, &quot;\n--&quot;));</span>
+<span class="nc" id="L94">                sb.append(&quot;\n&quot;);</span>
+            }
+        }
+<span class="nc" id="L97">        globalState.getState().getLocalState().log(sb.toString());</span>
+<span class="nc" id="L98">        throw new AssertionError(query);</span>
+    }
+
+    /**
+     * Gets a query that checks whether the pivot row is contained in the result. If the pivot row is contained, the
+     * query will fetch at least one row. If the pivot row is not contained, no rows will be fetched. This corresponds
+     * to step 7 described in the PQS paper.
+     *
+     * @param pivotRowQuery
+     *            the query that is guaranteed to fetch the pivot row, potentially among other rows
+     *
+     * @return a query that checks whether the pivot row is contained in pivotRowQuery
+     *
+     * @throws Exception
+     *             if an unexpected error occurs
+     */
+    protected abstract Query&lt;C&gt; getContainmentCheckQuery(Query&lt;?&gt; pivotRowQuery) throws Exception;
+
+    /**
+     * Obtains a rectified query (i.e., a query that is guaranteed to fetch the pivot row. This corresponds to steps 2-5
+     * of the PQS paper.
+     *
+     * @return the rectified query
+     *
+     * @throws Exception
+     *             if an unexpected error occurs
+     */
+    protected abstract Query&lt;C&gt; getRectifiedQuery() throws Exception;
+
+    /**
+     * Prints the value to which the expression is expected to evaluate, and then recursively prints the subexpressions'
+     * expected values.
+     *
+     * @param expr
+     *            the expression whose expected value should be printed
+     *
+     * @return a string representing the expected value of the expression and its subexpressions
+     */
+    protected abstract String getExpectedValues(E expr);
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.8.202204050719</span></div></body></html>

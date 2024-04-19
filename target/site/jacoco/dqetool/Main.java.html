@@ -1,0 +1,661 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>Main.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">dqetool</a> &gt; <a href="index.source.html" class="el_package">dqetool</a> &gt; <span class="el_source">Main.java</span></div><h1>Main.java</h1><pre class="source lang-java linenums">package dqetool;
+
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.Writer;
+import java.nio.file.Files;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.ServiceLoader;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicLong;
+
+import com.beust.jcommander.JCommander;
+import com.beust.jcommander.JCommander.Builder;
+
+import dqetool.common.log.Loggable;
+import dqetool.common.query.Query;
+import dqetool.common.query.SQLancerResultSet;
+
+public final class Main {
+
+<span class="fc" id="L32">    public static final File LOG_DIRECTORY = new File(&quot;logs&quot;);</span>
+<span class="fc" id="L33">    public static volatile AtomicLong nrQueries = new AtomicLong();</span>
+<span class="fc" id="L34">    public static volatile AtomicLong nrDatabases = new AtomicLong();</span>
+<span class="fc" id="L35">    public static volatile AtomicLong nrSuccessfulActions = new AtomicLong();</span>
+<span class="fc" id="L36">    public static volatile AtomicLong nrUnsuccessfulActions = new AtomicLong();</span>
+<span class="fc" id="L37">    public static volatile AtomicLong threadsShutdown = new AtomicLong();</span>
+    static boolean progressMonitorStarted;
+
+    static {
+<span class="fc" id="L41">        System.setProperty(org.slf4j.simple.SimpleLogger.DEFAULT_LOG_LEVEL_KEY, &quot;ERROR&quot;);</span>
+<span class="fc bfc" id="L42" title="All 2 branches covered.">        if (!LOG_DIRECTORY.exists()) {</span>
+<span class="fc" id="L43">            LOG_DIRECTORY.mkdir();</span>
+        }
+<span class="fc" id="L45">    }</span>
+
+    private Main() {
+    }
+
+    public static final class StateLogger {
+
+        private final File loggerFile;
+        private File curFile;
+        private File queryPlanFile;
+        private FileWriter logFileWriter;
+        public FileWriter currentFileWriter;
+        private FileWriter queryPlanFileWriter;
+<span class="nc" id="L58">        private static final List&lt;String&gt; INITIALIZED_PROVIDER_NAMES = new ArrayList&lt;&gt;();</span>
+        private final boolean logEachSelect;
+        private final boolean logQueryPlan;
+        private final DatabaseProvider&lt;?, ?, ?&gt; databaseProvider;
+
+        private static final class AlsoWriteToConsoleFileWriter extends FileWriter {
+
+            AlsoWriteToConsoleFileWriter(File file) throws IOException {
+<span class="nc" id="L66">                super(file);</span>
+<span class="nc" id="L67">            }</span>
+
+            @Override
+            public Writer append(CharSequence arg0) throws IOException {
+<span class="nc" id="L71">                System.err.println(arg0);</span>
+<span class="nc" id="L72">                return super.append(arg0);</span>
+            }
+
+            @Override
+            public void write(String str) throws IOException {
+<span class="nc" id="L77">                System.err.println(str);</span>
+<span class="nc" id="L78">                super.write(str);</span>
+<span class="nc" id="L79">            }</span>
+        }
+
+<span class="nc" id="L82">        public StateLogger(String databaseName, DatabaseProvider&lt;?, ?, ?&gt; provider, MainOptions options) {</span>
+<span class="nc" id="L83">            File dir = new File(LOG_DIRECTORY, provider.getDBMSName());</span>
+<span class="nc bnc" id="L84" title="All 4 branches missed.">            if (dir.exists() &amp;&amp; !dir.isDirectory()) {</span>
+<span class="nc" id="L85">                throw new AssertionError(dir);</span>
+            }
+<span class="nc" id="L87">            ensureExistsAndIsEmpty(dir, provider);</span>
+<span class="nc" id="L88">            loggerFile = new File(dir, databaseName + &quot;.log&quot;);</span>
+<span class="nc" id="L89">            logEachSelect = options.logEachSelect();</span>
+<span class="nc bnc" id="L90" title="All 2 branches missed.">            if (logEachSelect) {</span>
+<span class="nc" id="L91">                curFile = new File(dir, databaseName + &quot;-cur.log&quot;);</span>
+            }
+<span class="nc" id="L93">            logQueryPlan = options.logQueryPlan();</span>
+<span class="nc bnc" id="L94" title="All 2 branches missed.">            if (logQueryPlan) {</span>
+<span class="nc" id="L95">                queryPlanFile = new File(dir, databaseName + &quot;-plan.log&quot;);</span>
+            }
+<span class="nc" id="L97">            this.databaseProvider = provider;</span>
+<span class="nc" id="L98">        }</span>
+
+        private void ensureExistsAndIsEmpty(File dir, DatabaseProvider&lt;?, ?, ?&gt; provider) {
+<span class="nc bnc" id="L101" title="All 2 branches missed.">            if (INITIALIZED_PROVIDER_NAMES.contains(provider.getDBMSName())) {</span>
+<span class="nc" id="L102">                return;</span>
+            }
+<span class="nc" id="L104">            synchronized (INITIALIZED_PROVIDER_NAMES) {</span>
+<span class="nc bnc" id="L105" title="All 2 branches missed.">                if (!dir.exists()) {</span>
+                    try {
+<span class="nc" id="L107">                        Files.createDirectories(dir.toPath());</span>
+<span class="nc" id="L108">                    } catch (IOException e) {</span>
+<span class="nc" id="L109">                        throw new AssertionError(e);</span>
+                    }
+                }
+<span class="nc" id="L112">                File[] listFiles = dir.listFiles();</span>
+<span class="nc bnc" id="L113" title="All 2 branches missed.">                assert listFiles != null : &quot;directory was just created, so it should exist&quot;;</span>
+<span class="nc bnc" id="L114" title="All 2 branches missed.">                for (File file : listFiles) {</span>
+<span class="nc bnc" id="L115" title="All 2 branches missed.">                    if (!file.isDirectory()) {</span>
+<span class="nc" id="L116">                        file.delete();</span>
+                    }
+                }
+<span class="nc" id="L119">                INITIALIZED_PROVIDER_NAMES.add(provider.getDBMSName());</span>
+            }
+<span class="nc" id="L121">        }</span>
+
+        private FileWriter getLogFileWriter() {
+<span class="nc bnc" id="L124" title="All 2 branches missed.">            if (logFileWriter == null) {</span>
+                try {
+<span class="nc" id="L126">                    logFileWriter = new AlsoWriteToConsoleFileWriter(loggerFile);</span>
+<span class="nc" id="L127">                } catch (IOException e) {</span>
+<span class="nc" id="L128">                    throw new AssertionError(e);</span>
+                }
+            }
+<span class="nc" id="L131">            return logFileWriter;</span>
+        }
+
+        public FileWriter getCurrentFileWriter() {
+<span class="nc bnc" id="L135" title="All 2 branches missed.">            if (!logEachSelect) {</span>
+<span class="nc" id="L136">                throw new UnsupportedOperationException();</span>
+            }
+<span class="nc bnc" id="L138" title="All 2 branches missed.">            if (currentFileWriter == null) {</span>
+                try {
+<span class="nc" id="L140">                    currentFileWriter = new FileWriter(curFile, false);</span>
+<span class="nc" id="L141">                } catch (IOException e) {</span>
+<span class="nc" id="L142">                    throw new AssertionError(e);</span>
+                }
+            }
+<span class="nc" id="L145">            return currentFileWriter;</span>
+        }
+
+        public FileWriter getQueryPlanFileWriter() {
+<span class="nc bnc" id="L149" title="All 2 branches missed.">            if (!logQueryPlan) {</span>
+<span class="nc" id="L150">                throw new UnsupportedOperationException();</span>
+            }
+<span class="nc bnc" id="L152" title="All 2 branches missed.">            if (queryPlanFileWriter == null) {</span>
+                try {
+<span class="nc" id="L154">                    queryPlanFileWriter = new FileWriter(queryPlanFile, true);</span>
+<span class="nc" id="L155">                } catch (IOException e) {</span>
+<span class="nc" id="L156">                    throw new AssertionError(e);</span>
+                }
+            }
+<span class="nc" id="L159">            return queryPlanFileWriter;</span>
+        }
+
+        public void writeCurrent(StateToReproduce state) {
+<span class="nc bnc" id="L163" title="All 2 branches missed.">            if (!logEachSelect) {</span>
+<span class="nc" id="L164">                throw new UnsupportedOperationException();</span>
+            }
+<span class="nc" id="L166">            printState(getCurrentFileWriter(), state);</span>
+            try {
+<span class="nc" id="L168">                currentFileWriter.flush();</span>
+
+<span class="nc" id="L170">            } catch (IOException e) {</span>
+<span class="nc" id="L171">                e.printStackTrace();</span>
+            }
+<span class="nc" id="L173">        }</span>
+
+        public void writeCurrent(String input) {
+<span class="nc" id="L176">            write(databaseProvider.getLoggableFactory().createLoggable(input));</span>
+<span class="nc" id="L177">        }</span>
+
+        public void writeCurrentNoLineBreak(String input) {
+<span class="nc" id="L180">            write(databaseProvider.getLoggableFactory().createLoggableWithNoLinebreak(input));</span>
+<span class="nc" id="L181">        }</span>
+
+        private void write(Loggable loggable) {
+<span class="nc bnc" id="L184" title="All 2 branches missed.">            if (!logEachSelect) {</span>
+<span class="nc" id="L185">                throw new UnsupportedOperationException();</span>
+            }
+            try {
+<span class="nc" id="L188">                getCurrentFileWriter().write(loggable.getLogString());</span>
+
+<span class="nc" id="L190">                currentFileWriter.flush();</span>
+<span class="nc" id="L191">            } catch (IOException e) {</span>
+<span class="nc" id="L192">                throw new AssertionError();</span>
+            }
+<span class="nc" id="L194">        }</span>
+
+        public void writeQueryPlan(String queryPlan) {
+<span class="nc bnc" id="L197" title="All 2 branches missed.">            if (!logQueryPlan) {</span>
+<span class="nc" id="L198">                throw new UnsupportedOperationException();</span>
+            }
+            try {
+<span class="nc" id="L201">                getQueryPlanFileWriter().append(removeNamesFromQueryPlans(queryPlan));</span>
+<span class="nc" id="L202">                queryPlanFileWriter.flush();</span>
+<span class="nc" id="L203">            } catch (IOException e) {</span>
+<span class="nc" id="L204">                throw new AssertionError();</span>
+            }
+<span class="nc" id="L206">        }</span>
+
+        public void logException(Throwable reduce, StateToReproduce state) {
+<span class="nc" id="L209">            Loggable stackTrace = getStackTrace(reduce);</span>
+<span class="nc" id="L210">            FileWriter logFileWriter2 = getLogFileWriter();</span>
+            try {
+<span class="nc" id="L212">                logFileWriter2.write(stackTrace.getLogString());</span>
+<span class="nc" id="L213">                printState(logFileWriter2, state);</span>
+<span class="nc" id="L214">            } catch (IOException e) {</span>
+<span class="nc" id="L215">                throw new AssertionError(e);</span>
+            } finally {
+                try {
+<span class="nc" id="L218">                    logFileWriter2.flush();</span>
+<span class="nc" id="L219">                } catch (IOException e) {</span>
+                    // TODO Auto-generated catch block
+<span class="nc" id="L221">                    e.printStackTrace();</span>
+                }
+            }
+<span class="nc" id="L224">        }</span>
+
+        private Loggable getStackTrace(Throwable e1) {
+<span class="nc" id="L227">            return databaseProvider.getLoggableFactory().convertStacktraceToLoggable(e1);</span>
+        }
+
+        private void printState(FileWriter writer, StateToReproduce state) {
+<span class="nc" id="L231">            StringBuilder sb = new StringBuilder();</span>
+
+<span class="nc" id="L233">            sb.append(databaseProvider.getLoggableFactory()</span>
+<span class="nc" id="L234">                    .getInfo(state.getDatabaseName(), state.getDatabaseVersion(), state.getSeedValue()).getLogString());</span>
+
+<span class="nc bnc" id="L236" title="All 2 branches missed.">            for (Query&lt;?&gt; s : state.getStatements()) {</span>
+<span class="nc" id="L237">                sb.append(databaseProvider.getLoggableFactory().createLoggable(s.getLogString()).getLogString());</span>
+            }
+            try {
+<span class="nc" id="L240">                writer.write(sb.toString());</span>
+<span class="nc" id="L241">            } catch (IOException e) {</span>
+<span class="nc" id="L242">                throw new AssertionError(e);</span>
+            }
+<span class="nc" id="L244">        }</span>
+
+        private String removeNamesFromQueryPlans(String queryPlan) {
+<span class="nc" id="L247">            String result = queryPlan;</span>
+<span class="nc" id="L248">            result = result.replaceAll(&quot;t[0-9]+&quot;, &quot;t0&quot;); // Avoid duplicate tables</span>
+<span class="nc" id="L249">            result = result.replaceAll(&quot;v[0-9]+&quot;, &quot;v0&quot;); // Avoid duplicate views</span>
+<span class="nc" id="L250">            result = result.replaceAll(&quot;i[0-9]+&quot;, &quot;i0&quot;); // Avoid duplicate indexes</span>
+<span class="nc" id="L251">            return result + &quot;\n&quot;;</span>
+        }
+    }
+
+    public static class QueryManager&lt;C extends SQLancerDBConnection&gt; {
+
+        private final GlobalState&lt;?, ?, C&gt; globalState;
+
+<span class="nc" id="L259">        QueryManager(GlobalState&lt;?, ?, C&gt; globalState) {</span>
+<span class="nc" id="L260">            this.globalState = globalState;</span>
+<span class="nc" id="L261">        }</span>
+
+        public boolean execute(Query&lt;C&gt; q, String... fills) throws Exception {
+            boolean success;
+<span class="nc" id="L265">            success = q.execute(globalState, fills);</span>
+<span class="nc" id="L266">            Main.nrSuccessfulActions.addAndGet(1);</span>
+<span class="nc bnc" id="L267" title="All 4 branches missed.">            if (globalState.getOptions().loggerPrintFailed() || success) {</span>
+<span class="nc" id="L268">                globalState.getState().logStatement(q);</span>
+            }
+<span class="nc" id="L270">            return success;</span>
+        }
+
+        public SQLancerResultSet executeAndGet(Query&lt;C&gt; q, String... fills) throws Exception {
+<span class="nc" id="L274">            globalState.getState().logStatement(q);</span>
+            SQLancerResultSet result;
+<span class="nc" id="L276">            result = q.executeAndGet(globalState, fills);</span>
+<span class="nc" id="L277">            Main.nrSuccessfulActions.addAndGet(1);</span>
+<span class="nc" id="L278">            return result;</span>
+        }
+
+        public void incrementSelectQueryCount() {
+<span class="nc" id="L282">            Main.nrQueries.addAndGet(1);</span>
+<span class="nc" id="L283">        }</span>
+
+        public Long getSelectQueryCount() {
+<span class="nc" id="L286">            return Main.nrQueries.get();</span>
+        }
+
+        public void incrementCreateDatabase() {
+<span class="nc" id="L290">            Main.nrDatabases.addAndGet(1);</span>
+<span class="nc" id="L291">        }</span>
+
+    }
+
+    public static void main(String[] args) {
+<span class="nc" id="L296">        System.exit(executeMain(args));</span>
+<span class="nc" id="L297">    }</span>
+
+    public static class DBMSExecutor&lt;G extends GlobalState&lt;O, ?, C&gt;, O extends DBMSSpecificOptions&lt;?&gt;, C extends SQLancerDBConnection&gt; {
+
+        private final DatabaseProvider&lt;G, O, C&gt; provider;
+        private final MainOptions options;
+        private final O command;
+        private final String databaseName;
+        private StateLogger logger;
+        private StateToReproduce stateToRepro;
+        private final Randomly r;
+
+<span class="nc" id="L309">        public DBMSExecutor(DatabaseProvider&lt;G, O, C&gt; provider, MainOptions options, O dbmsSpecificOptions,</span>
+                String databaseName, Randomly r) {
+<span class="nc" id="L311">            this.provider = provider;</span>
+<span class="nc" id="L312">            this.options = options;</span>
+<span class="nc" id="L313">            this.databaseName = databaseName;</span>
+<span class="nc" id="L314">            this.command = dbmsSpecificOptions;</span>
+<span class="nc" id="L315">            this.r = r;</span>
+<span class="nc" id="L316">        }</span>
+
+        private G createGlobalState() {
+            try {
+<span class="nc" id="L320">                return provider.getGlobalStateClass().getDeclaredConstructor().newInstance();</span>
+<span class="nc" id="L321">            } catch (Exception e) {</span>
+<span class="nc" id="L322">                throw new AssertionError(e);</span>
+            }
+        }
+
+        public O getCommand() {
+<span class="nc" id="L327">            return command;</span>
+        }
+
+        public void testConnection() throws Exception {
+<span class="nc" id="L331">            G state = getInitializedGlobalState(options.getRandomSeed());</span>
+<span class="nc" id="L332">            try (SQLancerDBConnection con = provider.createDatabase(state)) {</span>
+<span class="nc" id="L333">                return;</span>
+<span class="nc bnc" id="L334" title="All 8 branches missed.">            }</span>
+        }
+
+        public void run() throws Exception {
+<span class="nc" id="L338">            G state = createGlobalState();</span>
+<span class="nc" id="L339">            stateToRepro = provider.getStateToReproduce(databaseName);</span>
+<span class="nc" id="L340">            stateToRepro.seedValue = r.getSeed();</span>
+<span class="nc" id="L341">            state.setState(stateToRepro);</span>
+<span class="nc" id="L342">            logger = new StateLogger(databaseName, provider, options);</span>
+<span class="nc" id="L343">            state.setRandomly(r);</span>
+<span class="nc" id="L344">            state.setDatabaseName(databaseName);</span>
+<span class="nc" id="L345">            state.setMainOptions(options);</span>
+<span class="nc" id="L346">            state.setDbmsSpecificOptions(command);</span>
+<span class="nc" id="L347">            try (C con = provider.createDatabase(state)) {</span>
+<span class="nc" id="L348">                QueryManager&lt;C&gt; manager = new QueryManager&lt;&gt;(state);</span>
+                try {
+<span class="nc" id="L350">                    stateToRepro.databaseVersion = con.getDatabaseVersion();</span>
+<span class="nc" id="L351">                } catch (Exception e) {</span>
+                    // ignore
+                }
+<span class="nc" id="L354">                state.setConnection(con);</span>
+<span class="nc" id="L355">                state.setStateLogger(logger);</span>
+<span class="nc" id="L356">                state.setManager(manager);</span>
+<span class="nc bnc" id="L357" title="All 2 branches missed.">                if (options.logEachSelect()) {</span>
+<span class="nc" id="L358">                    logger.writeCurrent(state.getState());</span>
+                }
+<span class="nc" id="L360">                Reproducer&lt;G&gt; reproducer = null;</span>
+<span class="nc bnc" id="L361" title="All 2 branches missed.">                if (options.enableQPG()) {</span>
+<span class="nc" id="L362">                    provider.generateAndTestDatabaseWithQueryPlanGuidance(state);</span>
+<span class="nc" id="L363">                } else {</span>
+<span class="nc" id="L364">                    reproducer = provider.generateAndTestDatabase(state);</span>
+                }
+                try {
+<span class="nc" id="L367">                    logger.getCurrentFileWriter().close();</span>
+<span class="nc" id="L368">                    logger.currentFileWriter = null;</span>
+<span class="nc" id="L369">                } catch (IOException e) {</span>
+<span class="nc" id="L370">                    throw new AssertionError(e);</span>
+                }
+<span class="nc bnc" id="L372" title="All 4 branches missed.">                if (reproducer != null &amp;&amp; options.useReducer()) {</span>
+<span class="nc" id="L373">                    System.out.println(&quot;EXPERIMENTAL: Trying to reduce queries using a simple reducer.&quot;);</span>
+<span class="nc" id="L374">                    System.out.println(&quot;Reduced query will be output to stdout but not logs.&quot;);</span>
+<span class="nc" id="L375">                    G newGlobalState = createGlobalState();</span>
+<span class="nc" id="L376">                    newGlobalState.setState(stateToRepro);</span>
+<span class="nc" id="L377">                    newGlobalState.setRandomly(r);</span>
+<span class="nc" id="L378">                    newGlobalState.setDatabaseName(databaseName);</span>
+<span class="nc" id="L379">                    newGlobalState.setMainOptions(options);</span>
+<span class="nc" id="L380">                    newGlobalState.setDbmsSpecificOptions(command);</span>
+<span class="nc" id="L381">                    QueryManager&lt;C&gt; newManager = new QueryManager&lt;&gt;(newGlobalState);</span>
+<span class="nc" id="L382">                    newGlobalState.setStateLogger(new StateLogger(databaseName, provider, options));</span>
+<span class="nc" id="L383">                    newGlobalState.setManager(newManager);</span>
+
+<span class="nc" id="L385">                    Reducer&lt;G&gt; reducer = new StatementReducer&lt;&gt;(provider);</span>
+<span class="nc" id="L386">                    reducer.reduce(state, reproducer, newGlobalState);</span>
+<span class="nc" id="L387">                    throw new AssertionError(&quot;Found a potential bug&quot;);</span>
+                }
+            }
+<span class="nc" id="L390">        }</span>
+
+        private G getInitializedGlobalState(long seed) {
+<span class="nc" id="L393">            G state = createGlobalState();</span>
+<span class="nc" id="L394">            stateToRepro = provider.getStateToReproduce(databaseName);</span>
+<span class="nc" id="L395">            stateToRepro.seedValue = seed;</span>
+<span class="nc" id="L396">            state.setState(stateToRepro);</span>
+<span class="nc" id="L397">            logger = new StateLogger(databaseName, provider, options);</span>
+<span class="nc" id="L398">            Randomly r = new Randomly(seed);</span>
+<span class="nc" id="L399">            state.setRandomly(r);</span>
+<span class="nc" id="L400">            state.setDatabaseName(databaseName);</span>
+<span class="nc" id="L401">            state.setMainOptions(options);</span>
+<span class="nc" id="L402">            state.setDbmsSpecificOptions(command);</span>
+<span class="nc" id="L403">            return state;</span>
+        }
+
+        public StateLogger getLogger() {
+<span class="nc" id="L407">            return logger;</span>
+        }
+
+        public StateToReproduce getStateToReproduce() {
+<span class="nc" id="L411">            return stateToRepro;</span>
+        }
+    }
+
+    public static class DBMSExecutorFactory&lt;G extends GlobalState&lt;O, ?, C&gt;, O extends DBMSSpecificOptions&lt;?&gt;, C extends SQLancerDBConnection&gt; {
+
+        private final DatabaseProvider&lt;G, O, C&gt; provider;
+        private final MainOptions options;
+        private final O command;
+
+<span class="fc" id="L421">        public DBMSExecutorFactory(DatabaseProvider&lt;G, O, C&gt; provider, MainOptions options) {</span>
+<span class="fc" id="L422">            this.provider = provider;</span>
+<span class="fc" id="L423">            this.options = options;</span>
+<span class="fc" id="L424">            this.command = createCommand();</span>
+<span class="fc" id="L425">        }</span>
+
+        private O createCommand() {
+            try {
+<span class="fc" id="L429">                return provider.getOptionClass().getDeclaredConstructor().newInstance();</span>
+<span class="nc" id="L430">            } catch (Exception e) {</span>
+<span class="nc" id="L431">                throw new AssertionError(e);</span>
+            }
+        }
+
+        public O getCommand() {
+<span class="fc" id="L436">            return command;</span>
+        }
+
+        @SuppressWarnings(&quot;unchecked&quot;)
+        public DBMSExecutor&lt;G, O, C&gt; getDBMSExecutor(String databaseName, Randomly r) {
+            try {
+<span class="nc" id="L442">                return new DBMSExecutor&lt;G, O, C&gt;(provider.getClass().getDeclaredConstructor().newInstance(), options,</span>
+<span class="nc" id="L443">                        command, databaseName, r);</span>
+<span class="nc" id="L444">            } catch (Exception e) {</span>
+<span class="nc" id="L445">                throw new AssertionError(e);</span>
+            }
+        }
+
+        public DatabaseProvider&lt;G, O, C&gt; getProvider() {
+<span class="nc" id="L450">            return provider;</span>
+        }
+
+    }
+
+    public static int executeMain(String... args) throws AssertionError {
+<span class="fc" id="L456">        List&lt;DatabaseProvider&lt;?, ?, ?&gt;&gt; providers = getDBMSProviders();</span>
+<span class="fc" id="L457">        Map&lt;String, DBMSExecutorFactory&lt;?, ?, ?&gt;&gt; nameToProvider = new HashMap&lt;&gt;();</span>
+<span class="fc" id="L458">        MainOptions options = new MainOptions();</span>
+<span class="fc" id="L459">        Builder commandBuilder = JCommander.newBuilder().addObject(options);</span>
+<span class="fc bfc" id="L460" title="All 2 branches covered.">        for (DatabaseProvider&lt;?, ?, ?&gt; provider : providers) {</span>
+<span class="fc" id="L461">            String name = provider.getDBMSName();</span>
+<span class="fc" id="L462">            DBMSExecutorFactory&lt;?, ?, ?&gt; executorFactory = new DBMSExecutorFactory&lt;&gt;(provider, options);</span>
+<span class="fc" id="L463">            commandBuilder = commandBuilder.addCommand(name, executorFactory.getCommand());</span>
+<span class="fc" id="L464">            nameToProvider.put(name, executorFactory);</span>
+        }
+<span class="fc" id="L466">        JCommander jc = commandBuilder.programName(&quot;SQLancer&quot;).build();</span>
+<span class="nc" id="L467">        jc.parse(args);</span>
+
+<span class="nc bnc" id="L469" title="All 4 branches missed.">        if (jc.getParsedCommand() == null || options.isHelp()) {</span>
+<span class="nc" id="L470">            jc.usage();</span>
+<span class="nc" id="L471">            return options.getErrorExitCode();</span>
+        }
+
+<span class="nc" id="L474">        Randomly.initialize(options);</span>
+<span class="nc bnc" id="L475" title="All 2 branches missed.">        if (options.printProgressInformation()) {</span>
+<span class="nc" id="L476">            startProgressMonitor();</span>
+<span class="nc bnc" id="L477" title="All 2 branches missed.">            if (options.printProgressSummary()) {</span>
+<span class="nc" id="L478">                Runtime.getRuntime().addShutdownHook(new Thread(new Runnable() {</span>
+
+                    @Override
+                    public void run() {
+<span class="nc" id="L482">                        System.out.println(&quot;Overall execution statistics&quot;);</span>
+<span class="nc" id="L483">                        System.out.println(&quot;============================&quot;);</span>
+<span class="nc" id="L484">                        System.out.println(formatInteger(nrQueries.get()) + &quot; queries&quot;);</span>
+<span class="nc" id="L485">                        System.out.println(formatInteger(nrDatabases.get()) + &quot; databases&quot;);</span>
+<span class="nc" id="L486">                        System.out.println(</span>
+<span class="nc" id="L487">                                formatInteger(nrSuccessfulActions.get()) + &quot; successfully-executed statements&quot;);</span>
+<span class="nc" id="L488">                        System.out.println(</span>
+<span class="nc" id="L489">                                formatInteger(nrUnsuccessfulActions.get()) + &quot; unsuccessfuly-executed statements&quot;);</span>
+<span class="nc" id="L490">                    }</span>
+
+                    private String formatInteger(long intValue) {
+<span class="nc bnc" id="L493" title="All 2 branches missed.">                        if (intValue &gt; 1000) {</span>
+<span class="nc" id="L494">                            return String.format(&quot;%,9dk&quot;, intValue / 1000);</span>
+                        } else {
+<span class="nc" id="L496">                            return String.format(&quot;%,10d&quot;, intValue);</span>
+                        }
+                    }
+                }));
+            }
+        }
+
+<span class="nc" id="L503">        ExecutorService execService = Executors.newFixedThreadPool(options.getNumberConcurrentThreads());</span>
+<span class="nc" id="L504">        DBMSExecutorFactory&lt;?, ?, ?&gt; executorFactory = nameToProvider.get(jc.getParsedCommand());</span>
+
+<span class="nc bnc" id="L506" title="All 2 branches missed.">        if (options.performConnectionTest()) {</span>
+            try {
+<span class="nc" id="L508">                executorFactory.getDBMSExecutor(options.getDatabasePrefix() + &quot;connectiontest&quot;, new Randomly())</span>
+<span class="nc" id="L509">                        .testConnection();</span>
+<span class="nc" id="L510">            } catch (Exception e) {</span>
+<span class="nc" id="L511">                System.err.println(</span>
+<span class="nc" id="L512">                        &quot;SQLancer failed creating a test database, indicating that SQLancer might have failed connecting to the DBMS. In order to change the username, password, host and port, you can use the --username, --password, --host and --port options.\n\n&quot;);</span>
+<span class="nc" id="L513">                e.printStackTrace();</span>
+<span class="nc" id="L514">                return options.getErrorExitCode();</span>
+            }
+        }
+<span class="nc" id="L517">        final AtomicBoolean someOneFails = new AtomicBoolean(false);</span>
+
+<span class="nc bnc" id="L519" title="All 2 branches missed.">        for (int i = 0; i &lt; options.getTotalNumberTries(); i++) {</span>
+<span class="nc" id="L520">            final String databaseName = options.getDatabasePrefix() + i;</span>
+            final long seed;
+<span class="nc bnc" id="L522" title="All 2 branches missed.">            if (options.getRandomSeed() == -1) {</span>
+<span class="nc" id="L523">                seed = System.currentTimeMillis() + i;</span>
+<span class="nc" id="L524">            } else {</span>
+<span class="nc" id="L525">                seed = options.getRandomSeed() + i;</span>
+            }
+<span class="nc" id="L527">            execService.execute(new Runnable() {</span>
+
+                @Override
+                public void run() {
+<span class="nc" id="L531">                    Thread.currentThread().setName(databaseName);</span>
+<span class="nc" id="L532">                    runThread(databaseName);</span>
+<span class="nc" id="L533">                }</span>
+
+                private void runThread(final String databaseName) {
+<span class="nc" id="L536">                    Randomly r = new Randomly(seed);</span>
+                    try {
+<span class="nc" id="L538">                        int maxNrDbs = options.getMaxGeneratedDatabases();</span>
+                        // run without a limit if maxNrDbs == -1
+<span class="nc bnc" id="L540" title="All 4 branches missed.">                        for (int i = 0; i &lt; maxNrDbs || maxNrDbs == -1; i++) {</span>
+<span class="nc" id="L541">                            Boolean continueRunning = run(options, execService, executorFactory, r, databaseName);</span>
+<span class="nc bnc" id="L542" title="All 2 branches missed.">                            if (!continueRunning) {</span>
+<span class="nc" id="L543">                                someOneFails.set(true);</span>
+<span class="nc" id="L544">                                break;</span>
+                            }
+                        }
+<span class="nc" id="L547">                    } finally {</span>
+<span class="nc" id="L548">                        threadsShutdown.addAndGet(1);</span>
+<span class="nc bnc" id="L549" title="All 2 branches missed.">                        if (threadsShutdown.get() == options.getTotalNumberTries()) {</span>
+<span class="nc" id="L550">                            execService.shutdown();</span>
+                        }
+                    }
+<span class="nc" id="L553">                }</span>
+
+                private boolean run(MainOptions options, ExecutorService execService,
+                        DBMSExecutorFactory&lt;?, ?, ?&gt; executorFactory, Randomly r, final String databaseName) {
+<span class="nc" id="L557">                    DBMSExecutor&lt;?, ?, ?&gt; executor = executorFactory.getDBMSExecutor(databaseName, r);</span>
+                    try {
+<span class="nc" id="L559">                        executor.run();</span>
+<span class="nc" id="L560">                        return true;</span>
+<span class="nc" id="L561">                    } catch (IgnoreMeException e) {</span>
+<span class="nc" id="L562">                        return true;</span>
+<span class="nc" id="L563">                    } catch (Throwable reduce) {</span>
+<span class="nc" id="L564">                        reduce.printStackTrace();</span>
+<span class="nc" id="L565">                        executor.getStateToReproduce().exception = reduce.getMessage();</span>
+<span class="nc" id="L566">                        executor.getLogger().logFileWriter = null;</span>
+<span class="nc" id="L567">                        executor.getLogger().logException(reduce, executor.getStateToReproduce());</span>
+<span class="nc" id="L568">                        return false;</span>
+                    } finally {
+                        try {
+<span class="nc bnc" id="L571" title="All 2 branches missed.">                            if (options.logEachSelect()) {</span>
+<span class="nc bnc" id="L572" title="All 2 branches missed.">                                if (executor.getLogger().currentFileWriter != null) {</span>
+<span class="nc" id="L573">                                    executor.getLogger().currentFileWriter.close();</span>
+                                }
+<span class="nc" id="L575">                                executor.getLogger().currentFileWriter = null;</span>
+                            }
+<span class="nc" id="L577">                        } catch (IOException e) {</span>
+<span class="nc" id="L578">                            e.printStackTrace();</span>
+                        }
+                    }
+                }
+            });
+        }
+        try {
+<span class="nc bnc" id="L585" title="All 2 branches missed.">            if (options.getTimeoutSeconds() == -1) {</span>
+<span class="nc" id="L586">                execService.awaitTermination(Long.MAX_VALUE, TimeUnit.DAYS);</span>
+<span class="nc" id="L587">            } else {</span>
+<span class="nc" id="L588">                execService.awaitTermination(options.getTimeoutSeconds(), TimeUnit.SECONDS);</span>
+            }
+<span class="nc" id="L590">        } catch (InterruptedException e) {</span>
+<span class="nc" id="L591">            e.printStackTrace();</span>
+        }
+
+<span class="nc bnc" id="L594" title="All 2 branches missed.">        return someOneFails.get() ? options.getErrorExitCode() : 0;</span>
+    }
+
+    /**
+     * To register a new provider, it is necessary to implement the DatabaseProvider interface and add an additional
+     * configuration file, see https://docs.oracle.com/javase/9/docs/api/java/util/ServiceLoader.html. Currently, we use
+     * an @AutoService annotation to create the configuration file automatically. This allows SQLancer to pick up
+     * providers in other JARs on the classpath.
+     *
+     * @return The list of service providers on the classpath
+     */
+    static List&lt;DatabaseProvider&lt;?, ?, ?&gt;&gt; getDBMSProviders() {
+<span class="fc" id="L606">        List&lt;DatabaseProvider&lt;?, ?, ?&gt;&gt; providers = new ArrayList&lt;&gt;();</span>
+        @SuppressWarnings(&quot;rawtypes&quot;)
+<span class="fc" id="L608">        ServiceLoader&lt;DatabaseProvider&gt; loader = ServiceLoader.load(DatabaseProvider.class);</span>
+<span class="fc bfc" id="L609" title="All 2 branches covered.">        for (DatabaseProvider&lt;?, ?, ?&gt; provider : loader) {</span>
+<span class="fc" id="L610">            providers.add(provider);</span>
+        }
+<span class="fc" id="L612">        return providers;</span>
+    }
+
+    private static synchronized void startProgressMonitor() {
+<span class="nc bnc" id="L616" title="All 2 branches missed.">        if (progressMonitorStarted) {</span>
+            /*
+             * it might be already started if, for example, the main method is called multiple times in a test (see
+             * https://github.com/sqlancer/sqlancer/issues/90).
+             */
+<span class="nc" id="L621">            return;</span>
+        } else {
+<span class="nc" id="L623">            progressMonitorStarted = true;</span>
+        }
+<span class="nc" id="L625">        final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);</span>
+<span class="nc" id="L626">        scheduler.scheduleAtFixedRate(new Runnable() {</span>
+
+<span class="nc" id="L628">            private long timeMillis = System.currentTimeMillis();</span>
+            private long lastNrQueries;
+            private long lastNrDbs;
+
+            {
+<span class="nc" id="L633">                timeMillis = System.currentTimeMillis();</span>
+            }
+
+            @Override
+            public void run() {
+<span class="nc" id="L638">                long elapsedTimeMillis = System.currentTimeMillis() - timeMillis;</span>
+<span class="nc" id="L639">                long currentNrQueries = nrQueries.get();</span>
+<span class="nc" id="L640">                long nrCurrentQueries = currentNrQueries - lastNrQueries;</span>
+<span class="nc" id="L641">                double throughput = nrCurrentQueries / (elapsedTimeMillis / 1000d);</span>
+<span class="nc" id="L642">                long currentNrDbs = nrDatabases.get();</span>
+<span class="nc" id="L643">                long nrCurrentDbs = currentNrDbs - lastNrDbs;</span>
+<span class="nc" id="L644">                double throughputDbs = nrCurrentDbs / (elapsedTimeMillis / 1000d);</span>
+<span class="nc" id="L645">                long successfulStatementsRatio = (long) (100.0 * nrSuccessfulActions.get()</span>
+<span class="nc" id="L646">                        / (nrSuccessfulActions.get() + nrUnsuccessfulActions.get()));</span>
+<span class="nc" id="L647">                DateFormat dateFormat = new SimpleDateFormat(&quot;yyyy/MM/dd HH:mm:ss&quot;);</span>
+<span class="nc" id="L648">                Date date = new Date();</span>
+<span class="nc" id="L649">                System.out.println(String.format(</span>
+<span class="nc" id="L650">                        &quot;[%s] Executed %d queries (%d queries/s; %.2f/s dbs, successful statements: %2d%%). Threads shut down: %d.&quot;,</span>
+<span class="nc" id="L651">                        dateFormat.format(date), currentNrQueries, (int) throughput, throughputDbs,</span>
+<span class="nc" id="L652">                        successfulStatementsRatio, threadsShutdown.get()));</span>
+<span class="nc" id="L653">                timeMillis = System.currentTimeMillis();</span>
+<span class="nc" id="L654">                lastNrQueries = currentNrQueries;</span>
+<span class="nc" id="L655">                lastNrDbs = currentNrDbs;</span>
+<span class="nc" id="L656">            }</span>
+<span class="nc" id="L657">        }, 5, 5, TimeUnit.SECONDS);</span>
+<span class="nc" id="L658">    }</span>
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.8.202204050719</span></div></body></html>

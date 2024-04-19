@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>MariaDBErrors.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">dqetool</a> &gt; <a href="index.source.html" class="el_package">dqetool.mariadb</a> &gt; <span class="el_source">MariaDBErrors.java</span></div><h1>MariaDBErrors.java</h1><pre class="source lang-java linenums">package dqetool.mariadb;
+
+import dqetool.common.query.ExpectedErrors;
+
+public final class MariaDBErrors {
+
+    private MariaDBErrors() {
+    }
+
+    public static void addInsertErrors(ExpectedErrors errors) {
+<span class="nc" id="L11">        errors.add(&quot;Out of range&quot;);</span>
+<span class="nc" id="L12">        errors.add(&quot;Duplicate entry&quot;); // violates UNIQUE constraint</span>
+<span class="nc" id="L13">        errors.add(&quot;cannot be null&quot;); // violates NOT NULL constraint</span>
+<span class="nc" id="L14">        errors.add(&quot;Incorrect integer value&quot;); // e.g., insert TEXT into an int value</span>
+<span class="nc" id="L15">        errors.add(&quot;Data truncated for column&quot;); // int + plus string into int</span>
+<span class="nc" id="L16">        errors.add(&quot;doesn't have a default value&quot;); // no default value</span>
+<span class="nc" id="L17">        errors.add(&quot;The value specified for generated column&quot;); // trying to insert into a generated column</span>
+<span class="nc" id="L18">        errors.add(&quot;Incorrect double value&quot;);</span>
+<span class="nc" id="L19">        errors.add(&quot;Incorrect string value&quot;);</span>
+<span class="nc" id="L20">    }</span>
+
+    public static void addExpressionErrors(ExpectedErrors errors) {
+<span class="nc" id="L23">        errors.add(&quot;Truncated incorrect&quot;);</span>
+<span class="nc" id="L24">        errors.add(&quot;is out of range&quot;);</span>
+        // regex
+<span class="nc" id="L26">        errors.add(&quot;unmatched parentheses&quot;);</span>
+<span class="nc" id="L27">        errors.add(&quot;nothing to repeat at offset&quot;);</span>
+<span class="nc" id="L28">        errors.add(&quot;missing )&quot;);</span>
+<span class="nc" id="L29">        errors.add(&quot;missing terminating ]&quot;);</span>
+<span class="nc" id="L30">        errors.add(&quot;range out of order in character class&quot;);</span>
+<span class="nc" id="L31">        errors.add(&quot;unrecognized character after &quot;);</span>
+<span class="nc" id="L32">        errors.add(&quot;Got error '(*VERB) not recognized or malformed&quot;);</span>
+<span class="nc" id="L33">        errors.add(&quot;must be followed by&quot;);</span>
+<span class="nc" id="L34">        errors.add(&quot;malformed number or name after&quot;);</span>
+<span class="nc" id="L35">        errors.add(&quot;digit expected after&quot;);</span>
+<span class="nc" id="L36">    }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.8.202204050719</span></div></body></html>

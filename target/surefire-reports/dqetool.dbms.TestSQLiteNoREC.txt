@@ -1,0 +1,8 @@
+-------------------------------------------------------------------------------
+Test set: dqetool.dbms.TestSQLiteNoREC
+-------------------------------------------------------------------------------
+Tests run: 1, Failures: 0, Errors: 1, Skipped: 0, Time elapsed: 0.199 s <<< FAILURE! - in dqetool.dbms.TestSQLiteNoREC
+testSqliteNoREC  Time elapsed: 0.189 s  <<< ERROR!
+com.beust.jcommander.ParameterException: Invalid value for --oracle parameter. Allowed values:[DQE]
+	at dqetool.dbms.TestSQLiteNoREC.testSqliteNoREC(TestSQLiteNoREC.java:13)
+

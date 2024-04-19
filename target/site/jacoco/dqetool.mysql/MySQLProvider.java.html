@@ -1,0 +1,192 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>MySQLProvider.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">dqetool</a> &gt; <a href="index.source.html" class="el_package">dqetool.mysql</a> &gt; <span class="el_source">MySQLProvider.java</span></div><h1>MySQLProvider.java</h1><pre class="source lang-java linenums">package dqetool.mysql;
+
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.SQLException;
+import java.sql.Statement;
+
+import com.google.auto.service.AutoService;
+
+import dqetool.AbstractAction;
+import dqetool.DatabaseProvider;
+import dqetool.IgnoreMeException;
+import dqetool.MainOptions;
+import dqetool.Randomly;
+import dqetool.SQLConnection;
+import dqetool.SQLProviderAdapter;
+import dqetool.StatementExecutor;
+import dqetool.common.DBMSCommon;
+import dqetool.common.query.SQLQueryAdapter;
+import dqetool.common.query.SQLQueryProvider;
+import dqetool.mysql.gen.MySQLAlterTable;
+import dqetool.mysql.gen.MySQLDeleteGenerator;
+import dqetool.mysql.gen.MySQLDropIndex;
+import dqetool.mysql.gen.MySQLInsertGenerator;
+import dqetool.mysql.gen.MySQLSetGenerator;
+import dqetool.mysql.gen.MySQLTableGenerator;
+import dqetool.mysql.gen.MySQLTruncateTableGenerator;
+import dqetool.mysql.gen.admin.MySQLFlush;
+import dqetool.mysql.gen.admin.MySQLReset;
+import dqetool.mysql.gen.datadef.MySQLIndexGenerator;
+import dqetool.mysql.gen.tblmaintenance.MySQLAnalyzeTable;
+import dqetool.mysql.gen.tblmaintenance.MySQLCheckTable;
+import dqetool.mysql.gen.tblmaintenance.MySQLChecksum;
+import dqetool.mysql.gen.tblmaintenance.MySQLOptimize;
+import dqetool.mysql.gen.tblmaintenance.MySQLRepair;
+
+@AutoService(DatabaseProvider.class)
+public class MySQLProvider extends SQLProviderAdapter&lt;MySQLGlobalState, MySQLOptions&gt; {
+
+    public MySQLProvider() {
+<span class="fc" id="L41">        super(MySQLGlobalState.class, MySQLOptions.class);</span>
+<span class="fc" id="L42">    }</span>
+
+<span class="nc" id="L44">    enum Action implements AbstractAction&lt;MySQLGlobalState&gt; {</span>
+<span class="nc" id="L45">        SHOW_TABLES((g) -&gt; new SQLQueryAdapter(&quot;SHOW TABLES&quot;)), //</span>
+<span class="nc" id="L46">        INSERT(MySQLInsertGenerator::insertRow), //</span>
+<span class="nc" id="L47">        SET_VARIABLE(MySQLSetGenerator::set), //</span>
+<span class="nc" id="L48">        REPAIR(MySQLRepair::repair), //</span>
+<span class="nc" id="L49">        OPTIMIZE(MySQLOptimize::optimize), //</span>
+<span class="nc" id="L50">        CHECKSUM(MySQLChecksum::checksum), //</span>
+<span class="nc" id="L51">        CHECK_TABLE(MySQLCheckTable::check), //</span>
+<span class="nc" id="L52">        ANALYZE_TABLE(MySQLAnalyzeTable::analyze), //</span>
+<span class="nc" id="L53">        FLUSH(MySQLFlush::create), RESET(MySQLReset::create), CREATE_INDEX(MySQLIndexGenerator::create), //</span>
+<span class="nc" id="L54">        ALTER_TABLE(MySQLAlterTable::create), //</span>
+<span class="nc" id="L55">        TRUNCATE_TABLE(MySQLTruncateTableGenerator::generate), //</span>
+<span class="nc" id="L56">        SELECT_INFO((g) -&gt; new SQLQueryAdapter(</span>
+<span class="nc" id="L57">                &quot;select TABLE_NAME, ENGINE from information_schema.TABLES where table_schema = '&quot; + g.getDatabaseName()</span>
+<span class="nc" id="L58">                        + &quot;'&quot;)), //</span>
+<span class="nc" id="L59">        CREATE_TABLE((g) -&gt; {</span>
+            // TODO refactor
+<span class="nc" id="L61">            String tableName = DBMSCommon.createTableName(g.getSchema().getDatabaseTables().size());</span>
+<span class="nc" id="L62">            return MySQLTableGenerator.generate(g, tableName);</span>
+<span class="nc" id="L63">        }), //</span>
+<span class="nc" id="L64">        DELETE(MySQLDeleteGenerator::delete), //</span>
+<span class="nc" id="L65">        DROP_INDEX(MySQLDropIndex::generate);</span>
+
+        private final SQLQueryProvider&lt;MySQLGlobalState&gt; sqlQueryProvider;
+
+<span class="nc" id="L69">        Action(SQLQueryProvider&lt;MySQLGlobalState&gt; sqlQueryProvider) {</span>
+<span class="nc" id="L70">            this.sqlQueryProvider = sqlQueryProvider;</span>
+<span class="nc" id="L71">        }</span>
+
+        @Override
+        public SQLQueryAdapter getQuery(MySQLGlobalState globalState) throws Exception {
+<span class="nc" id="L75">            return sqlQueryProvider.getQuery(globalState);</span>
+        }
+    }
+
+    private static int mapActions(MySQLGlobalState globalState, Action a) {
+<span class="nc" id="L80">        Randomly r = globalState.getRandomly();</span>
+<span class="nc" id="L81">        int nrPerformed = 0;</span>
+<span class="nc bnc" id="L82" title="All 16 branches missed.">        switch (a) {</span>
+        case DROP_INDEX:
+<span class="nc" id="L84">            nrPerformed = r.getInteger(0, 2);</span>
+<span class="nc" id="L85">            break;</span>
+        case SHOW_TABLES:
+<span class="nc" id="L87">            nrPerformed = r.getInteger(0, 1);</span>
+<span class="nc" id="L88">            break;</span>
+        case CREATE_TABLE:
+<span class="nc" id="L90">            nrPerformed = r.getInteger(0, 1);</span>
+<span class="nc" id="L91">            break;</span>
+        case INSERT:
+<span class="nc" id="L93">            nrPerformed = r.getInteger(0, globalState.getOptions().getMaxNumberInserts());</span>
+<span class="nc" id="L94">            break;</span>
+        case REPAIR:
+<span class="nc" id="L96">            nrPerformed = r.getInteger(0, 1);</span>
+<span class="nc" id="L97">            break;</span>
+        case SET_VARIABLE:
+<span class="nc" id="L99">            nrPerformed = r.getInteger(0, 5);</span>
+<span class="nc" id="L100">            break;</span>
+        case CREATE_INDEX:
+<span class="nc" id="L102">            nrPerformed = r.getInteger(0, 5);</span>
+<span class="nc" id="L103">            break;</span>
+        case FLUSH:
+<span class="nc bnc" id="L105" title="All 2 branches missed.">            nrPerformed = Randomly.getBooleanWithSmallProbability() ? r.getInteger(0, 1) : 0;</span>
+<span class="nc" id="L106">            break;</span>
+        case OPTIMIZE:
+            // seems to yield low CPU utilization
+<span class="nc bnc" id="L109" title="All 2 branches missed.">            nrPerformed = Randomly.getBooleanWithSmallProbability() ? r.getInteger(0, 1) : 0;</span>
+<span class="nc" id="L110">            break;</span>
+        case RESET:
+            // affects the global state, so do not execute
+<span class="nc bnc" id="L113" title="All 2 branches missed.">            nrPerformed = globalState.getOptions().getNumberConcurrentThreads() == 1 ? r.getInteger(0, 1) : 0;</span>
+<span class="nc" id="L114">            break;</span>
+        case CHECKSUM:
+        case CHECK_TABLE:
+        case ANALYZE_TABLE:
+<span class="nc" id="L118">            nrPerformed = r.getInteger(0, 2);</span>
+<span class="nc" id="L119">            break;</span>
+        case ALTER_TABLE:
+<span class="nc" id="L121">            nrPerformed = r.getInteger(0, 5);</span>
+<span class="nc" id="L122">            break;</span>
+        case TRUNCATE_TABLE:
+<span class="nc" id="L124">            nrPerformed = r.getInteger(0, 2);</span>
+<span class="nc" id="L125">            break;</span>
+        case SELECT_INFO:
+<span class="nc" id="L127">            nrPerformed = r.getInteger(0, 10);</span>
+<span class="nc" id="L128">            break;</span>
+        case DELETE:
+<span class="nc" id="L130">            nrPerformed = r.getInteger(0, 10);</span>
+<span class="nc" id="L131">            break;</span>
+        default:
+<span class="nc" id="L133">            throw new AssertionError(a);</span>
+        }
+<span class="nc" id="L135">        return nrPerformed;</span>
+    }
+
+    @Override
+    public void generateDatabase(MySQLGlobalState globalState) throws Exception {
+<span class="nc bnc" id="L140" title="All 2 branches missed.">        while (globalState.getSchema().getDatabaseTables().size() &lt; Randomly.smallNumber() + 1) {</span>
+<span class="nc" id="L141">            String tableName = DBMSCommon.createTableName(globalState.getSchema().getDatabaseTables().size());</span>
+<span class="nc" id="L142">            SQLQueryAdapter createTable = MySQLTableGenerator.generate(globalState, tableName);</span>
+<span class="nc" id="L143">            globalState.executeStatement(createTable);</span>
+        }
+
+<span class="nc" id="L146">        StatementExecutor&lt;MySQLGlobalState, Action&gt; se = new StatementExecutor&lt;&gt;(globalState, Action.values(),</span>
+<span class="nc" id="L147">                MySQLProvider::mapActions, (q) -&gt; {</span>
+<span class="nc bnc" id="L148" title="All 2 branches missed.">                    if (globalState.getSchema().getDatabaseTables().isEmpty()) {</span>
+<span class="nc" id="L149">                        throw new IgnoreMeException();</span>
+                    }
+<span class="nc" id="L151">                });</span>
+<span class="nc" id="L152">        se.executeStatements();</span>
+<span class="nc" id="L153">    }</span>
+
+    @Override
+    public SQLConnection createDatabase(MySQLGlobalState globalState) throws SQLException {
+<span class="nc" id="L157">        String username = globalState.getOptions().getUserName();</span>
+<span class="nc" id="L158">        String password = globalState.getOptions().getPassword();</span>
+<span class="nc" id="L159">        String host = globalState.getOptions().getHost();</span>
+<span class="nc" id="L160">        int port = globalState.getOptions().getPort();</span>
+<span class="nc bnc" id="L161" title="All 2 branches missed.">        if (host == null) {</span>
+<span class="nc" id="L162">            host = MySQLOptions.DEFAULT_HOST;</span>
+        }
+<span class="nc bnc" id="L164" title="All 2 branches missed.">        if (port == MainOptions.NO_SET_PORT) {</span>
+<span class="nc" id="L165">            port = MySQLOptions.DEFAULT_PORT;</span>
+        }
+<span class="nc" id="L167">        String databaseName = globalState.getDatabaseName();</span>
+<span class="nc" id="L168">        globalState.getState().logStatement(&quot;DROP DATABASE IF EXISTS &quot; + databaseName);</span>
+<span class="nc" id="L169">        globalState.getState().logStatement(&quot;CREATE DATABASE &quot; + databaseName);</span>
+<span class="nc" id="L170">        globalState.getState().logStatement(&quot;USE &quot; + databaseName);</span>
+<span class="nc" id="L171">        String url = String.format(&quot;jdbc:mysql://%s:%d?serverTimezone=UTC&amp;useSSL=false&amp;allowPublicKeyRetrieval=true&quot;,</span>
+<span class="nc" id="L172">                host, port);</span>
+<span class="nc" id="L173">        Connection con = DriverManager.getConnection(url, username, password);</span>
+<span class="nc" id="L174">        try (Statement s = con.createStatement()) {</span>
+<span class="nc" id="L175">            s.execute(&quot;DROP DATABASE IF EXISTS &quot; + databaseName);</span>
+        }
+<span class="nc" id="L177">        try (Statement s = con.createStatement()) {</span>
+<span class="nc" id="L178">            s.execute(&quot;CREATE DATABASE &quot; + databaseName);</span>
+        }
+<span class="nc" id="L180">        try (Statement s = con.createStatement()) {</span>
+<span class="nc" id="L181">            s.execute(&quot;USE &quot; + databaseName);</span>
+        }
+<span class="nc" id="L183">        return new SQLConnection(con);</span>
+    }
+
+    @Override
+    public String getDBMSName() {
+<span class="fc" id="L188">        return &quot;mysql&quot;;</span>
+    }
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.8.202204050719</span></div></body></html>

@@ -1,0 +1,516 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>Randomly.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">dqetool</a> &gt; <a href="index.source.html" class="el_package">dqetool</a> &gt; <span class="el_source">Randomly.java</span></div><h1>Randomly.java</h1><pre class="source lang-java linenums">package dqetool;
+
+import java.math.BigDecimal;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Random;
+import java.util.function.Supplier;
+
+public final class Randomly {
+
+<span class="nc" id="L12">    private static StringGenerationStrategy stringGenerationStrategy = StringGenerationStrategy.SOPHISTICATED;</span>
+<span class="nc" id="L13">    private static int maxStringLength = 10;</span>
+<span class="nc" id="L14">    private static boolean useCaching = true;</span>
+<span class="nc" id="L15">    private static int cacheSize = 100;</span>
+
+<span class="nc" id="L17">    private final List&lt;Long&gt; cachedLongs = new ArrayList&lt;&gt;();</span>
+<span class="nc" id="L18">    private final List&lt;String&gt; cachedStrings = new ArrayList&lt;&gt;();</span>
+<span class="nc" id="L19">    private final List&lt;Double&gt; cachedDoubles = new ArrayList&lt;&gt;();</span>
+<span class="nc" id="L20">    private final List&lt;byte[]&gt; cachedBytes = new ArrayList&lt;&gt;();</span>
+    private Supplier&lt;String&gt; provider;
+
+<span class="nc" id="L23">    private static final ThreadLocal&lt;Random&gt; THREAD_RANDOM = new ThreadLocal&lt;&gt;();</span>
+    private long seed;
+
+    private void addToCache(long val) {
+<span class="nc bnc" id="L27" title="All 6 branches missed.">        if (useCaching &amp;&amp; cachedLongs.size() &lt; cacheSize &amp;&amp; !cachedLongs.contains(val)) {</span>
+<span class="nc" id="L28">            cachedLongs.add(val);</span>
+        }
+<span class="nc" id="L30">    }</span>
+
+    private void addToCache(double val) {
+<span class="nc bnc" id="L33" title="All 6 branches missed.">        if (useCaching &amp;&amp; cachedDoubles.size() &lt; cacheSize &amp;&amp; !cachedDoubles.contains(val)) {</span>
+<span class="nc" id="L34">            cachedDoubles.add(val);</span>
+        }
+<span class="nc" id="L36">    }</span>
+
+    private void addToCache(String val) {
+<span class="nc bnc" id="L39" title="All 6 branches missed.">        if (useCaching &amp;&amp; cachedStrings.size() &lt; cacheSize &amp;&amp; !cachedStrings.contains(val)) {</span>
+<span class="nc" id="L40">            cachedStrings.add(val);</span>
+        }
+<span class="nc" id="L42">    }</span>
+
+    private Long getFromLongCache() {
+<span class="nc bnc" id="L45" title="All 4 branches missed.">        if (!useCaching || cachedLongs.isEmpty()) {</span>
+<span class="nc" id="L46">            return null;</span>
+        } else {
+<span class="nc" id="L48">            return Randomly.fromList(cachedLongs);</span>
+        }
+    }
+
+    private Double getFromDoubleCache() {
+<span class="nc bnc" id="L53" title="All 2 branches missed.">        if (!useCaching) {</span>
+<span class="nc" id="L54">            return null;</span>
+        }
+<span class="nc bnc" id="L56" title="All 4 branches missed.">        if (Randomly.getBoolean() &amp;&amp; !cachedLongs.isEmpty()) {</span>
+<span class="nc" id="L57">            return (double) Randomly.fromList(cachedLongs);</span>
+<span class="nc bnc" id="L58" title="All 2 branches missed.">        } else if (!cachedDoubles.isEmpty()) {</span>
+<span class="nc" id="L59">            return Randomly.fromList(cachedDoubles);</span>
+        } else {
+<span class="nc" id="L61">            return null;</span>
+        }
+    }
+
+    private String getFromStringCache() {
+<span class="nc bnc" id="L66" title="All 2 branches missed.">        if (!useCaching) {</span>
+<span class="nc" id="L67">            return null;</span>
+        }
+<span class="nc bnc" id="L69" title="All 4 branches missed.">        if (Randomly.getBoolean() &amp;&amp; !cachedLongs.isEmpty()) {</span>
+<span class="nc" id="L70">            return String.valueOf(Randomly.fromList(cachedLongs));</span>
+<span class="nc bnc" id="L71" title="All 4 branches missed.">        } else if (Randomly.getBoolean() &amp;&amp; !cachedDoubles.isEmpty()) {</span>
+<span class="nc" id="L72">            return String.valueOf(Randomly.fromList(cachedDoubles));</span>
+<span class="nc bnc" id="L73" title="All 4 branches missed.">        } else if (Randomly.getBoolean() &amp;&amp; !cachedBytes.isEmpty()</span>
+<span class="nc bnc" id="L74" title="All 2 branches missed.">                &amp;&amp; stringGenerationStrategy == StringGenerationStrategy.SOPHISTICATED) {</span>
+<span class="nc" id="L75">            return new String(Randomly.fromList(cachedBytes));</span>
+<span class="nc bnc" id="L76" title="All 2 branches missed.">        } else if (!cachedStrings.isEmpty()) {</span>
+<span class="nc" id="L77">            String randomString = Randomly.fromList(cachedStrings);</span>
+<span class="nc bnc" id="L78" title="All 2 branches missed.">            if (Randomly.getBoolean()) {</span>
+<span class="nc" id="L79">                return randomString;</span>
+            } else {
+<span class="nc" id="L81">                return stringGenerationStrategy.transformCachedString(this, randomString);</span>
+            }
+        } else {
+<span class="nc" id="L84">            return null;</span>
+        }
+    }
+
+    private static boolean cacheProbability() {
+<span class="nc bnc" id="L89" title="All 4 branches missed.">        return useCaching &amp;&amp; getNextLong(0, 3) == 1;</span>
+    }
+
+    // CACHING END
+
+    public static &lt;T&gt; T fromList(List&lt;T&gt; list) {
+<span class="nc" id="L95">        return list.get((int) getNextLong(0, list.size()));</span>
+    }
+
+    @SafeVarargs
+    public static &lt;T&gt; T fromOptions(T... options) {
+<span class="nc" id="L100">        return options[getNextInt(0, options.length)];</span>
+    }
+
+    @SafeVarargs
+    public static &lt;T&gt; List&lt;T&gt; nonEmptySubset(T... options) {
+<span class="nc" id="L105">        int nr = 1 + getNextInt(0, options.length);</span>
+<span class="nc" id="L106">        return extractNrRandomColumns(Arrays.asList(options), nr);</span>
+    }
+
+    public static &lt;T&gt; List&lt;T&gt; nonEmptySubset(List&lt;T&gt; columns) {
+<span class="nc" id="L110">        int nr = 1 + getNextInt(0, columns.size());</span>
+<span class="nc" id="L111">        return nonEmptySubset(columns, nr);</span>
+    }
+
+    public static &lt;T&gt; List&lt;T&gt; nonEmptySubset(List&lt;T&gt; columns, int nr) {
+<span class="nc bnc" id="L115" title="All 2 branches missed.">        if (nr &gt; columns.size()) {</span>
+<span class="nc" id="L116">            throw new AssertionError(columns + &quot; &quot; + nr);</span>
+        }
+<span class="nc" id="L118">        return extractNrRandomColumns(columns, nr);</span>
+    }
+
+    public static &lt;T&gt; List&lt;T&gt; nonEmptySubsetPotentialDuplicates(List&lt;T&gt; columns) {
+<span class="nc" id="L122">        List&lt;T&gt; arr = new ArrayList&lt;&gt;();</span>
+<span class="nc bnc" id="L123" title="All 2 branches missed.">        for (int i = 0; i &lt; Randomly.smallNumber() + 1; i++) {</span>
+<span class="nc" id="L124">            arr.add(Randomly.fromList(columns));</span>
+        }
+<span class="nc" id="L126">        return arr;</span>
+    }
+
+    public static &lt;T&gt; List&lt;T&gt; subset(List&lt;T&gt; columns) {
+<span class="nc" id="L130">        int nr = getNextInt(0, columns.size() + 1);</span>
+<span class="nc" id="L131">        return extractNrRandomColumns(columns, nr);</span>
+    }
+
+    public static &lt;T&gt; List&lt;T&gt; subset(int nr, @SuppressWarnings(&quot;unchecked&quot;) T... values) {
+<span class="nc" id="L135">        List&lt;T&gt; list = new ArrayList&lt;&gt;();</span>
+<span class="nc bnc" id="L136" title="All 2 branches missed.">        for (T val : values) {</span>
+<span class="nc" id="L137">            list.add(val);</span>
+        }
+<span class="nc" id="L139">        return extractNrRandomColumns(list, nr);</span>
+    }
+
+    public static &lt;T&gt; List&lt;T&gt; subset(@SuppressWarnings(&quot;unchecked&quot;) T... values) {
+<span class="nc" id="L143">        List&lt;T&gt; list = new ArrayList&lt;&gt;();</span>
+<span class="nc bnc" id="L144" title="All 2 branches missed.">        for (T val : values) {</span>
+<span class="nc" id="L145">            list.add(val);</span>
+        }
+<span class="nc" id="L147">        return subset(list);</span>
+    }
+
+    public static &lt;T&gt; List&lt;T&gt; extractNrRandomColumns(List&lt;T&gt; columns, int nr) {
+<span class="nc bnc" id="L151" title="All 2 branches missed.">        assert nr &gt;= 0;</span>
+<span class="nc" id="L152">        List&lt;T&gt; selectedColumns = new ArrayList&lt;&gt;();</span>
+<span class="nc" id="L153">        List&lt;T&gt; remainingColumns = new ArrayList&lt;&gt;(columns);</span>
+<span class="nc bnc" id="L154" title="All 2 branches missed.">        for (int i = 0; i &lt; nr; i++) {</span>
+<span class="nc" id="L155">            selectedColumns.add(remainingColumns.remove(getNextInt(0, remainingColumns.size())));</span>
+        }
+<span class="nc" id="L157">        return selectedColumns;</span>
+    }
+
+    public static int smallNumber() {
+        // no need to cache for small numbers
+<span class="nc" id="L162">        return (int) (Math.abs(getThreadRandom().get().nextGaussian())) * 2;</span>
+    }
+
+    public static boolean getBoolean() {
+<span class="nc" id="L166">        return getThreadRandom().get().nextBoolean();</span>
+    }
+
+    public static double getPercentage() {
+<span class="nc" id="L170">        return getThreadRandom().get().nextDouble();</span>
+    }
+
+    private static ThreadLocal&lt;Random&gt; getThreadRandom() {
+<span class="nc bnc" id="L174" title="All 2 branches missed.">        if (THREAD_RANDOM.get() == null) {</span>
+            // a static method has been called, before Randomly was instantiated
+<span class="nc" id="L176">            THREAD_RANDOM.set(new Random());</span>
+        }
+<span class="nc" id="L178">        return THREAD_RANDOM;</span>
+    }
+
+    public long getInteger() {
+<span class="nc bnc" id="L182" title="All 2 branches missed.">        if (smallBiasProbability()) {</span>
+<span class="nc" id="L183">            return Randomly.fromOptions(-1L, Long.MAX_VALUE, Long.MIN_VALUE, 1L, 0L);</span>
+        } else {
+<span class="nc bnc" id="L185" title="All 2 branches missed.">            if (cacheProbability()) {</span>
+<span class="nc" id="L186">                Long l = getFromLongCache();</span>
+<span class="nc bnc" id="L187" title="All 2 branches missed.">                if (l != null) {</span>
+<span class="nc" id="L188">                    return l;</span>
+                }
+            }
+<span class="nc" id="L191">            long nextLong = getThreadRandom().get().nextInt();</span>
+<span class="nc" id="L192">            addToCache(nextLong);</span>
+<span class="nc" id="L193">            return nextLong;</span>
+        }
+    }
+
+    public enum StringGenerationStrategy {
+
+<span class="fc" id="L199">        NUMERIC {</span>
+            @Override
+            public String getString(Randomly r) {
+<span class="nc" id="L202">                return getStringOfAlphabet(r, NUMERIC_ALPHABET);</span>
+            }
+
+        },
+<span class="fc" id="L206">        ALPHANUMERIC {</span>
+
+            @Override
+            public String getString(Randomly r) {
+<span class="nc" id="L210">                return getStringOfAlphabet(r, ALPHANUMERIC_ALPHABET);</span>
+
+            }
+
+        },
+<span class="fc" id="L215">        ALPHANUMERIC_SPECIALCHAR {</span>
+
+            @Override
+            public String getString(Randomly r) {
+<span class="nc" id="L219">                return getStringOfAlphabet(r, ALPHANUMERIC_SPECIALCHAR_ALPHABET);</span>
+
+            }
+
+        },
+<span class="fc" id="L224">        SOPHISTICATED {</span>
+
+            private static final String ALPHABET = ALPHANUMERIC_SPECIALCHAR_ALPHABET;
+
+            @Override
+            public String getString(Randomly r) {
+<span class="nc bnc" id="L230" title="All 2 branches missed.">                if (smallBiasProbability()) {</span>
+<span class="nc" id="L231">                    return Randomly.fromOptions(&quot;TRUE&quot;, &quot;FALSE&quot;, &quot;0.0&quot;, &quot;-0.0&quot;, &quot;1e500&quot;, &quot;-1e500&quot;);</span>
+                }
+<span class="nc bnc" id="L233" title="All 2 branches missed.">                if (cacheProbability()) {</span>
+<span class="nc" id="L234">                    String s = r.getFromStringCache();</span>
+<span class="nc bnc" id="L235" title="All 2 branches missed.">                    if (s != null) {</span>
+<span class="nc" id="L236">                        return s;</span>
+                    }
+                }
+
+<span class="nc" id="L240">                int n = ALPHABET.length();</span>
+
+<span class="nc" id="L242">                StringBuilder sb = new StringBuilder();</span>
+
+<span class="nc" id="L244">                int chars = getStringLength(r);</span>
+<span class="nc bnc" id="L245" title="All 2 branches missed.">                for (int i = 0; i &lt; chars; i++) {</span>
+<span class="nc bnc" id="L246" title="All 2 branches missed.">                    if (Randomly.getBooleanWithRatherLowProbability()) {</span>
+<span class="nc" id="L247">                        char val = (char) r.getInteger();</span>
+<span class="nc bnc" id="L248" title="All 2 branches missed.">                        if (val != 0) {</span>
+<span class="nc" id="L249">                            sb.append(val);</span>
+                        }
+<span class="nc" id="L251">                    } else {</span>
+<span class="nc" id="L252">                        sb.append(ALPHABET.charAt(getNextInt(0, n)));</span>
+                    }
+                }
+<span class="nc bnc" id="L255" title="All 2 branches missed.">                while (Randomly.getBooleanWithSmallProbability()) {</span>
+<span class="nc" id="L256">                    String[][] pairs = { { &quot;{&quot;, &quot;}&quot; }, { &quot;[&quot;, &quot;]&quot; }, { &quot;(&quot;, &quot;)&quot; } };</span>
+<span class="nc" id="L257">                    int idx = (int) Randomly.getNotCachedInteger(0, pairs.length);</span>
+<span class="nc" id="L258">                    int left = (int) Randomly.getNotCachedInteger(0, sb.length() + 1);</span>
+<span class="nc" id="L259">                    sb.insert(left, pairs[idx][0]);</span>
+<span class="nc" id="L260">                    int right = (int) Randomly.getNotCachedInteger(left + 1, sb.length() + 1);</span>
+<span class="nc" id="L261">                    sb.insert(right, pairs[idx][1]);</span>
+                }
+<span class="nc bnc" id="L263" title="All 2 branches missed.">                if (r.provider != null) {</span>
+<span class="nc bnc" id="L264" title="All 2 branches missed.">                    while (Randomly.getBooleanWithSmallProbability()) {</span>
+<span class="nc bnc" id="L265" title="All 2 branches missed.">                        if (sb.length() == 0) {</span>
+<span class="nc" id="L266">                            sb.append(r.provider.get());</span>
+<span class="nc" id="L267">                        } else {</span>
+<span class="nc" id="L268">                            sb.insert((int) Randomly.getNotCachedInteger(0, sb.length()), r.provider.get());</span>
+                        }
+                    }
+                }
+
+<span class="nc" id="L273">                String s = sb.toString();</span>
+
+<span class="nc" id="L275">                r.addToCache(s);</span>
+<span class="nc" id="L276">                return s;</span>
+            }
+
+            public String transformCachedString(Randomly r, String randomString) {
+<span class="nc bnc" id="L280" title="All 2 branches missed.">                if (Randomly.getBoolean()) {</span>
+<span class="nc" id="L281">                    return randomString.toLowerCase();</span>
+<span class="nc bnc" id="L282" title="All 2 branches missed.">                } else if (Randomly.getBoolean()) {</span>
+<span class="nc" id="L283">                    return randomString.toUpperCase();</span>
+                } else {
+<span class="nc" id="L285">                    char[] chars = randomString.toCharArray();</span>
+<span class="nc bnc" id="L286" title="All 2 branches missed.">                    if (chars.length != 0) {</span>
+<span class="nc bnc" id="L287" title="All 2 branches missed.">                        for (int i = 0; i &lt; Randomly.smallNumber(); i++) {</span>
+<span class="nc" id="L288">                            chars[r.getInteger(0, chars.length)] = ALPHABET.charAt(r.getInteger(0, ALPHABET.length()));</span>
+                        }
+                    }
+<span class="nc" id="L291">                    return new String(chars);</span>
+                }
+            }
+
+        };
+
+        private static final String ALPHANUMERIC_SPECIALCHAR_ALPHABET = &quot;0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz!#&lt;&gt;/.,~-+'*()[]{} ^*?%_\t\n\r|&amp;\\&quot;;
+        private static final String ALPHANUMERIC_ALPHABET = &quot;0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz&quot;;
+<span class="fc" id="L299">        private static final String NUMERIC_ALPHABET = &quot;0123456789&quot;;</span>
+
+        private static int getStringLength(Randomly r) {
+            int chars;
+<span class="nc bnc" id="L303" title="All 2 branches missed.">            if (Randomly.getBoolean()) {</span>
+<span class="nc" id="L304">                chars = Randomly.smallNumber();</span>
+<span class="nc" id="L305">            } else {</span>
+<span class="nc" id="L306">                chars = r.getInteger(0, maxStringLength);</span>
+            }
+<span class="nc" id="L308">            return chars;</span>
+        }
+
+        private static String getStringOfAlphabet(Randomly r, String alphabet) {
+<span class="nc" id="L312">            int chars = getStringLength(r);</span>
+<span class="nc" id="L313">            StringBuilder sb = new StringBuilder();</span>
+<span class="nc bnc" id="L314" title="All 2 branches missed.">            for (int i = 0; i &lt; chars; i++) {</span>
+<span class="nc" id="L315">                sb.append(alphabet.charAt(getNextInt(0, alphabet.length())));</span>
+            }
+<span class="nc" id="L317">            return sb.toString();</span>
+        }
+
+        public abstract String getString(Randomly r);
+
+        public String transformCachedString(Randomly r, String s) {
+<span class="nc" id="L323">            return s;</span>
+        }
+
+    }
+
+    public String getString() {
+<span class="nc" id="L329">        return stringGenerationStrategy.getString(this);</span>
+    }
+
+    public byte[] getBytes() {
+<span class="nc" id="L333">        int size = Randomly.smallNumber();</span>
+<span class="nc" id="L334">        byte[] arr = new byte[size];</span>
+<span class="nc" id="L335">        getThreadRandom().get().nextBytes(arr);</span>
+<span class="nc" id="L336">        return arr;</span>
+    }
+
+    public long getNonZeroInteger() {
+        long value;
+<span class="nc bnc" id="L341" title="All 2 branches missed.">        if (smallBiasProbability()) {</span>
+<span class="nc" id="L342">            return Randomly.fromOptions(-1L, Long.MAX_VALUE, Long.MIN_VALUE, 1L);</span>
+        }
+<span class="nc bnc" id="L344" title="All 2 branches missed.">        if (cacheProbability()) {</span>
+<span class="nc" id="L345">            Long l = getFromLongCache();</span>
+<span class="nc bnc" id="L346" title="All 4 branches missed.">            if (l != null &amp;&amp; l != 0) {</span>
+<span class="nc" id="L347">                return l;</span>
+            }
+        }
+        do {
+<span class="nc" id="L351">            value = getInteger();</span>
+<span class="nc bnc" id="L352" title="All 2 branches missed.">        } while (value == 0);</span>
+<span class="nc bnc" id="L353" title="All 2 branches missed.">        assert value != 0;</span>
+<span class="nc" id="L354">        addToCache(value);</span>
+<span class="nc" id="L355">        return value;</span>
+    }
+
+    public long getPositiveInteger() {
+<span class="nc bnc" id="L359" title="All 2 branches missed.">        if (cacheProbability()) {</span>
+<span class="nc" id="L360">            Long value = getFromLongCache();</span>
+<span class="nc bnc" id="L361" title="All 4 branches missed.">            if (value != null &amp;&amp; value &gt;= 0) {</span>
+<span class="nc" id="L362">                return value;</span>
+            }
+        }
+        long value;
+<span class="nc bnc" id="L366" title="All 2 branches missed.">        if (smallBiasProbability()) {</span>
+<span class="nc" id="L367">            value = Randomly.fromOptions(0L, Long.MAX_VALUE, 1L);</span>
+<span class="nc" id="L368">        } else {</span>
+<span class="nc" id="L369">            value = getNextLong(0, Long.MAX_VALUE);</span>
+        }
+<span class="nc" id="L371">        addToCache(value);</span>
+<span class="nc bnc" id="L372" title="All 2 branches missed.">        assert value &gt;= 0;</span>
+<span class="nc" id="L373">        return value;</span>
+    }
+
+    public double getFiniteDouble() {
+        while (true) {
+<span class="nc" id="L378">            double val = getDouble();</span>
+<span class="nc bnc" id="L379" title="All 2 branches missed.">            if (Double.isFinite(val)) {</span>
+<span class="nc" id="L380">                return val;</span>
+            }
+        }
+    }
+
+    public double getDouble() {
+<span class="nc bnc" id="L386" title="All 2 branches missed.">        if (smallBiasProbability()) {</span>
+<span class="nc" id="L387">            return Randomly.fromOptions(0.0, -0.0, Double.MAX_VALUE, -Double.MAX_VALUE, Double.POSITIVE_INFINITY,</span>
+<span class="nc" id="L388">                    Double.NEGATIVE_INFINITY);</span>
+<span class="nc bnc" id="L389" title="All 2 branches missed.">        } else if (cacheProbability()) {</span>
+<span class="nc" id="L390">            Double d = getFromDoubleCache();</span>
+<span class="nc bnc" id="L391" title="All 2 branches missed.">            if (d != null) {</span>
+<span class="nc" id="L392">                return d;</span>
+            }
+        }
+<span class="nc" id="L395">        double value = getThreadRandom().get().nextDouble();</span>
+<span class="nc" id="L396">        addToCache(value);</span>
+<span class="nc" id="L397">        return value;</span>
+    }
+
+    private static boolean smallBiasProbability() {
+<span class="nc bnc" id="L401" title="All 2 branches missed.">        return getThreadRandom().get().nextInt(100) == 1;</span>
+    }
+
+    public static boolean getBooleanWithRatherLowProbability() {
+<span class="nc bnc" id="L405" title="All 2 branches missed.">        return getThreadRandom().get().nextInt(10) == 1;</span>
+    }
+
+    public static boolean getBooleanWithSmallProbability() {
+<span class="nc" id="L409">        return smallBiasProbability();</span>
+    }
+
+    public int getInteger(int left, int right) {
+<span class="nc bnc" id="L413" title="All 2 branches missed.">        if (left == right) {</span>
+<span class="nc" id="L414">            return left;</span>
+        }
+<span class="nc" id="L416">        return (int) getLong(left, right);</span>
+    }
+
+    // TODO redundant?
+    public long getLong(long left, long right) {
+<span class="nc bnc" id="L421" title="All 2 branches missed.">        if (left == right) {</span>
+<span class="nc" id="L422">            return left;</span>
+        }
+<span class="nc" id="L424">        return getNextLong(left, right);</span>
+    }
+
+    public BigDecimal getRandomBigDecimal() {
+<span class="nc" id="L428">        return new BigDecimal(getThreadRandom().get().nextDouble());</span>
+    }
+
+    public long getPositiveIntegerNotNull() {
+        while (true) {
+<span class="nc" id="L433">            long val = getPositiveInteger();</span>
+<span class="nc bnc" id="L434" title="All 2 branches missed.">            if (val != 0) {</span>
+<span class="nc" id="L435">                return val;</span>
+            }
+        }
+    }
+
+    public static long getNonCachedInteger() {
+<span class="nc" id="L441">        return getThreadRandom().get().nextLong();</span>
+    }
+
+    public static long getPositiveOrZeroNonCachedInteger() {
+<span class="nc" id="L445">        return getNextLong(0, Long.MAX_VALUE);</span>
+    }
+
+    public static long getNotCachedInteger(int lower, int upper) {
+<span class="nc" id="L449">        return getNextLong(lower, upper);</span>
+    }
+
+<span class="nc" id="L452">    public Randomly(Supplier&lt;String&gt; provider) {</span>
+<span class="nc" id="L453">        this.provider = provider;</span>
+<span class="nc" id="L454">    }</span>
+
+<span class="nc" id="L456">    public Randomly() {</span>
+<span class="nc" id="L457">        THREAD_RANDOM.set(new Random());</span>
+<span class="nc" id="L458">    }</span>
+
+<span class="nc" id="L460">    public Randomly(long seed) {</span>
+<span class="nc" id="L461">        this.seed = seed;</span>
+<span class="nc" id="L462">        THREAD_RANDOM.set(new Random(seed));</span>
+<span class="nc" id="L463">    }</span>
+
+    public static double getUncachedDouble() {
+<span class="nc" id="L466">        return getThreadRandom().get().nextDouble();</span>
+    }
+
+    public String getChar() {
+        while (true) {
+<span class="nc" id="L471">            String s = getString();</span>
+<span class="nc bnc" id="L472" title="All 2 branches missed.">            if (!s.isEmpty()) {</span>
+<span class="nc" id="L473">                return s.substring(0, 1);</span>
+            }
+        }
+    }
+
+    public String getAlphabeticChar() {
+        while (true) {
+<span class="nc" id="L480">            String s = getChar();</span>
+<span class="nc bnc" id="L481" title="All 2 branches missed.">            if (Character.isAlphabetic(s.charAt(0))) {</span>
+<span class="nc" id="L482">                return s;</span>
+            }
+        }
+    }
+
+    // see https://stackoverflow.com/a/2546158
+    // uniformity does not seem to be important for us
+    // SQLancer previously used ThreadLocalRandom.current().nextLong(lower, upper)
+    private static long getNextLong(long lower, long upper) {
+<span class="nc bnc" id="L491" title="All 2 branches missed.">        if (lower &gt; upper) {</span>
+<span class="nc" id="L492">            throw new IllegalArgumentException(lower + &quot; &quot; + upper);</span>
+        }
+<span class="nc bnc" id="L494" title="All 2 branches missed.">        if (lower == upper) {</span>
+<span class="nc" id="L495">            return lower;</span>
+        }
+<span class="nc" id="L497">        return (long) (getThreadRandom().get().longs(lower, upper).findFirst().getAsLong());</span>
+    }
+
+    private static int getNextInt(int lower, int upper) {
+<span class="nc" id="L501">        return (int) getNextLong(lower, upper);</span>
+    }
+
+    public long getSeed() {
+<span class="nc" id="L505">        return seed;</span>
+    }
+
+    public static void initialize(MainOptions options) {
+<span class="nc" id="L509">        stringGenerationStrategy = options.getRandomStringGenerationStrategy();</span>
+<span class="nc" id="L510">        maxStringLength = options.getMaxStringConstantLength();</span>
+<span class="nc" id="L511">        useCaching = options.useConstantCaching();</span>
+<span class="nc" id="L512">        cacheSize = options.getConstantCacheSize();</span>
+<span class="nc" id="L513">    }</span>
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.8.202204050719</span></div></body></html>

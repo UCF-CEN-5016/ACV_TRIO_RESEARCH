@@ -1,0 +1,494 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>SQLite3Schema.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">dqetool</a> &gt; <a href="index.source.html" class="el_package">dqetool.sqlite3.schema</a> &gt; <span class="el_source">SQLite3Schema.java</span></div><h1>SQLite3Schema.java</h1><pre class="source lang-java linenums">package dqetool.sqlite3.schema;
+
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
+
+import dqetool.IgnoreMeException;
+import dqetool.Randomly;
+import dqetool.SQLConnection;
+import dqetool.common.schema.AbstractRelationalTable;
+import dqetool.common.schema.AbstractRowValue;
+import dqetool.common.schema.AbstractSchema;
+import dqetool.common.schema.AbstractTableColumn;
+import dqetool.common.schema.AbstractTables;
+import dqetool.common.schema.TableIndex;
+import dqetool.sqlite3.SQLite3GlobalState;
+import dqetool.sqlite3.ast.SQLite3Constant;
+import dqetool.sqlite3.schema.SQLite3Schema.SQLite3Column.SQLite3CollateSequence;
+import dqetool.sqlite3.schema.SQLite3Schema.SQLite3Table;
+import dqetool.sqlite3.schema.SQLite3Schema.SQLite3Table.TableKind;
+
+public class SQLite3Schema extends AbstractSchema&lt;SQLite3GlobalState, SQLite3Table&gt; {
+
+    /**
+     * All possible aliases for the rowid column.
+     */
+<span class="nc" id="L34">    public static final List&lt;String&gt; ROWID_STRINGS = Collections</span>
+<span class="nc" id="L35">            .unmodifiableList(Arrays.asList(&quot;rowid&quot;, &quot;_rowid_&quot;, &quot;oid&quot;));</span>
+    private final List&lt;String&gt; indexNames;
+
+    public List&lt;String&gt; getIndexNames() {
+<span class="nc" id="L39">        return indexNames;</span>
+    }
+
+    public String getRandomIndexOrBailout() {
+<span class="nc bnc" id="L43" title="All 2 branches missed.">        if (indexNames.isEmpty()) {</span>
+<span class="nc" id="L44">            throw new IgnoreMeException();</span>
+        } else {
+<span class="nc" id="L46">            return Randomly.fromList(indexNames);</span>
+        }
+    }
+
+<span class="nc" id="L50">    public static class SQLite3Column extends AbstractTableColumn&lt;SQLite3Table, SQLite3DataType&gt; {</span>
+
+        private final boolean isInteger; // &quot;INTEGER&quot; type, not &quot;INT&quot;
+        private final SQLite3CollateSequence collate;
+        boolean generated;
+        private final boolean isPrimaryKey;
+
+<span class="nc" id="L57">        public enum SQLite3CollateSequence {</span>
+<span class="nc" id="L58">            NOCASE, RTRIM, BINARY;</span>
+
+            public static SQLite3CollateSequence random() {
+<span class="nc" id="L61">                return Randomly.fromOptions(values());</span>
+            }
+        }
+
+        public SQLite3Column(String name, SQLite3DataType columnType, boolean isInteger, boolean isPrimaryKey,
+                SQLite3CollateSequence collate) {
+<span class="nc" id="L67">            super(name, null, columnType);</span>
+<span class="nc" id="L68">            this.isInteger = isInteger;</span>
+<span class="nc" id="L69">            this.isPrimaryKey = isPrimaryKey;</span>
+<span class="nc" id="L70">            this.collate = collate;</span>
+<span class="nc" id="L71">            this.generated = false;</span>
+<span class="nc bnc" id="L72" title="All 4 branches missed.">            assert !isInteger || columnType == SQLite3DataType.INT;</span>
+<span class="nc" id="L73">        }</span>
+
+        public SQLite3Column(String rowId, SQLite3DataType columnType, boolean isInteger,
+                SQLite3CollateSequence collate, boolean generated) {
+<span class="nc" id="L77">            this(rowId, columnType, isInteger, generated, collate);</span>
+<span class="nc" id="L78">            this.generated = generated;</span>
+<span class="nc" id="L79">        }</span>
+
+        public boolean isPrimaryKey() {
+<span class="nc" id="L82">            return isPrimaryKey;</span>
+        }
+
+        public boolean isOnlyPrimaryKey() {
+<span class="nc bnc" id="L86" title="All 4 branches missed.">            return isPrimaryKey &amp;&amp; getTable().getColumns().stream().filter(c -&gt; c.isPrimaryKey()).count() == 1;</span>
+        }
+
+        // see https://www.sqlite.org/lang_createtable.html#rowid
+        /**
+         * If a table has a single column primary key and the declared type of that column is &quot;INTEGER&quot; and the table is
+         * not a WITHOUT ROWID table, then the column is known as an INTEGER PRIMARY KEY.
+         *
+         * @return whether the column is an INTEGER PRIMARY KEY
+         */
+        public boolean isIntegerPrimaryKey() {
+<span class="nc bnc" id="L97" title="All 6 branches missed.">            return isInteger &amp;&amp; isOnlyPrimaryKey() &amp;&amp; !getTable().hasWithoutRowid();</span>
+        }
+
+        public SQLite3CollateSequence getCollateSequence() {
+<span class="nc" id="L101">            return collate;</span>
+        }
+
+        public boolean isGenerated() {
+<span class="nc" id="L105">            return generated;</span>
+        }
+
+        public static SQLite3Column createDummy(String name) {
+<span class="nc" id="L109">            return new SQLite3Column(name, SQLite3DataType.INT, false, false, null);</span>
+        }
+
+    }
+
+    public static SQLite3Constant getConstant(ResultSet randomRowValues, int columnIndex, SQLite3DataType valueType)
+            throws SQLException, AssertionError {
+        Object value;
+        SQLite3Constant constant;
+<span class="nc bnc" id="L118" title="All 6 branches missed.">        switch (valueType) {</span>
+        case INT:
+<span class="nc" id="L120">            value = randomRowValues.getLong(columnIndex);</span>
+<span class="nc" id="L121">            constant = SQLite3Constant.createIntConstant((long) value);</span>
+<span class="nc" id="L122">            break;</span>
+        case REAL:
+<span class="nc" id="L124">            value = randomRowValues.getDouble(columnIndex);</span>
+<span class="nc bnc" id="L125" title="All 2 branches missed.">            if (!Double.isFinite((double) value)) {</span>
+                // TODO: the JDBC driver seems to sometimes return infinity for NULL values
+<span class="nc" id="L127">                throw new IgnoreMeException();</span>
+            }
+<span class="nc" id="L129">            constant = SQLite3Constant.createRealConstant((double) value);</span>
+<span class="nc" id="L130">            break;</span>
+        case TEXT:
+        case NONE:
+<span class="nc" id="L133">            value = randomRowValues.getString(columnIndex);</span>
+<span class="nc" id="L134">            constant = SQLite3Constant.createTextConstant((String) value);</span>
+<span class="nc" id="L135">            break;</span>
+        case BINARY:
+<span class="nc" id="L137">            value = randomRowValues.getBytes(columnIndex);</span>
+<span class="nc" id="L138">            constant = SQLite3Constant.createBinaryConstant((byte[]) value);</span>
+<span class="nc bnc" id="L139" title="All 2 branches missed.">            if (((byte[]) value).length == 0) {</span>
+                // TODO: the JDBC driver seems to sometimes return a zero-length array for NULL values
+<span class="nc" id="L141">                throw new IgnoreMeException();</span>
+            }
+            break;
+        case NULL:
+<span class="nc" id="L145">            return SQLite3Constant.createNullConstant();</span>
+        default:
+<span class="nc" id="L147">            throw new AssertionError(valueType);</span>
+        }
+<span class="nc" id="L149">        return constant;</span>
+    }
+
+<span class="nc" id="L152">    public static class SQLite3Tables extends AbstractTables&lt;SQLite3Table, SQLite3Column&gt; {</span>
+
+        public SQLite3Tables(List&lt;SQLite3Table&gt; tables) {
+<span class="nc" id="L155">            super(tables);</span>
+<span class="nc" id="L156">        }</span>
+
+        public SQLite3RowValue getRandomRowValue(SQLConnection con) throws SQLException {
+<span class="nc" id="L159">            String randomRow = String.format(&quot;SELECT %s, %s FROM %s ORDER BY RANDOM() LIMIT 1&quot;, columnNamesAsString(</span>
+<span class="nc" id="L160">                    c -&gt; c.getTable().getName() + &quot;.&quot; + c.getName() + &quot; AS &quot; + c.getTable().getName() + c.getName()),</span>
+<span class="nc" id="L161">                    columnNamesAsString(c -&gt; &quot;typeof(&quot; + c.getTable().getName() + &quot;.&quot; + c.getName() + &quot;)&quot;),</span>
+<span class="nc" id="L162">                    tableNamesAsString());</span>
+<span class="nc" id="L163">            Map&lt;SQLite3Column, SQLite3Constant&gt; values = new HashMap&lt;&gt;();</span>
+<span class="nc" id="L164">            try (Statement s = con.createStatement()) {</span>
+                ResultSet randomRowValues;
+                try {
+<span class="nc" id="L167">                    randomRowValues = s.executeQuery(randomRow);</span>
+<span class="nc" id="L168">                } catch (SQLException e) {</span>
+<span class="nc" id="L169">                    throw new IgnoreMeException();</span>
+                }
+<span class="nc bnc" id="L171" title="All 2 branches missed.">                if (!randomRowValues.next()) {</span>
+<span class="nc" id="L172">                    throw new IgnoreMeException();</span>
+                    // throw new AssertionError(&quot;could not find random row! &quot; + randomRow);
+                }
+<span class="nc bnc" id="L175" title="All 2 branches missed.">                for (int i = 0; i &lt; getColumns().size(); i++) {</span>
+<span class="nc" id="L176">                    SQLite3Column column = getColumns().get(i);</span>
+<span class="nc" id="L177">                    int columnIndex = randomRowValues.findColumn(column.getTable().getName() + column.getName());</span>
+<span class="nc bnc" id="L178" title="All 2 branches missed.">                    assert columnIndex == i + 1;</span>
+<span class="nc" id="L179">                    String typeString = randomRowValues.getString(columnIndex + getColumns().size());</span>
+<span class="nc" id="L180">                    SQLite3DataType valueType = getColumnType(typeString);</span>
+<span class="nc" id="L181">                    SQLite3Constant constant = getConstant(randomRowValues, columnIndex, valueType);</span>
+<span class="nc" id="L182">                    values.put(column, constant);</span>
+                }
+<span class="nc bnc" id="L184" title="All 2 branches missed.">                assert !randomRowValues.next();</span>
+<span class="nc" id="L185">                return new SQLite3RowValue(this, values);</span>
+            }
+
+        }
+
+    }
+
+    public static class SQLite3Table extends AbstractRelationalTable&lt;SQLite3Column, TableIndex, SQLite3GlobalState&gt; {
+        // TODO: why does the SQLite implementation have no table indexes?
+
+<span class="nc" id="L195">        public enum TableKind {</span>
+<span class="nc" id="L196">            MAIN, TEMP;</span>
+        }
+
+        private final TableKind tableType;
+        private SQLite3Column rowid;
+        private final boolean withoutRowid;
+        private final boolean isVirtual;
+        private final boolean isReadOnly;
+
+        public SQLite3Table(String tableName, List&lt;SQLite3Column&gt; columns, TableKind tableType, boolean withoutRowid,
+                boolean isView, boolean isVirtual, boolean isReadOnly) {
+<span class="nc" id="L207">            super(tableName, columns, Collections.emptyList(), isView);</span>
+<span class="nc" id="L208">            this.tableType = tableType;</span>
+<span class="nc" id="L209">            this.withoutRowid = withoutRowid;</span>
+<span class="nc" id="L210">            this.isVirtual = isVirtual;</span>
+<span class="nc" id="L211">            this.isReadOnly = isReadOnly;</span>
+<span class="nc" id="L212">        }</span>
+
+        public boolean hasWithoutRowid() {
+<span class="nc" id="L215">            return withoutRowid;</span>
+        }
+
+        public void addRowid(SQLite3Column rowid) {
+<span class="nc" id="L219">            this.rowid = rowid;</span>
+<span class="nc" id="L220">        }</span>
+
+        public SQLite3Column getRowid() {
+<span class="nc" id="L223">            return rowid;</span>
+        }
+
+        public TableKind getTableType() {
+<span class="nc" id="L227">            return tableType;</span>
+        }
+
+        public boolean isVirtual() {
+<span class="nc" id="L231">            return isVirtual;</span>
+        }
+
+        public boolean isSystemTable() {
+<span class="nc" id="L235">            return getName().startsWith(&quot;sqlit&quot;);</span>
+        }
+
+        public boolean isTemp() {
+<span class="nc bnc" id="L239" title="All 2 branches missed.">            return tableType == TableKind.TEMP;</span>
+        }
+
+        public boolean isReadOnly() {
+<span class="nc" id="L243">            return isReadOnly;</span>
+        }
+
+    }
+
+    public static class SQLite3RowValue extends AbstractRowValue&lt;SQLite3Tables, SQLite3Column, SQLite3Constant&gt; {
+
+        SQLite3RowValue(SQLite3Tables tables, Map&lt;SQLite3Column, SQLite3Constant&gt; values) {
+<span class="nc" id="L251">            super(tables, values);</span>
+<span class="nc" id="L252">        }</span>
+
+    }
+
+    public SQLite3Schema(List&lt;SQLite3Table&gt; databaseTables, List&lt;String&gt; indexNames) {
+<span class="nc" id="L257">        super(databaseTables);</span>
+<span class="nc" id="L258">        this.indexNames = indexNames;</span>
+<span class="nc" id="L259">    }</span>
+
+    @Override
+    public String toString() {
+<span class="nc" id="L263">        StringBuffer sb = new StringBuffer();</span>
+<span class="nc bnc" id="L264" title="All 2 branches missed.">        for (SQLite3Table t : getDatabaseTables()) {</span>
+<span class="nc" id="L265">            sb.append(t);</span>
+<span class="nc" id="L266">            sb.append(&quot;\n&quot;);</span>
+        }
+<span class="nc" id="L268">        return sb.toString();</span>
+    }
+
+    public static SQLite3Schema fromConnection(SQLite3GlobalState globalState) throws SQLException {
+<span class="nc" id="L272">        List&lt;SQLite3Table&gt; databaseTables = new ArrayList&lt;&gt;();</span>
+<span class="nc" id="L273">        List&lt;String&gt; indexNames = new ArrayList&lt;&gt;();</span>
+<span class="nc" id="L274">        SQLConnection con = globalState.getConnection();</span>
+
+<span class="nc" id="L276">        try (Statement s = con.createStatement()) {</span>
+<span class="nc" id="L277">            try (ResultSet rs = s.executeQuery(&quot;SELECT name, type as category, sql FROM sqlite_master UNION &quot;</span>
+                    + &quot;SELECT name, 'temp_table' as category, sql FROM sqlite_temp_master WHERE type='table' UNION SELECT name, 'view' as category, sql FROM sqlite_temp_master WHERE type='view' GROUP BY name;&quot;)) {
+<span class="nc bnc" id="L279" title="All 2 branches missed.">                while (rs.next()) {</span>
+<span class="nc" id="L280">                    String tableName = rs.getString(&quot;name&quot;);</span>
+<span class="nc" id="L281">                    String tableType = rs.getString(&quot;category&quot;);</span>
+                    boolean isReadOnly;
+<span class="nc bnc" id="L283" title="All 2 branches missed.">                    if (databaseTables.stream().anyMatch(t -&gt; t.getName().contentEquals(tableName))) {</span>
+<span class="nc" id="L284">                        continue;</span>
+                    }
+<span class="nc bnc" id="L286" title="All 2 branches missed.">                    String sqlString = rs.getString(&quot;sql&quot;) == null ? &quot;&quot; : rs.getString(&quot;sql&quot;).toLowerCase();</span>
+<span class="nc bnc" id="L287" title="All 6 branches missed.">                    if (tableName.startsWith(&quot;sqlite_&quot;) || tableType.equals(&quot;index&quot;) || tableType.equals(&quot;trigger&quot;)</span>
+<span class="nc bnc" id="L288" title="All 4 branches missed.">                            || tableName.endsWith(&quot;_idx&quot;) || tableName.endsWith(&quot;_docsize&quot;)</span>
+<span class="nc bnc" id="L289" title="All 4 branches missed.">                            || tableName.endsWith(&quot;_content&quot;) || tableName.endsWith(&quot;_data&quot;)</span>
+<span class="nc bnc" id="L290" title="All 4 branches missed.">                            || tableName.endsWith(&quot;_config&quot;) || tableName.endsWith(&quot;_segdir&quot;)</span>
+<span class="nc bnc" id="L291" title="All 4 branches missed.">                            || tableName.endsWith(&quot;_stat&quot;) || tableName.endsWith(&quot;_segments&quot;)</span>
+<span class="nc bnc" id="L292" title="All 2 branches missed.">                            || tableName.contains(&quot;_&quot;)) {</span>
+<span class="nc" id="L293">                        continue; // TODO</span>
+<span class="nc bnc" id="L294" title="All 2 branches missed.">                    } else if (sqlString.contains(&quot;using dbstat&quot;)) {</span>
+<span class="nc" id="L295">                        isReadOnly = true;</span>
+<span class="nc bnc" id="L296" title="All 2 branches missed.">                    } else if (sqlString.contains(&quot;content=''&quot;)) {</span>
+<span class="nc" id="L297">                        isReadOnly = true;</span>
+<span class="nc" id="L298">                    } else {</span>
+<span class="nc" id="L299">                        isReadOnly = false;</span>
+                    }
+<span class="nc" id="L301">                    boolean withoutRowid = sqlString.contains(&quot;without rowid&quot;);</span>
+<span class="nc" id="L302">                    boolean isView = tableType.contentEquals(&quot;view&quot;);</span>
+<span class="nc" id="L303">                    boolean isVirtual = sqlString.contains(&quot;virtual&quot;);</span>
+<span class="nc" id="L304">                    boolean isDbStatsTable = sqlString.contains(&quot;using dbstat&quot;);</span>
+<span class="nc" id="L305">                    List&lt;SQLite3Column&gt; databaseColumns = getTableColumns(con, tableName, sqlString, isView,</span>
+<span class="nc" id="L306">                            isDbStatsTable);</span>
+<span class="nc" id="L307">                    SQLite3Table t = new SQLite3Table(tableName, databaseColumns,</span>
+<span class="nc bnc" id="L308" title="All 2 branches missed.">                            tableType.contentEquals(&quot;temp_table&quot;) ? TableKind.TEMP : TableKind.MAIN, withoutRowid,</span>
+<span class="nc" id="L309">                            isView, isVirtual, isReadOnly);</span>
+<span class="nc bnc" id="L310" title="All 2 branches missed.">                    if (isRowIdTable(withoutRowid, isView, isVirtual)) {</span>
+<span class="nc" id="L311">                        String rowId = Randomly.fromList(ROWID_STRINGS);</span>
+<span class="nc" id="L312">                        SQLite3Column rowid = new SQLite3Column(rowId, SQLite3DataType.INT, true, null, true);</span>
+<span class="nc" id="L313">                        t.addRowid(rowid);</span>
+<span class="nc" id="L314">                        rowid.setTable(t);</span>
+                    }
+<span class="nc bnc" id="L316" title="All 2 branches missed.">                    for (SQLite3Column c : databaseColumns) {</span>
+<span class="nc" id="L317">                        c.setTable(t);</span>
+                    }
+<span class="nc" id="L319">                    databaseTables.add(t);</span>
+                }
+<span class="nc" id="L321">            } catch (SQLException e) {</span>
+                // ignore
+            }
+<span class="nc" id="L324">            try (ResultSet rs = s.executeQuery(</span>
+<span class="nc" id="L325">                    &quot;SELECT name FROM SQLite_master WHERE type = 'index' UNION SELECT name FROM sqlite_temp_master WHERE type='index'&quot;)) {</span>
+<span class="nc bnc" id="L326" title="All 2 branches missed.">                while (rs.next()) {</span>
+<span class="nc" id="L327">                    String name = rs.getString(1);</span>
+<span class="nc bnc" id="L328" title="All 2 branches missed.">                    if (name.contains(&quot;_autoindex&quot;)) {</span>
+<span class="nc" id="L329">                        continue;</span>
+                    }
+<span class="nc" id="L331">                    indexNames.add(name);</span>
+                }
+<span class="nc" id="L333">            } catch (SQLException e) {</span>
+<span class="nc bnc" id="L334" title="All 2 branches missed.">                if (!e.getMessage().contains(&quot;The database file is locked&quot;)) {</span>
+<span class="nc" id="L335">                    throw new AssertionError(e);</span>
+                }
+            }
+        }
+
+<span class="nc" id="L340">        return new SQLite3Schema(databaseTables, indexNames);</span>
+    }
+
+    // https://www.sqlite.org/rowidtable.html
+    private static boolean isRowIdTable(boolean withoutRowid, boolean isView, boolean isVirtual) {
+<span class="nc bnc" id="L345" title="All 6 branches missed.">        return !isView &amp;&amp; !isVirtual &amp;&amp; !withoutRowid;</span>
+    }
+
+    private static List&lt;SQLite3Column&gt; getTableColumns(SQLConnection con, String tableName, String sql, boolean isView,
+            boolean isDbStatsTable) throws SQLException {
+<span class="nc" id="L350">        List&lt;SQLite3Column&gt; databaseColumns = new ArrayList&lt;&gt;();</span>
+<span class="nc" id="L351">        try (Statement s2 = con.createStatement()) {</span>
+<span class="nc" id="L352">            String tableInfoStr = String.format(&quot;PRAGMA table_xinfo(%s)&quot;, tableName);</span>
+<span class="nc" id="L353">            try (ResultSet columnRs = s2.executeQuery(tableInfoStr)) {</span>
+<span class="nc" id="L354">                String[] columnCreates = sql.split(&quot;,&quot;);</span>
+<span class="nc" id="L355">                int columnCreateIndex = 0;</span>
+<span class="nc bnc" id="L356" title="All 2 branches missed.">                while (columnRs.next()) {</span>
+<span class="nc" id="L357">                    String columnName = columnRs.getString(&quot;name&quot;);</span>
+<span class="nc bnc" id="L358" title="All 4 branches missed.">                    if (columnName.contentEquals(&quot;docid&quot;) || columnName.contentEquals(&quot;rank&quot;)</span>
+<span class="nc bnc" id="L359" title="All 4 branches missed.">                            || columnName.contentEquals(tableName) || columnName.contentEquals(&quot;__langid&quot;)) {</span>
+<span class="nc" id="L360">                        continue; // internal column names of FTS tables</span>
+                    }
+<span class="nc bnc" id="L362" title="All 4 branches missed.">                    if (isDbStatsTable &amp;&amp; columnName.contentEquals(&quot;aggregate&quot;)) {</span>
+                        // see https://www.sqlite.org/src/tktview?name=a3713a5fca
+<span class="nc" id="L364">                        continue;</span>
+                    }
+<span class="nc" id="L366">                    String columnTypeString = columnRs.getString(&quot;type&quot;);</span>
+<span class="nc" id="L367">                    boolean isPrimaryKey = columnRs.getBoolean(&quot;pk&quot;);</span>
+<span class="nc" id="L368">                    SQLite3DataType columnType = getColumnType(columnTypeString);</span>
+                    SQLite3CollateSequence collate;
+<span class="nc bnc" id="L370" title="All 2 branches missed.">                    if (!isDbStatsTable) {</span>
+<span class="nc" id="L371">                        String columnSql = columnCreates[columnCreateIndex++];</span>
+<span class="nc" id="L372">                        collate = getCollate(columnSql, isView);</span>
+<span class="nc" id="L373">                    } else {</span>
+<span class="nc" id="L374">                        collate = SQLite3CollateSequence.BINARY;</span>
+                    }
+<span class="nc" id="L376">                    databaseColumns.add(new SQLite3Column(columnName, columnType,</span>
+<span class="nc" id="L377">                            columnTypeString.contentEquals(&quot;INTEGER&quot;), isPrimaryKey, collate));</span>
+                }
+            }
+<span class="nc" id="L380">        } catch (SQLException e) {</span>
+
+        }
+<span class="nc bnc" id="L383" title="All 2 branches missed.">        if (databaseColumns.isEmpty()) {</span>
+            // only generated columns
+<span class="nc" id="L385">            throw new IgnoreMeException();</span>
+        }
+<span class="nc bnc" id="L387" title="All 2 branches missed.">        assert !databaseColumns.isEmpty() : tableName;</span>
+<span class="nc" id="L388">        return databaseColumns;</span>
+    }
+
+    private static SQLite3CollateSequence getCollate(String sql, boolean isView) {
+        SQLite3CollateSequence collate;
+<span class="nc bnc" id="L393" title="All 2 branches missed.">        if (isView) {</span>
+<span class="nc" id="L394">            collate = SQLite3CollateSequence.BINARY;</span>
+<span class="nc" id="L395">        } else {</span>
+<span class="nc bnc" id="L396" title="All 2 branches missed.">            if (sql.contains(&quot;collate binary&quot;)) {</span>
+<span class="nc" id="L397">                collate = SQLite3CollateSequence.BINARY;</span>
+<span class="nc bnc" id="L398" title="All 2 branches missed.">            } else if (sql.contains(&quot;collate rtrim&quot;)) {</span>
+<span class="nc" id="L399">                collate = SQLite3CollateSequence.RTRIM;</span>
+<span class="nc bnc" id="L400" title="All 2 branches missed.">            } else if (sql.contains(&quot;collate nocase&quot;)) {</span>
+<span class="nc" id="L401">                collate = SQLite3CollateSequence.NOCASE;</span>
+<span class="nc" id="L402">            } else {</span>
+<span class="nc" id="L403">                collate = SQLite3CollateSequence.BINARY;</span>
+            }
+        }
+<span class="nc" id="L406">        return collate;</span>
+    }
+
+    public static SQLite3DataType getColumnType(String columnTypeString) {
+<span class="nc" id="L410">        String trimmedTypeString = columnTypeString.toUpperCase().replace(&quot; GENERATED ALWAYS&quot;, &quot;&quot;);</span>
+        SQLite3DataType columnType;
+<span class="nc bnc" id="L412" title="All 8 branches missed.">        switch (trimmedTypeString) {</span>
+        case &quot;TEXT&quot;:
+<span class="nc" id="L414">            columnType = SQLite3DataType.TEXT;</span>
+<span class="nc" id="L415">            break;</span>
+        case &quot;INTEGER&quot;:
+<span class="nc" id="L417">            columnType = SQLite3DataType.INT;</span>
+<span class="nc" id="L418">            break;</span>
+        case &quot;INT&quot;:
+        case &quot;BOOLEAN&quot;:
+<span class="nc" id="L421">            columnType = SQLite3DataType.INT;</span>
+<span class="nc" id="L422">            break;</span>
+        case &quot;&quot;:
+<span class="nc" id="L424">            columnType = SQLite3DataType.NONE;</span>
+<span class="nc" id="L425">            break;</span>
+        case &quot;BLOB&quot;:
+<span class="nc" id="L427">            columnType = SQLite3DataType.BINARY;</span>
+<span class="nc" id="L428">            break;</span>
+        case &quot;REAL&quot;:
+        case &quot;NUM&quot;:
+<span class="nc" id="L431">            columnType = SQLite3DataType.REAL;</span>
+<span class="nc" id="L432">            break;</span>
+        case &quot;NULL&quot;:
+<span class="nc" id="L434">            columnType = SQLite3DataType.NULL;</span>
+<span class="nc" id="L435">            break;</span>
+        default:
+<span class="nc" id="L437">            throw new AssertionError(trimmedTypeString);</span>
+        }
+<span class="nc" id="L439">        return columnType;</span>
+    }
+
+    public SQLite3Table getRandomVirtualTable() {
+<span class="nc" id="L443">        return getRandomTable(p -&gt; p.isVirtual);</span>
+    }
+
+    public SQLite3Tables getTables() {
+<span class="nc" id="L447">        return new SQLite3Tables(getDatabaseTables());</span>
+    }
+
+    public SQLite3Tables getRandomTableNonEmptyTables() {
+<span class="nc bnc" id="L451" title="All 2 branches missed.">        if (getDatabaseTables().isEmpty()) {</span>
+<span class="nc" id="L452">            throw new IgnoreMeException();</span>
+        }
+<span class="nc" id="L454">        return new SQLite3Tables(Randomly.nonEmptySubset(getDatabaseTables()));</span>
+    }
+
+    public SQLite3Table getRandomTableNoViewNoVirtualTable() {
+<span class="nc" id="L458">        return Randomly.fromList(getDatabaseTablesWithoutViewsWithoutVirtualTables());</span>
+    }
+
+    public List&lt;SQLite3Table&gt; getDatabaseTablesWithoutViewsWithoutVirtualTables() {
+<span class="nc bnc" id="L462" title="All 4 branches missed.">        return getDatabaseTables().stream().filter(t -&gt; !t.isView() &amp;&amp; !t.isVirtual).collect(Collectors.toList());</span>
+    }
+
+    public String getFreeVirtualTableName() {
+<span class="nc" id="L466">        int i = 0;</span>
+<span class="nc bnc" id="L467" title="All 2 branches missed.">        if (Randomly.getBooleanWithRatherLowProbability()) {</span>
+<span class="nc" id="L468">            i = (int) Randomly.getNotCachedInteger(0, 100);</span>
+        }
+        do {
+<span class="nc" id="L471">            String tableName = String.format(&quot;vt%d&quot;, i++);</span>
+<span class="nc bnc" id="L472" title="All 2 branches missed.">            if (getDatabaseTables().stream().noneMatch(t -&gt; t.getName().equalsIgnoreCase(tableName))) {</span>
+<span class="nc" id="L473">                return tableName;</span>
+            }
+        } while (true);
+
+    }
+
+    public String getFreeRtreeTableName() {
+<span class="nc" id="L480">        int i = 0;</span>
+<span class="nc bnc" id="L481" title="All 2 branches missed.">        if (Randomly.getBooleanWithRatherLowProbability()) {</span>
+<span class="nc" id="L482">            i = (int) Randomly.getNotCachedInteger(0, 100);</span>
+        }
+        do {
+<span class="nc" id="L485">            String tableName = String.format(&quot;rt%d&quot;, i++);</span>
+<span class="nc bnc" id="L486" title="All 2 branches missed.">            if (getDatabaseTables().stream().noneMatch(t -&gt; t.getName().equalsIgnoreCase(tableName))) {</span>
+<span class="nc" id="L487">                return tableName;</span>
+            }
+        } while (true);
+
+    }
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.8.202204050719</span></div></body></html>

@@ -1,0 +1,144 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>SQLite3WindowFunction.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">dqetool</a> &gt; <a href="index.source.html" class="el_package">dqetool.sqlite3.ast</a> &gt; <span class="el_source">SQLite3WindowFunction.java</span></div><h1>SQLite3WindowFunction.java</h1><pre class="source lang-java linenums">package dqetool.sqlite3.ast;
+
+import java.util.List;
+
+import dqetool.IgnoreMeException;
+import dqetool.Randomly;
+import dqetool.sqlite3.SQLite3GlobalState;
+import dqetool.sqlite3.SQLite3Provider;
+import dqetool.sqlite3.gen.SQLite3ExpressionGenerator;
+import dqetool.sqlite3.schema.SQLite3Schema.SQLite3Column;
+import dqetool.sqlite3.schema.SQLite3Schema.SQLite3Column.SQLite3CollateSequence;
+
+public class SQLite3WindowFunction extends SQLite3Expression {
+
+    private WindowFunction func;
+    private SQLite3Expression[] args;
+
+    public static SQLite3WindowFunction getRandom(List&lt;SQLite3Column&gt; columns, SQLite3GlobalState globalState) {
+<span class="nc" id="L19">        WindowFunction func = Randomly.fromOptions(WindowFunction.values());</span>
+<span class="nc" id="L20">        SQLite3Expression[] args = new SQLite3Expression[func.nrArgs];</span>
+<span class="nc bnc" id="L21" title="All 2 branches missed.">        for (int i = 0; i &lt; args.length; i++) {</span>
+<span class="nc" id="L22">            args[i] = new SQLite3ExpressionGenerator(globalState).setColumns(columns).generateExpression();</span>
+        }
+<span class="nc" id="L24">        return new SQLite3WindowFunction(func, args);</span>
+    }
+
+<span class="nc" id="L27">    public enum WindowFunction {</span>
+
+<span class="nc" id="L29">        ROW_NUMBER {</span>
+            @Override
+            public SQLite3Constant apply(SQLite3Constant... args) {
+<span class="nc" id="L32">                return SQLite3Constant.createIntConstant(1);</span>
+            }
+
+        },
+<span class="nc" id="L36">        RANK {</span>
+            @Override
+            public SQLite3Constant apply(SQLite3Constant... args) {
+<span class="nc" id="L39">                return SQLite3Constant.createIntConstant(1);</span>
+            }
+        },
+<span class="nc" id="L42">        DENSE_RANK {</span>
+            @Override
+            public SQLite3Constant apply(SQLite3Constant... args) {
+<span class="nc" id="L45">                return SQLite3Constant.createIntConstant(1);</span>
+            }
+        },
+<span class="nc" id="L48">        PERCENT_RANK {</span>
+            @Override
+            public SQLite3Constant apply(SQLite3Constant... args) {
+<span class="nc" id="L51">                return SQLite3Constant.createRealConstant(0.0);</span>
+            }
+        },
+<span class="nc" id="L54">        CUME_DIST {</span>
+            @Override
+            public SQLite3Constant apply(SQLite3Constant... args) {
+<span class="nc" id="L57">                return SQLite3Constant.createRealConstant(1.0);</span>
+            }
+        },
+<span class="nc" id="L60">        NTILE(1), //</span>
+<span class="nc" id="L61">        LAG(3), //</span>
+<span class="nc" id="L62">        LEAD(3), //</span>
+<span class="nc" id="L63">        FIRST_VALUE(1) {</span>
+
+            @Override
+            public SQLite3Constant apply(SQLite3Constant... args) {
+<span class="nc" id="L67">                return args[0];</span>
+            }
+        },
+<span class="nc" id="L70">        LAST_VALUE(1) {</span>
+            @Override
+            public SQLite3Constant apply(SQLite3Constant... args) {
+<span class="nc" id="L73">                return args[0];</span>
+            }
+        },
+<span class="nc" id="L76">        NTH_VALUE(2) {</span>
+            @Override
+            public SQLite3Constant apply(SQLite3Constant... args) {
+<span class="nc" id="L79">                SQLite3Constant n = SQLite3Cast.castToInt(args[1]);</span>
+<span class="nc bnc" id="L80" title="All 4 branches missed.">                if (!n.isNull() &amp;&amp; n.asInt() == 1) {</span>
+<span class="nc" id="L81">                    return args[0];</span>
+                } else {
+<span class="nc" id="L83">                    return SQLite3Constant.createNullConstant();</span>
+                }
+            }
+        };
+
+        int nrArgs;
+
+<span class="nc" id="L90">        WindowFunction(int nrArgs) {</span>
+<span class="nc" id="L91">            this.nrArgs = nrArgs;</span>
+<span class="nc" id="L92">        };</span>
+
+        WindowFunction() {
+<span class="nc" id="L95">            this(0);</span>
+<span class="nc" id="L96">        }</span>
+
+        public SQLite3Constant apply(SQLite3Constant... args) {
+<span class="nc bnc" id="L99" title="All 2 branches missed.">            if (SQLite3Provider.mustKnowResult) {</span>
+<span class="nc" id="L100">                throw new AssertionError();</span>
+            }
+<span class="nc" id="L102">            return null;</span>
+        }
+
+        public int getNrArgs() {
+<span class="nc" id="L106">            return nrArgs;</span>
+        }
+    }
+
+<span class="nc" id="L110">    public SQLite3WindowFunction(WindowFunction func, SQLite3Expression... args) {</span>
+<span class="nc" id="L111">        this.func = func;</span>
+<span class="nc" id="L112">        this.args = args.clone();</span>
+<span class="nc" id="L113">    }</span>
+
+    public WindowFunction getFunc() {
+<span class="nc" id="L116">        return func;</span>
+    }
+
+    public SQLite3Expression[] getArgs() {
+<span class="nc" id="L120">        return args.clone();</span>
+    }
+
+    @Override
+    public SQLite3CollateSequence getExplicitCollateSequence() {
+<span class="nc" id="L125">        return null;</span>
+    }
+
+    @Override
+    public SQLite3Constant getExpectedValue() {
+<span class="nc bnc" id="L130" title="All 2 branches missed.">        if (!SQLite3Provider.mustKnowResult) {</span>
+<span class="nc" id="L131">            return null;</span>
+        }
+<span class="nc" id="L133">        SQLite3Constant[] evaluatedConst = new SQLite3Constant[args.length];</span>
+<span class="nc bnc" id="L134" title="All 2 branches missed.">        for (int i = 0; i &lt; evaluatedConst.length; i++) {</span>
+<span class="nc" id="L135">            evaluatedConst[i] = args[i].getExpectedValue();</span>
+<span class="nc bnc" id="L136" title="All 2 branches missed.">            if (evaluatedConst[i] == null) {</span>
+<span class="nc" id="L137">                throw new IgnoreMeException();</span>
+            }
+        }
+<span class="nc" id="L140">        return func.apply(evaluatedConst);</span>
+    }
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.8.202204050719</span></div></body></html>

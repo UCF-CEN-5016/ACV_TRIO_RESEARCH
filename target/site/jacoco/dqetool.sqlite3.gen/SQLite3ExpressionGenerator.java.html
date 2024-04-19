@@ -1,0 +1,698 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>SQLite3ExpressionGenerator.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">dqetool</a> &gt; <a href="index.source.html" class="el_package">dqetool.sqlite3.gen</a> &gt; <span class="el_source">SQLite3ExpressionGenerator.java</span></div><h1>SQLite3ExpressionGenerator.java</h1><pre class="source lang-java linenums">package dqetool.sqlite3.gen;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+import java.util.stream.Collectors;
+
+import dqetool.Randomly;
+import dqetool.common.gen.ExpressionGenerator;
+import dqetool.sqlite3.SQLite3GlobalState;
+import dqetool.sqlite3.ast.SQLite3Aggregate;
+import dqetool.sqlite3.ast.SQLite3Aggregate.SQLite3AggregateFunction;
+import dqetool.sqlite3.ast.SQLite3Case.CasePair;
+import dqetool.sqlite3.ast.SQLite3Case.SQLite3CaseWithBaseExpression;
+import dqetool.sqlite3.ast.SQLite3Case.SQLite3CaseWithoutBaseExpression;
+import dqetool.sqlite3.ast.SQLite3Constant;
+import dqetool.sqlite3.ast.SQLite3Constant.SQLite3TextConstant;
+import dqetool.sqlite3.ast.SQLite3Expression;
+import dqetool.sqlite3.ast.SQLite3Expression.BetweenOperation;
+import dqetool.sqlite3.ast.SQLite3Expression.BinaryComparisonOperation;
+import dqetool.sqlite3.ast.SQLite3Expression.BinaryComparisonOperation.BinaryComparisonOperator;
+import dqetool.sqlite3.ast.SQLite3Expression.CollateOperation;
+import dqetool.sqlite3.ast.SQLite3Expression.Join;
+import dqetool.sqlite3.ast.SQLite3Expression.Join.JoinType;
+import dqetool.sqlite3.ast.SQLite3Expression.MatchOperation;
+import dqetool.sqlite3.ast.SQLite3Expression.SQLite3ColumnName;
+import dqetool.sqlite3.ast.SQLite3Expression.SQLite3Distinct;
+import dqetool.sqlite3.ast.SQLite3Expression.SQLite3OrderingTerm;
+import dqetool.sqlite3.ast.SQLite3Expression.SQLite3OrderingTerm.Ordering;
+import dqetool.sqlite3.ast.SQLite3Expression.SQLite3PostfixText;
+import dqetool.sqlite3.ast.SQLite3Expression.SQLite3PostfixUnaryOperation;
+import dqetool.sqlite3.ast.SQLite3Expression.SQLite3PostfixUnaryOperation.PostfixUnaryOperator;
+import dqetool.sqlite3.ast.SQLite3Expression.Sqlite3BinaryOperation;
+import dqetool.sqlite3.ast.SQLite3Expression.Sqlite3BinaryOperation.BinaryOperator;
+import dqetool.sqlite3.ast.SQLite3Expression.TypeLiteral;
+import dqetool.sqlite3.ast.SQLite3Function;
+import dqetool.sqlite3.ast.SQLite3Function.ComputableFunction;
+import dqetool.sqlite3.ast.SQLite3RowValueExpression;
+import dqetool.sqlite3.ast.SQLite3UnaryOperation;
+import dqetool.sqlite3.ast.SQLite3UnaryOperation.UnaryOperator;
+import dqetool.sqlite3.schema.SQLite3Schema.SQLite3Column;
+import dqetool.sqlite3.schema.SQLite3Schema.SQLite3Column.SQLite3CollateSequence;
+import dqetool.sqlite3.schema.SQLite3Schema.SQLite3RowValue;
+import dqetool.sqlite3.schema.SQLite3Schema.SQLite3Table;
+
+public class SQLite3ExpressionGenerator implements ExpressionGenerator&lt;SQLite3Expression&gt; {
+
+    private SQLite3RowValue rw;
+    private final SQLite3GlobalState globalState;
+    private boolean tryToGenerateKnownResult;
+<span class="nc" id="L52">    private List&lt;SQLite3Column&gt; columns = Collections.emptyList();</span>
+    private final Randomly r;
+    private boolean deterministicOnly;
+    private boolean allowMatchClause;
+    private boolean allowAggregateFunctions;
+    private boolean allowSubqueries;
+    private boolean allowAggreates;
+
+<span class="nc" id="L60">    public SQLite3ExpressionGenerator(SQLite3ExpressionGenerator other) {</span>
+<span class="nc" id="L61">        this.rw = other.rw;</span>
+<span class="nc" id="L62">        this.globalState = other.globalState;</span>
+<span class="nc" id="L63">        this.tryToGenerateKnownResult = other.tryToGenerateKnownResult;</span>
+<span class="nc" id="L64">        this.columns = new ArrayList&lt;&gt;(other.columns);</span>
+<span class="nc" id="L65">        this.r = other.r;</span>
+<span class="nc" id="L66">        this.deterministicOnly = other.deterministicOnly;</span>
+<span class="nc" id="L67">        this.allowMatchClause = other.allowMatchClause;</span>
+<span class="nc" id="L68">        this.allowAggregateFunctions = other.allowAggregateFunctions;</span>
+<span class="nc" id="L69">        this.allowSubqueries = other.allowSubqueries;</span>
+<span class="nc" id="L70">        this.allowAggreates = other.allowAggreates;</span>
+<span class="nc" id="L71">    }</span>
+
+<span class="nc" id="L73">    private enum LiteralValueType {</span>
+<span class="nc" id="L74">        INTEGER, NUMERIC, STRING, BLOB_LITERAL, NULL</span>
+    }
+
+<span class="nc" id="L77">    public SQLite3ExpressionGenerator(SQLite3GlobalState globalState) {</span>
+<span class="nc" id="L78">        this.globalState = globalState;</span>
+<span class="nc" id="L79">        this.r = globalState.getRandomly();</span>
+<span class="nc" id="L80">    }</span>
+
+    public SQLite3ExpressionGenerator deterministicOnly() {
+<span class="nc" id="L83">        SQLite3ExpressionGenerator gen = new SQLite3ExpressionGenerator(this);</span>
+<span class="nc" id="L84">        gen.deterministicOnly = true;</span>
+<span class="nc" id="L85">        return gen;</span>
+    }
+
+    public SQLite3ExpressionGenerator allowAggregateFunctions() {
+<span class="nc" id="L89">        SQLite3ExpressionGenerator gen = new SQLite3ExpressionGenerator(this);</span>
+<span class="nc" id="L90">        gen.allowAggregateFunctions = true;</span>
+<span class="nc" id="L91">        return gen;</span>
+    }
+
+    public SQLite3ExpressionGenerator setColumns(List&lt;SQLite3Column&gt; columns) {
+<span class="nc" id="L95">        SQLite3ExpressionGenerator gen = new SQLite3ExpressionGenerator(this);</span>
+<span class="nc" id="L96">        gen.columns = new ArrayList&lt;&gt;(columns);</span>
+<span class="nc" id="L97">        return gen;</span>
+    }
+
+    public SQLite3ExpressionGenerator setRowValue(SQLite3RowValue rw) {
+<span class="nc" id="L101">        SQLite3ExpressionGenerator gen = new SQLite3ExpressionGenerator(this);</span>
+<span class="nc" id="L102">        gen.rw = rw;</span>
+<span class="nc" id="L103">        return gen;</span>
+    }
+
+    public SQLite3ExpressionGenerator allowMatchClause() {
+<span class="nc" id="L107">        SQLite3ExpressionGenerator gen = new SQLite3ExpressionGenerator(this);</span>
+<span class="nc" id="L108">        gen.allowMatchClause = true;</span>
+<span class="nc" id="L109">        return gen;</span>
+    }
+
+    public SQLite3ExpressionGenerator allowSubqueries() {
+<span class="nc" id="L113">        SQLite3ExpressionGenerator gen = new SQLite3ExpressionGenerator(this);</span>
+<span class="nc" id="L114">        gen.allowSubqueries = true;</span>
+<span class="nc" id="L115">        return gen;</span>
+    }
+
+    public SQLite3ExpressionGenerator tryToGenerateKnownResult() {
+<span class="nc" id="L119">        SQLite3ExpressionGenerator gen = new SQLite3ExpressionGenerator(this);</span>
+<span class="nc" id="L120">        gen.tryToGenerateKnownResult = true;</span>
+<span class="nc" id="L121">        return gen;</span>
+    }
+
+    public static SQLite3Expression getRandomLiteralValue(SQLite3GlobalState globalState) {
+<span class="nc" id="L125">        return new SQLite3ExpressionGenerator(globalState).getRandomLiteralValueInternal(globalState.getRandomly());</span>
+    }
+
+    public List&lt;SQLite3Expression&gt; generateOrderBys() {
+<span class="nc" id="L129">        List&lt;SQLite3Expression&gt; expressions = new ArrayList&lt;&gt;();</span>
+<span class="nc bnc" id="L130" title="All 2 branches missed.">        for (int i = 0; i &lt; Randomly.smallNumber() + 1; i++) {</span>
+<span class="nc" id="L131">            expressions.add(generateOrderingTerm());</span>
+        }
+<span class="nc" id="L133">        return expressions;</span>
+    }
+
+    public List&lt;Join&gt; getRandomJoinClauses(List&lt;SQLite3Table&gt; tables) {
+<span class="nc" id="L137">        List&lt;Join&gt; joinStatements = new ArrayList&lt;&gt;();</span>
+<span class="nc bnc" id="L138" title="All 2 branches missed.">        if (!globalState.getDbmsSpecificOptions().testJoins) {</span>
+<span class="nc" id="L139">            return joinStatements;</span>
+        }
+<span class="nc" id="L141">        List&lt;JoinType&gt; options = new ArrayList&lt;&gt;(Arrays.asList(JoinType.values()));</span>
+<span class="nc bnc" id="L142" title="All 4 branches missed.">        if (Randomly.getBoolean() &amp;&amp; tables.size() &gt; 1) {</span>
+<span class="nc" id="L143">            int nrJoinClauses = (int) Randomly.getNotCachedInteger(0, tables.size());</span>
+            // Natural join is incompatible with other joins
+            // because it needs unique column names
+            // while other joins will produce duplicate column names
+<span class="nc bnc" id="L147" title="All 2 branches missed.">            if (nrJoinClauses &gt; 1) {</span>
+<span class="nc" id="L148">                options.remove(JoinType.NATURAL);</span>
+            }
+<span class="nc bnc" id="L150" title="All 2 branches missed.">            for (int i = 0; i &lt; nrJoinClauses; i++) {</span>
+<span class="nc" id="L151">                SQLite3Expression joinClause = generateExpression();</span>
+<span class="nc" id="L152">                SQLite3Table table = Randomly.fromList(tables);</span>
+<span class="nc" id="L153">                tables.remove(table);</span>
+<span class="nc" id="L154">                JoinType selectedOption = Randomly.fromList(options);</span>
+<span class="nc bnc" id="L155" title="All 2 branches missed.">                if (selectedOption == JoinType.NATURAL) {</span>
+                    // NATURAL joins do not have an ON clause
+<span class="nc" id="L157">                    joinClause = null;</span>
+                }
+<span class="nc" id="L159">                Join j = new SQLite3Expression.Join(table, joinClause, selectedOption);</span>
+<span class="nc" id="L160">                joinStatements.add(j);</span>
+            }
+
+        }
+<span class="nc" id="L164">        return joinStatements;</span>
+    }
+
+    public SQLite3Expression generateOrderingTerm() {
+<span class="nc" id="L168">        SQLite3Expression expr = generateExpression();</span>
+        // COLLATE is potentially already generated
+<span class="nc bnc" id="L170" title="All 2 branches missed.">        if (Randomly.getBoolean()) {</span>
+<span class="nc" id="L171">            expr = new SQLite3OrderingTerm(expr, Ordering.getRandomValue());</span>
+        }
+<span class="nc bnc" id="L173" title="All 4 branches missed.">        if (globalState.getDbmsSpecificOptions().testNullsFirstLast &amp;&amp; Randomly.getBoolean()) {</span>
+<span class="nc" id="L174">            expr = new SQLite3PostfixText(expr, Randomly.fromOptions(&quot; NULLS FIRST&quot;, &quot; NULLS LAST&quot;),</span>
+<span class="nc" id="L175">                    null /* expr.getExpectedValue() */) {</span>
+                @Override
+                public boolean omitBracketsWhenPrinting() {
+<span class="nc" id="L178">                    return true;</span>
+                }
+            };
+        }
+<span class="nc" id="L182">        return expr;</span>
+    }
+
+    /*
+     * https://www.sqlite.org/syntax/literal-value.html
+     */
+    private SQLite3Expression getRandomLiteralValueInternal(Randomly r) {
+<span class="nc" id="L189">        LiteralValueType randomLiteral = Randomly.fromOptions(LiteralValueType.values());</span>
+<span class="nc bnc" id="L190" title="All 6 branches missed.">        switch (randomLiteral) {</span>
+        case INTEGER:
+<span class="nc bnc" id="L192" title="All 2 branches missed.">            if (Randomly.getBoolean()) {</span>
+<span class="nc" id="L193">                return SQLite3Constant.createIntConstant(r.getInteger(), Randomly.getBoolean());</span>
+            } else {
+<span class="nc" id="L195">                return SQLite3Constant.createTextConstant(String.valueOf(r.getInteger()));</span>
+            }
+        case NUMERIC:
+<span class="nc" id="L198">            return SQLite3Constant.createRealConstant(r.getDouble());</span>
+        case STRING:
+<span class="nc" id="L200">            return SQLite3Constant.createTextConstant(r.getString());</span>
+        case BLOB_LITERAL:
+<span class="nc" id="L202">            return SQLite3Constant.getRandomBinaryConstant(r);</span>
+        case NULL:
+<span class="nc" id="L204">            return SQLite3Constant.createNullConstant();</span>
+        default:
+<span class="nc" id="L206">            throw new AssertionError(randomLiteral);</span>
+        }
+    }
+
+<span class="nc" id="L210">    enum ExpressionType {</span>
+<span class="nc" id="L211">        COLUMN_NAME, LITERAL_VALUE, UNARY_OPERATOR, POSTFIX_UNARY_OPERATOR, BINARY_OPERATOR,</span>
+<span class="nc" id="L212">        BETWEEN_OPERATOR, CAST_EXPRESSION, BINARY_COMPARISON_OPERATOR, FUNCTION, IN_OPERATOR, COLLATE, CASE_OPERATOR,</span>
+<span class="nc" id="L213">        MATCH, AGGREGATE_FUNCTION, ROW_VALUE_COMPARISON, AND_OR_CHAIN</span>
+    }
+
+    public SQLite3Expression generateExpression() {
+<span class="nc" id="L217">        return getRandomExpression(0);</span>
+    }
+
+    public List&lt;SQLite3Expression&gt; getRandomExpressions(int size) {
+<span class="nc" id="L221">        List&lt;SQLite3Expression&gt; expressions = new ArrayList&lt;&gt;();</span>
+<span class="nc bnc" id="L222" title="All 2 branches missed.">        for (int i = 0; i &lt; size; i++) {</span>
+<span class="nc" id="L223">            expressions.add(generateExpression());</span>
+        }
+<span class="nc" id="L225">        return expressions;</span>
+    }
+
+    public List&lt;SQLite3Expression&gt; getRandomExpressions(int size, int depth) {
+<span class="nc" id="L229">        List&lt;SQLite3Expression&gt; expressions = new ArrayList&lt;&gt;();</span>
+<span class="nc bnc" id="L230" title="All 2 branches missed.">        for (int i = 0; i &lt; size; i++) {</span>
+<span class="nc" id="L231">            expressions.add(getRandomExpression(depth));</span>
+        }
+<span class="nc" id="L233">        return expressions;</span>
+    }
+
+    public SQLite3Expression getRandomExpression(int depth) {
+<span class="nc bnc" id="L237" title="All 4 branches missed.">        if (allowAggreates &amp;&amp; Randomly.getBoolean()) {</span>
+<span class="nc" id="L238">            return getAggregateFunction(depth + 1);</span>
+        }
+<span class="nc bnc" id="L240" title="All 2 branches missed.">        if (depth &gt;= globalState.getOptions().getMaxExpressionDepth()) {</span>
+<span class="nc bnc" id="L241" title="All 4 branches missed.">            if (Randomly.getBooleanWithRatherLowProbability() || columns.isEmpty()) {</span>
+<span class="nc" id="L242">                return getRandomLiteralValue(globalState);</span>
+            } else {
+<span class="nc" id="L244">                return getRandomColumn();</span>
+            }
+        }
+
+<span class="nc" id="L248">        List&lt;ExpressionType&gt; list = new ArrayList&lt;&gt;(Arrays.asList(ExpressionType.values()));</span>
+<span class="nc bnc" id="L249" title="All 2 branches missed.">        if (columns.isEmpty()) {</span>
+<span class="nc" id="L250">            list.remove(ExpressionType.COLUMN_NAME);</span>
+        }
+<span class="nc bnc" id="L252" title="All 2 branches missed.">        if (!allowMatchClause) {</span>
+<span class="nc" id="L253">            list.remove(ExpressionType.MATCH);</span>
+        }
+<span class="nc bnc" id="L255" title="All 2 branches missed.">        if (!allowAggregateFunctions) {</span>
+<span class="nc" id="L256">            list.remove(ExpressionType.AGGREGATE_FUNCTION);</span>
+        }
+<span class="nc bnc" id="L258" title="All 2 branches missed.">        if (!globalState.getDbmsSpecificOptions().testFunctions) {</span>
+<span class="nc" id="L259">            list.remove(ExpressionType.FUNCTION);</span>
+        }
+<span class="nc bnc" id="L261" title="All 2 branches missed.">        if (!globalState.getDbmsSpecificOptions().testMatch) {</span>
+<span class="nc" id="L262">            list.remove(ExpressionType.MATCH);</span>
+        }
+<span class="nc bnc" id="L264" title="All 2 branches missed.">        if (!globalState.getDbmsSpecificOptions().testIn) {</span>
+<span class="nc" id="L265">            list.remove(ExpressionType.IN_OPERATOR);</span>
+        }
+<span class="nc" id="L267">        ExpressionType randomExpressionType = Randomly.fromList(list);</span>
+<span class="nc bnc" id="L268" title="All 17 branches missed.">        switch (randomExpressionType) {</span>
+        case AND_OR_CHAIN:
+<span class="nc" id="L270">            return getAndOrChain(depth + 1);</span>
+        case LITERAL_VALUE:
+<span class="nc" id="L272">            return getRandomLiteralValue(globalState);</span>
+        case COLUMN_NAME:
+<span class="nc" id="L274">            return getRandomColumn();</span>
+        case UNARY_OPERATOR:
+<span class="nc" id="L276">            return getRandomUnaryOperator(depth + 1);</span>
+        case POSTFIX_UNARY_OPERATOR:
+<span class="nc" id="L278">            return getRandomPostfixUnaryOperator(depth + 1);</span>
+        case BINARY_OPERATOR:
+<span class="nc" id="L280">            return getBinaryOperator(depth + 1);</span>
+        case BINARY_COMPARISON_OPERATOR:
+<span class="nc" id="L282">            return getBinaryComparisonOperator(depth + 1);</span>
+        case BETWEEN_OPERATOR:
+<span class="nc" id="L284">            return getBetweenOperator(depth + 1);</span>
+        case CAST_EXPRESSION:
+<span class="nc" id="L286">            return getCastOperator(depth + 1);</span>
+        case FUNCTION:
+<span class="nc" id="L288">            return getFunction(globalState, depth);</span>
+        case IN_OPERATOR:
+<span class="nc" id="L290">            return getInOperator(depth + 1);</span>
+        case COLLATE:
+<span class="nc" id="L292">            return new CollateOperation(getRandomExpression(depth + 1), SQLite3CollateSequence.random());</span>
+        case CASE_OPERATOR:
+<span class="nc" id="L294">            return getCaseOperator(depth + 1);</span>
+        case MATCH:
+<span class="nc" id="L296">            return getMatchClause(depth);</span>
+        case AGGREGATE_FUNCTION:
+<span class="nc" id="L298">            return getAggregateFunction(depth);</span>
+        case ROW_VALUE_COMPARISON:
+<span class="nc" id="L300">            return getRowValueComparison(depth + 1);</span>
+        default:
+<span class="nc" id="L302">            throw new AssertionError(randomExpressionType);</span>
+        }
+    }
+
+    private SQLite3Expression getAndOrChain(int depth) {
+<span class="nc" id="L307">        int num = Randomly.smallNumber() + 2;</span>
+<span class="nc" id="L308">        SQLite3Expression expr = getRandomExpression(depth + 1);</span>
+<span class="nc bnc" id="L309" title="All 2 branches missed.">        for (int i = 0; i &lt; num; i++) {</span>
+<span class="nc" id="L310">            BinaryOperator operator = Randomly.fromOptions(BinaryOperator.AND, BinaryOperator.OR);</span>
+<span class="nc" id="L311">            expr = new Sqlite3BinaryOperation(expr, getRandomExpression(depth + 1), operator);</span>
+        }
+<span class="nc" id="L313">        return expr;</span>
+    }
+
+    public SQLite3Expression getAggregateFunction(boolean asWindowFunction) {
+<span class="nc" id="L317">        SQLite3AggregateFunction random = SQLite3AggregateFunction.getRandom();</span>
+<span class="nc bnc" id="L318" title="All 2 branches missed.">        if (asWindowFunction) {</span>
+<span class="nc bnc" id="L319" title="All 2 branches missed.">            while (/* random == SQLite3AggregateFunction.ZIPFILE || */random == SQLite3AggregateFunction.MAX</span>
+<span class="nc bnc" id="L320" title="All 2 branches missed.">                    || random == SQLite3AggregateFunction.MIN) {</span>
+                // ZIPFILE() may not be used as a window function
+<span class="nc" id="L322">                random = SQLite3AggregateFunction.getRandom();</span>
+            }
+        }
+<span class="nc" id="L325">        return getAggregate(0, random);</span>
+    }
+
+    private SQLite3Expression getAggregateFunction(int depth) {
+<span class="nc" id="L329">        SQLite3AggregateFunction random = SQLite3AggregateFunction.getRandom();</span>
+<span class="nc" id="L330">        return getAggregate(depth, random);</span>
+    }
+
+    private SQLite3Expression getAggregate(int depth, SQLite3AggregateFunction random) {
+        int nrArgs;
+        // if (random == SQLite3AggregateFunction.ZIPFILE) {
+        // nrArgs = Randomly.fromOptions(2, 4);
+        // } else {
+        // nrArgs = 1;
+        // }
+<span class="nc" id="L340">        nrArgs = 1;</span>
+<span class="nc" id="L341">        return new SQLite3Aggregate(getRandomExpressions(nrArgs, depth + 1), random);</span>
+    }
+
+<span class="nc" id="L344">    private enum RowValueComparison {</span>
+<span class="nc" id="L345">        STANDARD_COMPARISON, BETWEEN, IN</span>
+    }
+
+    /*
+     * https://www.sqlite.org/rowvalue.html
+     */
+    private SQLite3Expression getRowValueComparison(int depth) {
+<span class="nc" id="L352">        int size = Randomly.smallNumber() + 1;</span>
+<span class="nc" id="L353">        List&lt;SQLite3Expression&gt; left = getRandomExpressions(size, depth + 1);</span>
+<span class="nc" id="L354">        List&lt;SQLite3Expression&gt; right = getRandomExpressions(size, depth + 1);</span>
+        RowValueComparison randomOption;
+        // if (Randomly.getBooleanWithSmallProbability()) {
+        // // for the right hand side a random query is required, which is expensive
+        // randomOption = RowValueComparison.IN;
+        // } else {
+<span class="nc" id="L360">        randomOption = Randomly.fromOptions(RowValueComparison.STANDARD_COMPARISON, RowValueComparison.BETWEEN);</span>
+        // }
+<span class="nc bnc" id="L362" title="All 3 branches missed.">        switch (randomOption) {</span>
+        // TODO case
+        case STANDARD_COMPARISON:
+<span class="nc" id="L365">            return new BinaryComparisonOperation(new SQLite3RowValueExpression(left),</span>
+<span class="nc" id="L366">                    new SQLite3RowValueExpression(right), BinaryComparisonOperator.getRandomRowValueOperator());</span>
+        case BETWEEN:
+<span class="nc" id="L368">            return new BetweenOperation(getRandomRowValue(depth + 1, size), Randomly.getBoolean(),</span>
+<span class="nc" id="L369">                    new SQLite3RowValueExpression(left), new SQLite3RowValueExpression(right));</span>
+        // case IN:
+        // return new SQLite3Expression.InOperation(new SQLite3RowValue(left),
+        // SQLite3RandomQuerySynthesizer.generate(globalState, size));
+        default:
+<span class="nc" id="L374">            throw new AssertionError(randomOption);</span>
+        }
+    }
+
+    private SQLite3RowValueExpression getRandomRowValue(int depth, int size) {
+<span class="nc" id="L379">        return new SQLite3RowValueExpression(getRandomExpressions(size, depth + 1));</span>
+    }
+
+    private SQLite3Expression getMatchClause(int depth) {
+<span class="nc" id="L383">        SQLite3Expression left = getRandomExpression(depth + 1);</span>
+        SQLite3Expression right;
+<span class="nc bnc" id="L385" title="All 2 branches missed.">        if (Randomly.getBoolean()) {</span>
+<span class="nc" id="L386">            right = getRandomExpression(depth + 1);</span>
+<span class="nc" id="L387">        } else {</span>
+<span class="nc" id="L388">            right = SQLite3Constant.createTextConstant(SQLite3MatchStringGenerator.generateMatchString(r));</span>
+        }
+<span class="nc" id="L390">        return new MatchOperation(left, right);</span>
+    }
+
+    private SQLite3Expression getRandomColumn() {
+<span class="nc" id="L394">        SQLite3Column c = Randomly.fromList(columns);</span>
+<span class="nc bnc" id="L395" title="All 2 branches missed.">        return new SQLite3ColumnName(c, rw == null ? null : rw.getValues().get(c));</span>
+    }
+
+<span class="nc" id="L398">    enum Attribute {</span>
+<span class="nc" id="L399">        VARIADIC, NONDETERMINISTIC</span>
+    };
+
+<span class="nc" id="L402">    private enum AnyFunction {</span>
+<span class="nc" id="L403">        ABS(&quot;ABS&quot;, 1), //</span>
+<span class="nc" id="L404">        CHANGES(&quot;CHANGES&quot;, 0, Attribute.NONDETERMINISTIC), //</span>
+<span class="nc" id="L405">        CHAR(&quot;CHAR&quot;, 1, Attribute.VARIADIC), //</span>
+<span class="nc" id="L406">        COALESCE(&quot;COALESCE&quot;, 2, Attribute.VARIADIC), //</span>
+<span class="nc" id="L407">        GLOB(&quot;GLOB&quot;, 2), //</span>
+<span class="nc" id="L408">        HEX(&quot;HEX&quot;, 1), //</span>
+<span class="nc" id="L409">        IFNULL(&quot;IFNULL&quot;, 2), //</span>
+<span class="nc" id="L410">        INSTR(&quot;INSTR&quot;, 2), //</span>
+<span class="nc" id="L411">        LAST_INSERT_ROWID(&quot;LAST_INSERT_ROWID&quot;, 0, Attribute.NONDETERMINISTIC), //</span>
+<span class="nc" id="L412">        LENGTH(&quot;LENGTH&quot;, 1), //</span>
+<span class="nc" id="L413">        LIKE(&quot;LIKE&quot;, 2), //</span>
+<span class="nc" id="L414">        LIKE2(&quot;LIKE&quot;, 3) {</span>
+            @Override
+            List&lt;SQLite3Expression&gt; generateArguments(int nrArgs, int depth, SQLite3ExpressionGenerator gen) {
+<span class="nc" id="L417">                List&lt;SQLite3Expression&gt; args = super.generateArguments(nrArgs, depth, gen);</span>
+<span class="nc" id="L418">                args.set(2, gen.getRandomSingleCharString());</span>
+<span class="nc" id="L419">                return args;</span>
+            }
+<span class="nc" id="L421">        }, //</span>
+<span class="nc" id="L422">        LIKELIHOOD(&quot;LIKELIHOOD&quot;, 2), //</span>
+<span class="nc" id="L423">        LIKELY(&quot;LIKELY&quot;, 1), //</span>
+<span class="nc" id="L424">        LOAD_EXTENSION(&quot;load_extension&quot;, 1), //</span>
+<span class="nc" id="L425">        LOAD_EXTENSION2(&quot;load_extension&quot;, 2, Attribute.NONDETERMINISTIC), LOWER(&quot;LOWER&quot;, 1), //</span>
+<span class="nc" id="L426">        LTRIM1(&quot;LTRIM&quot;, 1), //</span>
+<span class="nc" id="L427">        LTRIM2(&quot;LTRIM&quot;, 2), //</span>
+<span class="nc" id="L428">        MAX(&quot;MAX&quot;, 2, Attribute.VARIADIC), //</span>
+<span class="nc" id="L429">        MIN(&quot;MIN&quot;, 2, Attribute.VARIADIC), //</span>
+<span class="nc" id="L430">        NULLIF(&quot;NULLIF&quot;, 2), //</span>
+<span class="nc" id="L431">        PRINTF(&quot;PRINTF&quot;, 1, Attribute.VARIADIC), //</span>
+<span class="nc" id="L432">        QUOTE(&quot;QUOTE&quot;, 1), //</span>
+<span class="nc" id="L433">        ROUND(&quot;ROUND&quot;, 2), //</span>
+<span class="nc" id="L434">        RTRIM(&quot;RTRIM&quot;, 1), //</span>
+<span class="nc" id="L435">        SOUNDEX(&quot;soundex&quot;, 1), //</span>
+<span class="nc" id="L436">        SQLITE_COMPILEOPTION_GET(&quot;SQLITE_COMPILEOPTION_GET&quot;, 1, Attribute.NONDETERMINISTIC), //</span>
+<span class="nc" id="L437">        SQLITE_COMPILEOPTION_USED(&quot;SQLITE_COMPILEOPTION_USED&quot;, 1, Attribute.NONDETERMINISTIC), //</span>
+        // SQLITE_OFFSET(1), //
+<span class="nc" id="L439">        SQLITE_SOURCE_ID(&quot;SQLITE_SOURCE_ID&quot;, 0, Attribute.NONDETERMINISTIC),</span>
+<span class="nc" id="L440">        SQLITE_VERSION(&quot;SQLITE_VERSION&quot;, 0, Attribute.NONDETERMINISTIC), //</span>
+<span class="nc" id="L441">        SUBSTR(&quot;SUBSTR&quot;, 2), //</span>
+<span class="nc" id="L442">        TOTAL_CHANGES(&quot;TOTAL_CHANGES&quot;, 0, Attribute.NONDETERMINISTIC), //</span>
+<span class="nc" id="L443">        TRIM(&quot;TRIM&quot;, 1), //</span>
+<span class="nc" id="L444">        TYPEOF(&quot;TYPEOF&quot;, 1), //</span>
+<span class="nc" id="L445">        UNICODE(&quot;UNICODE&quot;, 1), UNLIKELY(&quot;UNLIKELY&quot;, 1), //</span>
+<span class="nc" id="L446">        UPPER(&quot;UPPER&quot;, 1), // &quot;ZEROBLOB&quot;</span>
+        // ZEROBLOB(&quot;ZEROBLOB&quot;, 1),
+<span class="nc" id="L448">        DATE(&quot;DATE&quot;, 3, Attribute.VARIADIC), //</span>
+<span class="nc" id="L449">        TIME(&quot;TIME&quot;, 3, Attribute.VARIADIC), //</span>
+<span class="nc" id="L450">        DATETIME(&quot;DATETIME&quot;, 3, Attribute.VARIADIC), //</span>
+<span class="nc" id="L451">        JULIANDAY(&quot;JULIANDAY&quot;, 3, Attribute.VARIADIC), //</span>
+<span class="nc" id="L452">        STRFTIME(&quot;STRFTIME&quot;, 3, Attribute.VARIADIC),</span>
+<span class="nc" id="L453">        // json functions</span>
+<span class="nc" id="L454">        JSON(&quot;json&quot;, 1), //</span>
+<span class="nc" id="L455">        JSON_ARRAY(&quot;json_array&quot;, 2, Attribute.VARIADIC), JSON_ARRAY_LENGTH(&quot;json_array_length&quot;, 1), //</span>
+<span class="nc" id="L456">        JSON_ARRAY_LENGTH2(&quot;json_array_length&quot;, 2), //</span>
+<span class="nc" id="L457">        JSON_EXTRACT(&quot;json_extract&quot;, 2, Attribute.VARIADIC), JSON_INSERT(&quot;json_insert&quot;, 3, Attribute.VARIADIC),</span>
+<span class="nc" id="L458">        JSON_OBJECT(&quot;json_object&quot;, 2, Attribute.VARIADIC), JSON_PATCH(&quot;json_patch&quot;, 2),</span>
+<span class="nc" id="L459">        JSON_REMOVE(&quot;json_remove&quot;, 2, Attribute.VARIADIC), JSON_TYPE(&quot;json_type&quot;, 1), //</span>
+<span class="nc" id="L460">        JSON_VALID(&quot;json_valid&quot;, 1), //</span>
+<span class="nc" id="L461">        JSON_QUOTE(&quot;json_quote&quot;, 1), //</span>
+
+<span class="nc" id="L463">        RTREENODE(&quot;rtreenode&quot;, 2),</span>
+
+<span class="nc" id="L465">        // FTS</span>
+<span class="nc" id="L466">        HIGHLIGHT(&quot;highlight&quot;, 4);</span>
+
+        // testing functions
+        // EXPR_COMPARE(&quot;expr_compare&quot;, 2), EXPR_IMPLIES_EXPR(&quot;expr_implies_expr&quot;, 2);
+
+        // fts5_decode(&quot;fts5_decode&quot;, 2),
+        // fts5_decode_none(&quot;fts5_decode_none&quot;, 2),
+        // fts5_expr(&quot;fts5_expr&quot;, 1),
+        // fts5_expr_tcl(&quot;fts5_expr_tcl&quot;, 1),
+        // fts5_fold(&quot;fts5_fold&quot;, 1),
+        // fts5_isalnum(&quot;fts5_isalnum&quot;, 1);
+
+        private int minNrArgs;
+        private boolean variadic;
+        private boolean deterministic;
+        private String name;
+
+<span class="nc" id="L483">        AnyFunction(String name, int minNrArgs, Attribute... attributes) {</span>
+<span class="nc" id="L484">            this.name = name;</span>
+<span class="nc" id="L485">            List&lt;Attribute&gt; attrs = Arrays.asList(attributes);</span>
+<span class="nc" id="L486">            this.minNrArgs = minNrArgs;</span>
+<span class="nc" id="L487">            this.variadic = attrs.contains(Attribute.VARIADIC);</span>
+<span class="nc bnc" id="L488" title="All 2 branches missed.">            this.deterministic = !attrs.contains(Attribute.NONDETERMINISTIC);</span>
+<span class="nc" id="L489">        }</span>
+
+        public boolean isVariadic() {
+<span class="nc" id="L492">            return variadic;</span>
+        }
+
+        public int getMinNrArgs() {
+<span class="nc" id="L496">            return minNrArgs;</span>
+        }
+
+        static AnyFunction getRandom(SQLite3GlobalState globalState) {
+<span class="nc" id="L500">            return Randomly.fromList(getAllFunctions(globalState));</span>
+        }
+
+        private static List&lt;AnyFunction&gt; getAllFunctions(SQLite3GlobalState globalState) {
+<span class="nc" id="L504">            List&lt;AnyFunction&gt; functions = new ArrayList&lt;&gt;(Arrays.asList(AnyFunction.values()));</span>
+<span class="nc bnc" id="L505" title="All 2 branches missed.">            if (!globalState.getDbmsSpecificOptions().testSoundex) {</span>
+<span class="nc" id="L506">                boolean removed = functions.removeIf(f -&gt; f.name.equals(&quot;soundex&quot;));</span>
+<span class="nc bnc" id="L507" title="All 2 branches missed.">                if (!removed) {</span>
+<span class="nc" id="L508">                    throw new IllegalStateException();</span>
+                }
+            }
+<span class="nc" id="L511">            return functions;</span>
+        }
+
+        static AnyFunction getRandomDeterministic(SQLite3GlobalState globalState) {
+<span class="nc" id="L515">            return Randomly.fromList(</span>
+<span class="nc" id="L516">                    getAllFunctions(globalState).stream().filter(f -&gt; f.deterministic).collect(Collectors.toList()));</span>
+        }
+
+        @Override
+        public String toString() {
+<span class="nc" id="L521">            return name;</span>
+        }
+
+        List&lt;SQLite3Expression&gt; generateArguments(int nrArgs, int depth, SQLite3ExpressionGenerator gen) {
+<span class="nc" id="L525">            List&lt;SQLite3Expression&gt; expressions = new ArrayList&lt;&gt;();</span>
+<span class="nc bnc" id="L526" title="All 2 branches missed.">            for (int i = 0; i &lt; nrArgs; i++) {</span>
+<span class="nc" id="L527">                expressions.add(gen.getRandomExpression(depth + 1));</span>
+            }
+<span class="nc" id="L529">            return expressions;</span>
+        }
+    }
+
+    private SQLite3Expression getFunction(SQLite3GlobalState globalState, int depth) {
+<span class="nc bnc" id="L534" title="All 4 branches missed.">        if (tryToGenerateKnownResult || Randomly.getBoolean()) {</span>
+<span class="nc" id="L535">            return getComputableFunction(depth + 1);</span>
+        } else {
+            AnyFunction randomFunction;
+<span class="nc bnc" id="L538" title="All 2 branches missed.">            if (deterministicOnly) {</span>
+<span class="nc" id="L539">                randomFunction = AnyFunction.getRandomDeterministic(globalState);</span>
+<span class="nc" id="L540">            } else {</span>
+<span class="nc" id="L541">                randomFunction = AnyFunction.getRandom(globalState);</span>
+            }
+<span class="nc" id="L543">            int nrArgs = randomFunction.getMinNrArgs();</span>
+<span class="nc bnc" id="L544" title="All 2 branches missed.">            if (randomFunction.isVariadic()) {</span>
+<span class="nc" id="L545">                nrArgs += Randomly.smallNumber();</span>
+            }
+<span class="nc" id="L547">            List&lt;SQLite3Expression&gt; expressions = randomFunction.generateArguments(nrArgs, depth + 1, this);</span>
+            // The second argument of LIKELIHOOD must be a float number within 0.0 -1.0
+<span class="nc bnc" id="L549" title="All 2 branches missed.">            if (randomFunction == AnyFunction.LIKELIHOOD) {</span>
+<span class="nc" id="L550">                SQLite3Expression lastArg = SQLite3Constant.createRealConstant(Randomly.getPercentage());</span>
+<span class="nc" id="L551">                expressions.remove(expressions.size() - 1);</span>
+<span class="nc" id="L552">                expressions.add(lastArg);</span>
+            }
+<span class="nc" id="L554">            return new SQLite3Expression.Function(randomFunction.toString(),</span>
+<span class="nc" id="L555">                    expressions.toArray(new SQLite3Expression[0]));</span>
+        }
+
+    }
+
+    protected SQLite3Expression getRandomSingleCharString() {
+        String s;
+        do {
+<span class="nc" id="L563">            s = r.getString();</span>
+<span class="nc bnc" id="L564" title="All 2 branches missed.">        } while (s.isEmpty());</span>
+<span class="nc" id="L565">        return new SQLite3TextConstant(String.valueOf(s.charAt(0)));</span>
+    }
+
+    private SQLite3Expression getCaseOperator(int depth) {
+<span class="nc" id="L569">        int nrCaseExpressions = 1 + Randomly.smallNumber();</span>
+<span class="nc" id="L570">        CasePair[] pairs = new CasePair[nrCaseExpressions];</span>
+<span class="nc bnc" id="L571" title="All 2 branches missed.">        for (int i = 0; i &lt; pairs.length; i++) {</span>
+<span class="nc" id="L572">            SQLite3Expression whenExpr = getRandomExpression(depth + 1);</span>
+<span class="nc" id="L573">            SQLite3Expression thenExpr = getRandomExpression(depth + 1);</span>
+<span class="nc" id="L574">            CasePair pair = new CasePair(whenExpr, thenExpr);</span>
+<span class="nc" id="L575">            pairs[i] = pair;</span>
+        }
+        SQLite3Expression elseExpr;
+<span class="nc bnc" id="L578" title="All 2 branches missed.">        if (Randomly.getBoolean()) {</span>
+<span class="nc" id="L579">            elseExpr = getRandomExpression(depth + 1);</span>
+<span class="nc" id="L580">        } else {</span>
+<span class="nc" id="L581">            elseExpr = null;</span>
+        }
+<span class="nc bnc" id="L583" title="All 2 branches missed.">        if (Randomly.getBoolean()) {</span>
+<span class="nc" id="L584">            return new SQLite3CaseWithoutBaseExpression(pairs, elseExpr);</span>
+        } else {
+<span class="nc" id="L586">            SQLite3Expression baseExpr = getRandomExpression(depth + 1);</span>
+<span class="nc" id="L587">            return new SQLite3CaseWithBaseExpression(baseExpr, pairs, elseExpr);</span>
+        }
+    }
+
+    private SQLite3Expression getCastOperator(int depth) {
+<span class="nc" id="L592">        SQLite3Expression expr = getRandomExpression(depth + 1);</span>
+<span class="nc" id="L593">        TypeLiteral type = new SQLite3Expression.TypeLiteral(</span>
+<span class="nc" id="L594">                Randomly.fromOptions(SQLite3Expression.TypeLiteral.Type.values()));</span>
+<span class="nc" id="L595">        return new SQLite3Expression.Cast(type, expr);</span>
+    }
+
+    private SQLite3Expression getComputableFunction(int depth) {
+<span class="nc" id="L599">        ComputableFunction func = ComputableFunction.getRandomFunction();</span>
+<span class="nc" id="L600">        int nrArgs = func.getNrArgs();</span>
+<span class="nc bnc" id="L601" title="All 2 branches missed.">        if (func.isVariadic()) {</span>
+<span class="nc" id="L602">            nrArgs += Randomly.smallNumber();</span>
+        }
+<span class="nc" id="L604">        SQLite3Expression[] args = new SQLite3Expression[nrArgs];</span>
+<span class="nc bnc" id="L605" title="All 2 branches missed.">        for (int i = 0; i &lt; args.length; i++) {</span>
+<span class="nc" id="L606">            args[i] = getRandomExpression(depth + 1);</span>
+<span class="nc bnc" id="L607" title="All 4 branches missed.">            if (i == 0 &amp;&amp; Randomly.getBoolean()) {</span>
+<span class="nc" id="L608">                args[i] = new SQLite3Distinct(args[i]);</span>
+            }
+        }
+        // The second argument of LIKELIHOOD must be a float number within 0.0 -1.0
+<span class="nc bnc" id="L612" title="All 2 branches missed.">        if (func == ComputableFunction.LIKELIHOOD) {</span>
+<span class="nc" id="L613">            SQLite3Expression lastArg = SQLite3Constant.createRealConstant(Randomly.getPercentage());</span>
+<span class="nc" id="L614">            args[args.length - 1] = lastArg;</span>
+        }
+<span class="nc" id="L616">        return new SQLite3Function(func, args);</span>
+    }
+
+    private SQLite3Expression getBetweenOperator(int depth) {
+<span class="nc" id="L620">        boolean tr = Randomly.getBoolean();</span>
+<span class="nc" id="L621">        SQLite3Expression expr = getRandomExpression(depth + 1);</span>
+<span class="nc" id="L622">        SQLite3Expression left = getRandomExpression(depth + 1);</span>
+<span class="nc" id="L623">        SQLite3Expression right = getRandomExpression(depth + 1);</span>
+<span class="nc" id="L624">        return new SQLite3Expression.BetweenOperation(expr, tr, left, right);</span>
+    }
+
+    // TODO: incomplete
+    private SQLite3Expression getBinaryOperator(int depth) {
+<span class="nc" id="L629">        SQLite3Expression leftExpression = getRandomExpression(depth + 1);</span>
+        // TODO: operators
+<span class="nc" id="L631">        BinaryOperator operator = BinaryOperator.getRandomOperator();</span>
+        // while (operator == BinaryOperator.DIVIDE) {
+        // operator = BinaryOperator.getRandomOperator();
+        // }
+<span class="nc" id="L635">        SQLite3Expression rightExpression = getRandomExpression(depth + 1);</span>
+<span class="nc" id="L636">        return new SQLite3Expression.Sqlite3BinaryOperation(leftExpression, rightExpression, operator);</span>
+    }
+
+    private SQLite3Expression getInOperator(int depth) {
+<span class="nc" id="L640">        SQLite3Expression leftExpression = getRandomExpression(depth + 1);</span>
+<span class="nc" id="L641">        List&lt;SQLite3Expression&gt; right = new ArrayList&lt;&gt;();</span>
+<span class="nc bnc" id="L642" title="All 2 branches missed.">        for (int i = 0; i &lt; Randomly.smallNumber(); i++) {</span>
+<span class="nc" id="L643">            right.add(getRandomExpression(depth + 1));</span>
+        }
+<span class="nc" id="L645">        return new SQLite3Expression.InOperation(leftExpression, right);</span>
+    }
+
+    private SQLite3Expression getBinaryComparisonOperator(int depth) {
+<span class="nc" id="L649">        SQLite3Expression leftExpression = getRandomExpression(depth + 1);</span>
+<span class="nc" id="L650">        BinaryComparisonOperator operator = BinaryComparisonOperator.getRandomOperator();</span>
+<span class="nc" id="L651">        SQLite3Expression rightExpression = getRandomExpression(depth + 1);</span>
+<span class="nc" id="L652">        return new SQLite3Expression.BinaryComparisonOperation(leftExpression, rightExpression, operator);</span>
+    }
+
+    // complete
+    private SQLite3Expression getRandomPostfixUnaryOperator(int depth) {
+<span class="nc" id="L657">        SQLite3Expression subExpression = getRandomExpression(depth + 1);</span>
+<span class="nc" id="L658">        PostfixUnaryOperator operator = PostfixUnaryOperator.getRandomOperator();</span>
+<span class="nc" id="L659">        return new SQLite3Expression.SQLite3PostfixUnaryOperation(operator, subExpression);</span>
+    }
+
+    // complete
+    public SQLite3Expression getRandomUnaryOperator(int depth) {
+<span class="nc" id="L664">        SQLite3Expression subExpression = getRandomExpression(depth + 1);</span>
+<span class="nc" id="L665">        UnaryOperator unaryOperation = Randomly.fromOptions(UnaryOperator.values());</span>
+<span class="nc" id="L666">        return new SQLite3UnaryOperation(unaryOperation, subExpression);</span>
+    }
+
+    public SQLite3Expression getHavingClause() {
+<span class="nc" id="L670">        allowAggreates = true;</span>
+<span class="nc" id="L671">        return generateExpression();</span>
+    }
+
+    @Override
+    public SQLite3Expression generatePredicate() {
+<span class="nc" id="L676">        return generateExpression();</span>
+    }
+
+    @Override
+    public SQLite3Expression negatePredicate(SQLite3Expression predicate) {
+<span class="nc" id="L681">        return new SQLite3UnaryOperation(UnaryOperator.NOT, predicate);</span>
+    }
+
+    @Override
+    public SQLite3Expression isNull(SQLite3Expression expr) {
+<span class="nc" id="L686">        return new SQLite3PostfixUnaryOperation(PostfixUnaryOperator.ISNULL, expr);</span>
+    }
+
+    public SQLite3Expression generateResultKnownExpression() {
+        SQLite3Expression expr;
+        do {
+<span class="nc" id="L692">            expr = generateExpression();</span>
+<span class="nc bnc" id="L693" title="All 2 branches missed.">        } while (expr.getExpectedValue() == null);</span>
+<span class="nc" id="L694">        return expr;</span>
+    }
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.8.202204050719</span></div></body></html>

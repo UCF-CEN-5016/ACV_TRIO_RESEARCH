@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>SQLProviderAdapter.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">dqetool</a> &gt; <a href="index.source.html" class="el_package">dqetool</a> &gt; <span class="el_source">SQLProviderAdapter.java</span></div><h1>SQLProviderAdapter.java</h1><pre class="source lang-java linenums">package dqetool;
+
+import java.util.List;
+
+import dqetool.common.log.LoggableFactory;
+import dqetool.common.log.SQLLoggableFactory;
+import dqetool.common.query.SQLQueryAdapter;
+import dqetool.common.schema.AbstractSchema;
+import dqetool.common.schema.AbstractTable;
+
+public abstract class SQLProviderAdapter&lt;G extends SQLGlobalState&lt;O, ? extends AbstractSchema&lt;G, ?&gt;&gt;, O extends DBMSSpecificOptions&lt;? extends OracleFactory&lt;G&gt;&gt;&gt;
+        extends ProviderAdapter&lt;G, O, SQLConnection&gt; {
+    public SQLProviderAdapter(Class&lt;G&gt; globalClass, Class&lt;O&gt; optionClass) {
+<span class="fc" id="L14">        super(globalClass, optionClass);</span>
+<span class="fc" id="L15">    }</span>
+
+    @Override
+    public LoggableFactory getLoggableFactory() {
+<span class="nc" id="L19">        return new SQLLoggableFactory();</span>
+    }
+
+    @Override
+    protected void checkViewsAreValid(G globalState) {
+<span class="nc" id="L24">        List&lt;? extends AbstractTable&lt;?, ?, ?&gt;&gt; views = globalState.getSchema().getViews();</span>
+<span class="nc bnc" id="L25" title="All 2 branches missed.">        for (AbstractTable&lt;?, ?, ?&gt; view : views) {</span>
+<span class="nc" id="L26">            SQLQueryAdapter q = new SQLQueryAdapter(&quot;SELECT 1 FROM &quot; + view.getName() + &quot; LIMIT 1&quot;);</span>
+            try {
+<span class="nc bnc" id="L28" title="All 2 branches missed.">                if (!q.execute(globalState)) {</span>
+<span class="nc" id="L29">                    dropView(globalState, view.getName());</span>
+                }
+<span class="nc" id="L31">            } catch (Throwable t) {</span>
+<span class="nc" id="L32">                dropView(globalState, view.getName());</span>
+            }
+        }
+<span class="nc" id="L35">    }</span>
+
+    private void dropView(G globalState, String viewName) {
+        try {
+<span class="nc" id="L39">            globalState.executeStatement(new SQLQueryAdapter(&quot;DROP VIEW &quot; + viewName, true));</span>
+<span class="nc" id="L40">        } catch (Throwable t2) {</span>
+<span class="nc" id="L41">            throw new IgnoreMeException();</span>
+        }
+<span class="nc" id="L43">    }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.8.202204050719</span></div></body></html>

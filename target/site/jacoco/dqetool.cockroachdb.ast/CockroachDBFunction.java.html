@@ -1,0 +1,200 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>CockroachDBFunction.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">dqetool</a> &gt; <a href="index.source.html" class="el_package">dqetool.cockroachdb.ast</a> &gt; <span class="el_source">CockroachDBFunction.java</span></div><h1>CockroachDBFunction.java</h1><pre class="source lang-java linenums">package dqetool.cockroachdb.ast;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
+import dqetool.Randomly;
+import dqetool.cockroachdb.CockroachDBSchema.CockroachDBCompositeDataType;
+import dqetool.cockroachdb.CockroachDBSchema.CockroachDBDataType;
+import dqetool.cockroachdb.gen.CockroachDBExpressionGenerator;
+
+<span class="nc" id="L13">public enum CockroachDBFunction {</span>
+
+<span class="nc" id="L15">    IF(null) {</span>
+        @Override
+        public boolean isCompatibleWithReturnType(CockroachDBCompositeDataType returnType) {
+<span class="nc" id="L18">            return true;</span>
+        }
+
+        @Override
+        public CockroachDBDataType[] getArgumentTypes(CockroachDBCompositeDataType returnType) {
+<span class="nc" id="L23">            return new CockroachDBDataType[] { CockroachDBDataType.BOOL, returnType.getPrimitiveDataType(),</span>
+<span class="nc" id="L24">                    returnType.getPrimitiveDataType() };</span>
+        }
+    },
+<span class="nc" id="L27">    NULLIF(null) {</span>
+        @Override
+        public boolean isCompatibleWithReturnType(CockroachDBCompositeDataType returnType) {
+<span class="nc" id="L30">            return true;</span>
+        }
+
+        @Override
+        public CockroachDBDataType[] getArgumentTypes(CockroachDBCompositeDataType returnType) {
+<span class="nc" id="L35">            return new CockroachDBDataType[] { returnType.getPrimitiveDataType(), returnType.getPrimitiveDataType() };</span>
+        }
+    },
+
+<span class="nc" id="L39">    // bool functions</span>
+<span class="nc" id="L40">    ILIKE_ESCAPE(CockroachDBDataType.BOOL, CockroachDBDataType.STRING, CockroachDBDataType.STRING,</span>
+<span class="nc" id="L41">            CockroachDBDataType.STRING) {</span>
+
+        @Override
+        List&lt;CockroachDBExpression&gt; getArgumentsForReturnType(CockroachDBExpressionGenerator gen, int depth,
+                CockroachDBDataType[] argumentTypes2, CockroachDBCompositeDataType returnType2) {
+<span class="nc" id="L46">            return getLastArgAsConstantString(gen, depth, argumentTypes2, returnType2);</span>
+        }
+
+        private List&lt;CockroachDBExpression&gt; getLastArgAsConstantString(CockroachDBExpressionGenerator gen, int depth,
+                CockroachDBDataType[] argumentTypes2, CockroachDBCompositeDataType returnType2) {
+<span class="nc" id="L51">            List&lt;CockroachDBExpression&gt; args = super.getArgumentsForReturnType(gen, depth, argumentTypes2, returnType2);</span>
+<span class="nc" id="L52">            args.set(2, CockroachDBConstant.createStringConstant(gen.getGlobalState().getRandomly().getChar()));</span>
+<span class="nc" id="L53">            return args;</span>
+        }
+    },
+
+<span class="nc" id="L57">    // MATH and numeric functions</span>
+<span class="nc" id="L58">    ABS_INT(&quot;ABS&quot;, CockroachDBDataType.INT, CockroachDBDataType.INT),</span>
+<span class="nc" id="L59">    // ABS_FLOAT(&quot;ABS&quot;, CockroachDBDataType.INT, CockroachDBDataType.FLOAT),</span>
+<span class="nc" id="L60">    ACOS(CockroachDBDataType.FLOAT, CockroachDBDataType.FLOAT),</span>
+
+<span class="nc" id="L62">    // string and byte functions</span>
+<span class="nc" id="L63">    ASCII(CockroachDBDataType.INT, CockroachDBDataType.STRING), // ascii(val: string) → int</span>
+<span class="nc" id="L64">    BIT_LENGTH1(&quot;BIT_LENGTH&quot;, CockroachDBDataType.INT, CockroachDBDataType.BYTES), // bit_length(val: bytes) → int</span>
+<span class="nc" id="L65">    BIT_LENGTH2(&quot;BIT_LENGTH&quot;, CockroachDBDataType.INT, CockroachDBDataType.STRING), // bit_length(val: string) → int</span>
+<span class="nc" id="L66">    BTRIM1(&quot;BTRIM&quot;, CockroachDBDataType.STRING, CockroachDBDataType.STRING, CockroachDBDataType.STRING), // btrim(input:</span>
+                                                                                                         // string,
+                                                                                                         // trim_chars:
+                                                                                                         // string) →
+                                                                                                         // string
+<span class="nc" id="L71">    BTRIM2(&quot;BTRIM&quot;, CockroachDBDataType.STRING, CockroachDBDataType.STRING), // btrim(val: string) → string</span>
+<span class="nc" id="L72">    CHAR_LENGTH1(&quot;CHAR_LENGTH&quot;, CockroachDBDataType.INT, CockroachDBDataType.BYTES), // char_length(val: bytes) → int</span>
+<span class="nc" id="L73">    CHAR_LENGTH2(&quot;CHAR_LENGTH&quot;, CockroachDBDataType.INT, CockroachDBDataType.STRING),</span>
+<span class="nc" id="L74">    CHARACTER_LENGTH1(&quot;CHARACTER_LENGTH&quot;, CockroachDBDataType.INT, CockroachDBDataType.STRING),</span>
+<span class="nc" id="L75">    CHARACTER_LENGTH2(&quot;CHARACTER_LENGTH&quot;, CockroachDBDataType.INT, CockroachDBDataType.BYTES),</span>
+<span class="nc" id="L76">    CHR(CockroachDBDataType.STRING, CockroachDBDataType.INT),</span>
+<span class="nc" id="L77">    INITCAP(CockroachDBDataType.STRING, CockroachDBDataType.STRING),</span>
+<span class="nc" id="L78">    LEFT1(&quot;LEFT&quot;, CockroachDBDataType.BYTES, CockroachDBDataType.BYTES, CockroachDBDataType.INT),</span>
+<span class="nc" id="L79">    LEFT2(&quot;LEFT&quot;, CockroachDBDataType.STRING, CockroachDBDataType.STRING, CockroachDBDataType.INT),</span>
+<span class="nc" id="L80">    LENGTH1(&quot;LENGTH&quot;, CockroachDBDataType.INT, CockroachDBDataType.BYTES),</span>
+<span class="nc" id="L81">    LENGTH2(&quot;LENGTH&quot;, CockroachDBDataType.INT, CockroachDBDataType.STRING),</span>
+<span class="nc" id="L82">    LOWER(CockroachDBDataType.STRING, CockroachDBDataType.STRING),</span>
+<span class="nc" id="L83">    // LPAD(CockroachDBDataType.STRING, CockroachDBDataType.STRING, CockroachDBDataType.INT), // TODO: can cause out of</span>
+    // memory errors
+<span class="nc" id="L85">    LTRIM(CockroachDBDataType.STRING, CockroachDBDataType.STRING, CockroachDBDataType.STRING),</span>
+<span class="nc" id="L86">    OVERLAY(CockroachDBDataType.STRING, CockroachDBDataType.STRING, CockroachDBDataType.STRING,</span>
+<span class="nc" id="L87">            CockroachDBDataType.INT),</span>
+<span class="nc" id="L88">    QUOTE_IDENT(CockroachDBDataType.STRING, CockroachDBDataType.STRING),</span>
+<span class="nc" id="L89">    QUOTE_LITERAL(CockroachDBDataType.STRING, CockroachDBDataType.STRING),</span>
+<span class="nc" id="L90">    QUOTE_NULLABLE(CockroachDBDataType.STRING, CockroachDBDataType.STRING),</span>
+<span class="nc" id="L91">    REVERSE(CockroachDBDataType.STRING, CockroachDBDataType.STRING),</span>
+<span class="nc" id="L92">    STRPOS(CockroachDBDataType.INT, CockroachDBDataType.STRING, CockroachDBDataType.STRING),</span>
+<span class="nc" id="L93">    SPLIT_PART(CockroachDBDataType.STRING, CockroachDBDataType.STRING, CockroachDBDataType.STRING,</span>
+<span class="nc" id="L94">            CockroachDBDataType.INT),</span>
+<span class="nc" id="L95">    SUBSTRING1(&quot;SUBSTRING&quot;, CockroachDBDataType.STRING, CockroachDBDataType.STRING, CockroachDBDataType.STRING),</span>
+<span class="nc" id="L96">    SUBSTRING2(&quot;SUBSTRING&quot;, CockroachDBDataType.STRING, CockroachDBDataType.STRING, CockroachDBDataType.STRING,</span>
+<span class="nc" id="L97">            CockroachDBDataType.STRING),</span>
+<span class="nc" id="L98">    SUBSTRING3(&quot;SUBSTRING&quot;, CockroachDBDataType.STRING, CockroachDBDataType.STRING, CockroachDBDataType.INT),</span>
+<span class="nc" id="L99">    SUBSTRING4(&quot;SUBSTRING&quot;, CockroachDBDataType.STRING, CockroachDBDataType.STRING, CockroachDBDataType.INT,</span>
+<span class="nc" id="L100">            CockroachDBDataType.INT),</span>
+<span class="nc" id="L101">    /* https://github.com/cockroachdb/cockroach/issues/44152 */</span>
+<span class="nc" id="L102">    TO_ENGLISH(CockroachDBDataType.STRING, CockroachDBDataType.INT),</span>
+<span class="nc" id="L103">    TO_HEX1(&quot;TO_HEX&quot;, CockroachDBDataType.STRING, CockroachDBDataType.INT),</span>
+<span class="nc" id="L104">    TO_HEX(&quot;TO_HEX&quot;, CockroachDBDataType.STRING, CockroachDBDataType.BYTES),</span>
+<span class="nc" id="L105">    TO_IP(CockroachDBDataType.BYTES, CockroachDBDataType.STRING),</span>
+<span class="nc" id="L106">    TO_UUID(CockroachDBDataType.BYTES, CockroachDBDataType.STRING),</span>
+<span class="nc" id="L107">    TRANSLATE(CockroachDBDataType.STRING, CockroachDBDataType.STRING, CockroachDBDataType.STRING,</span>
+<span class="nc" id="L108">            CockroachDBDataType.STRING),</span>
+<span class="nc" id="L109">    UPPER(CockroachDBDataType.STRING, CockroachDBDataType.STRING),</span>
+<span class="nc" id="L110">    REGEXP_REPLACE(CockroachDBDataType.STRING, CockroachDBDataType.STRING, CockroachDBDataType.STRING,</span>
+<span class="nc" id="L111">            CockroachDBDataType.STRING),</span>
+
+<span class="nc" id="L113">    MD5(CockroachDBDataType.STRING) {</span>
+        @Override
+        public CockroachDBDataType[] getArgumentTypes(CockroachDBCompositeDataType returnType) {
+<span class="nc" id="L116">            int nrArgs = Randomly.smallNumber() + 1;</span>
+<span class="nc" id="L117">            CockroachDBDataType[] argTypes = new CockroachDBDataType[nrArgs];</span>
+<span class="nc bnc" id="L118" title="All 2 branches missed.">            for (int i = 0; i &lt; nrArgs; i++) {</span>
+<span class="nc" id="L119">                argTypes[i] = CockroachDBDataType.STRING;</span>
+            }
+<span class="nc" id="L121">            return argTypes;</span>
+        }
+    },
+<span class="nc" id="L124">    // System info function</span>
+    /* see https://github.com/cockroachdb/cockroach/issues/44203 */
+<span class="nc" id="L126">    CURRENT_DATABASE(CockroachDBDataType.STRING), CURRENT_SCHEMA(CockroachDBDataType.STRING),</span>
+<span class="nc" id="L127">    CURRENT_USER(CockroachDBDataType.STRING), VERSION(CockroachDBDataType.STRING);</span>
+
+    private CockroachDBDataType returnType;
+    private CockroachDBDataType[] argumentTypes;
+    private String functionName;
+
+<span class="nc" id="L133">    CockroachDBFunction(CockroachDBDataType returnType, CockroachDBDataType... argumentTypes) {</span>
+<span class="nc" id="L134">        this.returnType = returnType;</span>
+<span class="nc" id="L135">        this.argumentTypes = argumentTypes.clone();</span>
+<span class="nc" id="L136">        this.functionName = toString();</span>
+<span class="nc" id="L137">    }</span>
+
+<span class="nc" id="L139">    CockroachDBFunction(CockroachDBDataType returnType) {</span>
+<span class="nc" id="L140">        this.returnType = returnType;</span>
+<span class="nc" id="L141">        this.argumentTypes = new CockroachDBDataType[0];</span>
+<span class="nc" id="L142">        this.functionName = toString();</span>
+<span class="nc" id="L143">    }</span>
+
+    public String getFunctionName() {
+<span class="nc" id="L146">        return functionName;</span>
+    }
+
+<span class="nc" id="L149">    CockroachDBFunction(String functionName, CockroachDBDataType returnType, CockroachDBDataType... argumentTypes) {</span>
+<span class="nc" id="L150">        this.functionName = functionName;</span>
+<span class="nc" id="L151">        this.returnType = returnType;</span>
+<span class="nc" id="L152">        this.argumentTypes = argumentTypes.clone();</span>
+<span class="nc" id="L153">    }</span>
+
+    public boolean isCompatibleWithReturnType(CockroachDBCompositeDataType returnType) {
+<span class="nc bnc" id="L156" title="All 2 branches missed.">        return this.returnType == returnType.getPrimitiveDataType();</span>
+    }
+
+    public CockroachDBDataType[] getArgumentTypes(CockroachDBCompositeDataType returnType) {
+<span class="nc" id="L160">        return argumentTypes.clone();</span>
+    }
+
+    public CockroachDBFunctionCall getCall(CockroachDBCompositeDataType returnType, CockroachDBExpressionGenerator gen,
+            int depth) {
+<span class="nc" id="L165">        CockroachDBDataType[] argumentTypes2 = getArgumentTypes(returnType);</span>
+<span class="nc" id="L166">        List&lt;CockroachDBExpression&gt; arguments = getArgumentsForReturnType(gen, depth, argumentTypes2, returnType);</span>
+<span class="nc" id="L167">        return new CockroachDBFunctionCall(this, arguments);</span>
+    }
+
+    List&lt;CockroachDBExpression&gt; getArgumentsForReturnType(CockroachDBExpressionGenerator gen, int depth,
+            CockroachDBDataType[] argumentTypes2, CockroachDBCompositeDataType returnType2) {
+<span class="nc" id="L172">        List&lt;CockroachDBExpression&gt; arguments = new ArrayList&lt;&gt;();</span>
+        /*
+         * This is a workaround based on the assumption that array types should refer to the same element type.
+         */
+<span class="nc" id="L176">        CockroachDBCompositeDataType savedArrayType = null;</span>
+<span class="nc bnc" id="L177" title="All 2 branches missed.">        if (returnType2.getPrimitiveDataType() == CockroachDBDataType.ARRAY) {</span>
+<span class="nc" id="L178">            savedArrayType = returnType2;</span>
+        }
+<span class="nc bnc" id="L180" title="All 2 branches missed.">        for (CockroachDBDataType arg : argumentTypes2) {</span>
+            CockroachDBCompositeDataType type;
+<span class="nc bnc" id="L182" title="All 2 branches missed.">            if (arg == CockroachDBDataType.ARRAY) {</span>
+<span class="nc bnc" id="L183" title="All 2 branches missed.">                if (savedArrayType == null) {</span>
+<span class="nc" id="L184">                    savedArrayType = arg.get();</span>
+                }
+<span class="nc" id="L186">                type = savedArrayType;</span>
+<span class="nc" id="L187">            } else {</span>
+<span class="nc" id="L188">                type = arg.get();</span>
+            }
+<span class="nc" id="L190">            arguments.add(gen.generateExpression(type, depth + 1));</span>
+        }
+<span class="nc" id="L192">        return arguments;</span>
+    }
+
+    public static List&lt;CockroachDBFunction&gt; getFunctionsCompatibleWith(CockroachDBCompositeDataType returnType) {
+<span class="nc" id="L196">        return Stream.of(values()).filter(f -&gt; f.isCompatibleWithReturnType(returnType)).collect(Collectors.toList());</span>
+    }
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.8.202204050719</span></div></body></html>

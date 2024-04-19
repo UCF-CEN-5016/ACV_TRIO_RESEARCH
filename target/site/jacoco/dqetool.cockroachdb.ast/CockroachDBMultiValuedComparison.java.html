@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>CockroachDBMultiValuedComparison.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">dqetool</a> &gt; <a href="index.source.html" class="el_package">dqetool.cockroachdb.ast</a> &gt; <span class="el_source">CockroachDBMultiValuedComparison.java</span></div><h1>CockroachDBMultiValuedComparison.java</h1><pre class="source lang-java linenums">package dqetool.cockroachdb.ast;
+
+import java.util.List;
+
+import dqetool.Randomly;
+
+public class CockroachDBMultiValuedComparison implements CockroachDBExpression {
+
+    private CockroachDBExpression left;
+    private List&lt;CockroachDBExpression&gt; right;
+    private MultiValuedComparisonType type;
+    private MultiValuedComparisonOperator op;
+
+<span class="nc" id="L14">    public enum MultiValuedComparisonType {</span>
+<span class="nc" id="L15">        ANY, SOME, ALL;</span>
+
+        public static MultiValuedComparisonType getRandom() {
+<span class="nc" id="L18">            return Randomly.fromOptions(values());</span>
+        }
+    }
+
+<span class="nc" id="L22">    public enum MultiValuedComparisonOperator {</span>
+<span class="nc" id="L23">        SMALLER(&quot;&lt;&quot;), GREATER(&quot;&gt;&quot;), EQUALS(&quot;=&quot;), SMALLER_EQUALS(&quot;&lt;=&quot;), GREATER_EQUALS(&quot;&gt;=&quot;), NOT_EQUALS(&quot;!=&quot;);</span>
+
+        private String stringRepr;
+
+<span class="nc" id="L27">        MultiValuedComparisonOperator(String stringRepr) {</span>
+<span class="nc" id="L28">            this.stringRepr = stringRepr;</span>
+<span class="nc" id="L29">        }</span>
+
+        public String getStringRepr() {
+<span class="nc" id="L32">            return stringRepr;</span>
+        }
+
+        public static MultiValuedComparisonOperator getRandomGenericComparisonOperator() {
+<span class="nc" id="L36">            return Randomly.fromOptions(SMALLER, GREATER);</span>
+        }
+    }
+
+<span class="nc" id="L40">    public CockroachDBMultiValuedComparison(CockroachDBExpression left, List&lt;CockroachDBExpression&gt; right,</span>
+            MultiValuedComparisonType type, MultiValuedComparisonOperator op) {
+<span class="nc" id="L42">        this.left = left;</span>
+<span class="nc" id="L43">        this.right = right;</span>
+<span class="nc" id="L44">        this.type = type;</span>
+<span class="nc" id="L45">        this.op = op;</span>
+<span class="nc" id="L46">    }</span>
+
+    public CockroachDBExpression getLeft() {
+<span class="nc" id="L49">        return left;</span>
+    }
+
+    public MultiValuedComparisonOperator getOp() {
+<span class="nc" id="L53">        return op;</span>
+    }
+
+    public List&lt;CockroachDBExpression&gt; getRight() {
+<span class="nc" id="L57">        return right;</span>
+    }
+
+    public MultiValuedComparisonType getType() {
+<span class="nc" id="L61">        return type;</span>
+    }
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.8.202204050719</span></div></body></html>

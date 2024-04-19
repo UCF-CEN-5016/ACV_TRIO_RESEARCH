@@ -1,0 +1,147 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>AbstractSchema.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">dqetool</a> &gt; <a href="index.source.html" class="el_package">dqetool.common.schema</a> &gt; <span class="el_source">AbstractSchema.java</span></div><h1>AbstractSchema.java</h1><pre class="source lang-java linenums">package dqetool.common.schema;
+
+import java.util.Collections;
+import java.util.List;
+import java.util.function.Function;
+import java.util.function.Predicate;
+import java.util.stream.Collectors;
+
+import dqetool.GlobalState;
+import dqetool.IgnoreMeException;
+import dqetool.Randomly;
+
+public class AbstractSchema&lt;G extends GlobalState&lt;?, ?, ?&gt;, A extends AbstractTable&lt;?, ?, G&gt;&gt; {
+
+    private final List&lt;A&gt; databaseTables;
+
+<span class="nc" id="L17">    public AbstractSchema(List&lt;A&gt; databaseTables) {</span>
+<span class="nc" id="L18">        this.databaseTables = Collections.unmodifiableList(databaseTables);</span>
+<span class="nc" id="L19">    }</span>
+
+    @Override
+    public String toString() {
+<span class="nc" id="L23">        StringBuffer sb = new StringBuffer();</span>
+<span class="nc bnc" id="L24" title="All 2 branches missed.">        for (A t : getDatabaseTables()) {</span>
+<span class="nc" id="L25">            sb.append(t);</span>
+<span class="nc" id="L26">            sb.append(&quot;\n&quot;);</span>
+        }
+<span class="nc" id="L28">        return sb.toString();</span>
+    }
+
+    public A getRandomTable() {
+<span class="nc" id="L32">        return Randomly.fromList(getDatabaseTables());</span>
+    }
+
+    public A getRandomTableOrBailout() {
+<span class="nc bnc" id="L36" title="All 2 branches missed.">        if (databaseTables.isEmpty()) {</span>
+<span class="nc" id="L37">            throw new IgnoreMeException();</span>
+        } else {
+<span class="nc" id="L39">            return Randomly.fromList(getDatabaseTables());</span>
+        }
+    }
+
+    public A getRandomTable(Predicate&lt;A&gt; predicate) {
+<span class="nc" id="L44">        return Randomly.fromList(getDatabaseTables().stream().filter(predicate).collect(Collectors.toList()));</span>
+    }
+
+    public A getRandomTableOrBailout(Function&lt;A, Boolean&gt; f) {
+<span class="nc" id="L48">        List&lt;A&gt; relevantTables = databaseTables.stream().filter(t -&gt; f.apply(t)).collect(Collectors.toList());</span>
+<span class="nc bnc" id="L49" title="All 2 branches missed.">        if (relevantTables.isEmpty()) {</span>
+<span class="nc" id="L50">            throw new IgnoreMeException();</span>
+        }
+<span class="nc" id="L52">        return Randomly.fromList(relevantTables);</span>
+    }
+
+    public List&lt;A&gt; getDatabaseTables() {
+<span class="nc" id="L56">        return databaseTables;</span>
+    }
+
+    public List&lt;A&gt; getTables(Predicate&lt;A&gt; predicate) {
+<span class="nc" id="L60">        return databaseTables.stream().filter(predicate).collect(Collectors.toList());</span>
+    }
+
+    public List&lt;A&gt; getDatabaseTablesRandomSubsetNotEmpty() {
+<span class="nc" id="L64">        return Randomly.nonEmptySubset(databaseTables);</span>
+    }
+
+    public A getDatabaseTable(String name) {
+<span class="nc" id="L68">        return databaseTables.stream().filter(t -&gt; t.getName().equals(name)).findAny().orElse(null);</span>
+    }
+
+    public List&lt;A&gt; getViews() {
+<span class="nc" id="L72">        return databaseTables.stream().filter(t -&gt; t.isView()).collect(Collectors.toList());</span>
+    }
+
+    public List&lt;A&gt; getDatabaseTablesWithoutViews() {
+<span class="nc bnc" id="L76" title="All 2 branches missed.">        return databaseTables.stream().filter(t -&gt; !t.isView()).collect(Collectors.toList());</span>
+    }
+
+    public A getRandomViewOrBailout() {
+<span class="nc bnc" id="L80" title="All 2 branches missed.">        if (getViews().isEmpty()) {</span>
+<span class="nc" id="L81">            throw new IgnoreMeException();</span>
+        } else {
+<span class="nc" id="L83">            return Randomly.fromList(getViews());</span>
+        }
+    }
+
+    public A getRandomTableNoViewOrBailout() {
+<span class="nc" id="L88">        List&lt;A&gt; databaseTablesWithoutViews = getDatabaseTablesWithoutViews();</span>
+<span class="nc bnc" id="L89" title="All 2 branches missed.">        if (databaseTablesWithoutViews.isEmpty()) {</span>
+<span class="nc" id="L90">            throw new IgnoreMeException();</span>
+        }
+<span class="nc" id="L92">        return Randomly.fromList(databaseTablesWithoutViews);</span>
+    }
+
+    public String getFreeIndexName() {
+<span class="nc" id="L96">        int i = 0;</span>
+<span class="nc bnc" id="L97" title="All 2 branches missed.">        if (Randomly.getBooleanWithRatherLowProbability()) {</span>
+<span class="nc" id="L98">            i = (int) Randomly.getNotCachedInteger(0, 100);</span>
+        }
+        do {
+<span class="nc" id="L101">            String indexName = String.format(&quot;i%d&quot;, i++);</span>
+<span class="nc" id="L102">            boolean indexNameFound = false;</span>
+<span class="nc bnc" id="L103" title="All 2 branches missed.">            for (A table : databaseTables) {</span>
+<span class="nc bnc" id="L104" title="All 2 branches missed.">                if (table.getIndexes().stream().anyMatch(ind -&gt; ind.getIndexName().contentEquals(indexName))) {</span>
+<span class="nc" id="L105">                    indexNameFound = true;</span>
+<span class="nc" id="L106">                    break;</span>
+                }
+            }
+<span class="nc bnc" id="L109" title="All 2 branches missed.">            if (!indexNameFound) {</span>
+<span class="nc" id="L110">                return indexName;</span>
+            }
+        } while (true);
+    }
+
+    public String getFreeTableName() {
+<span class="nc" id="L116">        int i = 0;</span>
+<span class="nc bnc" id="L117" title="All 2 branches missed.">        if (Randomly.getBooleanWithRatherLowProbability()) {</span>
+<span class="nc" id="L118">            i = (int) Randomly.getNotCachedInteger(0, 100);</span>
+        }
+        do {
+<span class="nc" id="L121">            String tableName = String.format(&quot;t%d&quot;, i++);</span>
+<span class="nc bnc" id="L122" title="All 2 branches missed.">            if (databaseTables.stream().noneMatch(t -&gt; t.getName().equalsIgnoreCase(tableName))) {</span>
+<span class="nc" id="L123">                return tableName;</span>
+            }
+        } while (true);
+
+    }
+
+    public String getFreeViewName() {
+<span class="nc" id="L130">        int i = 0;</span>
+<span class="nc bnc" id="L131" title="All 2 branches missed.">        if (Randomly.getBooleanWithRatherLowProbability()) {</span>
+<span class="nc" id="L132">            i = (int) Randomly.getNotCachedInteger(0, 100);</span>
+        }
+        do {
+<span class="nc" id="L135">            String tableName = String.format(&quot;v%d&quot;, i++);</span>
+<span class="nc bnc" id="L136" title="All 2 branches missed.">            if (databaseTables.stream().noneMatch(t -&gt; t.getName().contentEquals(tableName))) {</span>
+<span class="nc" id="L137">                return tableName;</span>
+            }
+        } while (true);
+    }
+
+    public boolean containsTableWithZeroRows(G globalState) {
+<span class="nc bnc" id="L143" title="All 2 branches missed.">        return databaseTables.stream().anyMatch(t -&gt; t.getNrRows(globalState) == 0);</span>
+    }
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.8.202204050719</span></div></body></html>

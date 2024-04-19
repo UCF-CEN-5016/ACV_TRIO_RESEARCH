@@ -1,0 +1,8 @@
+-------------------------------------------------------------------------------
+Test set: dqetool.dbms.TestSQLitePQS
+-------------------------------------------------------------------------------
+Tests run: 1, Failures: 0, Errors: 1, Skipped: 0, Time elapsed: 0.208 s <<< FAILURE! - in dqetool.dbms.TestSQLitePQS
+testSqlitePQS  Time elapsed: 0.182 s  <<< ERROR!
+com.beust.jcommander.ParameterException: Invalid value for --oracle parameter. Allowed values:[DQE]
+	at dqetool.dbms.TestSQLitePQS.testSqlitePQS(TestSQLitePQS.java:14)
+

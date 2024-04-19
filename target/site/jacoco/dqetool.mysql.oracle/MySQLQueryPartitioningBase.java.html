@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>MySQLQueryPartitioningBase.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">dqetool</a> &gt; <a href="index.source.html" class="el_package">dqetool.mysql.oracle</a> &gt; <span class="el_source">MySQLQueryPartitioningBase.java</span></div><h1>MySQLQueryPartitioningBase.java</h1><pre class="source lang-java linenums">package dqetool.mysql.oracle;
+
+import java.sql.SQLException;
+import java.util.Arrays;
+import java.util.List;
+import java.util.stream.Collectors;
+
+import dqetool.common.gen.ExpressionGenerator;
+import dqetool.common.oracle.TernaryLogicPartitioningOracleBase;
+import dqetool.common.oracle.TestOracle;
+import dqetool.mysql.MySQLErrors;
+import dqetool.mysql.MySQLGlobalState;
+import dqetool.mysql.MySQLSchema;
+import dqetool.mysql.MySQLSchema.MySQLTable;
+import dqetool.mysql.MySQLSchema.MySQLTables;
+import dqetool.mysql.ast.MySQLColumnReference;
+import dqetool.mysql.ast.MySQLExpression;
+import dqetool.mysql.ast.MySQLSelect;
+import dqetool.mysql.ast.MySQLTableReference;
+import dqetool.mysql.gen.MySQLExpressionGenerator;
+
+public abstract class MySQLQueryPartitioningBase extends
+        TernaryLogicPartitioningOracleBase&lt;MySQLExpression, MySQLGlobalState&gt; implements TestOracle&lt;MySQLGlobalState&gt; {
+
+    MySQLSchema s;
+    MySQLTables targetTables;
+    MySQLExpressionGenerator gen;
+    MySQLSelect select;
+
+    public MySQLQueryPartitioningBase(MySQLGlobalState state) {
+<span class="nc" id="L31">        super(state);</span>
+<span class="nc" id="L32">        MySQLErrors.addExpressionErrors(errors);</span>
+<span class="nc" id="L33">    }</span>
+
+    public void check() throws SQLException {
+<span class="nc" id="L36">        s = state.getSchema();</span>
+<span class="nc" id="L37">        targetTables = s.getRandomTableNonEmptyTables();</span>
+<span class="nc" id="L38">        gen = new MySQLExpressionGenerator(state).setColumns(targetTables.getColumns());</span>
+<span class="nc" id="L39">        initializeTernaryPredicateVariants();</span>
+<span class="nc" id="L40">        select = new MySQLSelect();</span>
+<span class="nc" id="L41">        select.setFetchColumns(generateFetchColumns());</span>
+<span class="nc" id="L42">        List&lt;MySQLTable&gt; tables = targetTables.getTables();</span>
+<span class="nc" id="L43">        List&lt;MySQLExpression&gt; tableList = tables.stream().map(t -&gt; new MySQLTableReference(t))</span>
+<span class="nc" id="L44">                .collect(Collectors.toList());</span>
+        // List&lt;MySQLExpression&gt; joins = MySQLJoin.getJoins(tableList, state);
+<span class="nc" id="L46">        select.setFromList(tableList);</span>
+<span class="nc" id="L47">        select.setWhereClause(null);</span>
+        // select.setJoins(joins);
+<span class="nc" id="L49">    }</span>
+
+    List&lt;MySQLExpression&gt; generateFetchColumns() {
+<span class="nc" id="L52">        return Arrays.asList(MySQLColumnReference.create(targetTables.getColumns().get(0), null));</span>
+    }
+
+    @Override
+    protected ExpressionGenerator&lt;MySQLExpression&gt; getGen() {
+<span class="nc" id="L57">        return gen;</span>
+    }
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.8.202204050719</span></div></body></html>
