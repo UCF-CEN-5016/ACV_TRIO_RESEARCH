@@ -34,4 +34,4 @@ jobs:
           java-version: '11'
           cache: 'maven'
       - name: Verify
-        run: mvn -B verify -DskipTests=true
+        run: mvn -B package -DskipTests=true
