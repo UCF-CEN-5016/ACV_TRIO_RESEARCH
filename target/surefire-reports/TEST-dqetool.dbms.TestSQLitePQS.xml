@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<testsuite xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://maven.apache.org/surefire/maven-surefire-plugin/xsd/surefire-test-report.xsd" name="dqetool.dbms.TestSQLitePQS" time="0.208" tests="1" errors="1" skipped="0" failures="0">
+<testsuite xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://maven.apache.org/surefire/maven-surefire-plugin/xsd/surefire-test-report.xsd" name="dqetool.dbms.TestSQLitePQS" time="0.154" tests="1" errors="1" skipped="0" failures="0">
   <properties>
     <property name="java.specification.version" value="21"/>
     <property name="sun.jnu.encoding" value="UTF-8"/>
@@ -12,7 +12,7 @@
     <property name="sun.java.launcher" value="SUN_STANDARD"/>
     <property name="user.country" value="IN"/>
     <property name="sun.boot.library.path" value="/Library/Java/JavaVirtualMachines/jdk-21.jdk/Contents/Home/lib"/>
-    <property name="sun.java.command" value="/Users/aishwaryasripati/Desktop/ACV_TRIO_RESEARCH/target/surefire/surefirebooter5696297929233958403.jar /Users/aishwaryasripati/Desktop/ACV_TRIO_RESEARCH/target/surefire 2024-04-19T16-09-43_558-jvmRun1 surefire424792956089471750tmp surefire_07971772732737943746tmp"/>
+    <property name="sun.java.command" value="/Users/aishwaryasripati/Desktop/ACV_TRIO_RESEARCH/target/surefire/surefirebooter3808128150065107835.jar /Users/aishwaryasripati/Desktop/ACV_TRIO_RESEARCH/target/surefire 2024-04-19T16-14-40_565-jvmRun1 surefire9400037189849657981tmp surefire_07408541873588306071tmp"/>
     <property name="http.nonProxyHosts" value="local|*.local|169.254/16|*.169.254/16"/>
     <property name="jdk.debug" value="release"/>
     <property name="test" value="dqetool.dbms.TestSQLitePQS"/>
@@ -30,7 +30,7 @@
     <property name="java.vm.specification.vendor" value="Oracle Corporation"/>
     <property name="java.specification.name" value="Java Platform API Specification"/>
     <property name="apple.awt.application.name" value="ForkedBooter"/>
-    <property name="surefire.real.class.path" value="/Users/aishwaryasripati/Desktop/ACV_TRIO_RESEARCH/target/surefire/surefirebooter5696297929233958403.jar"/>
+    <property name="surefire.real.class.path" value="/Users/aishwaryasripati/Desktop/ACV_TRIO_RESEARCH/target/surefire/surefirebooter3808128150065107835.jar"/>
     <property name="sun.management.compiler" value="HotSpot 64-Bit Tiered Compilers"/>
     <property name="ftp.nonProxyHosts" value="local|*.local|169.254/16|*.169.254/16"/>
     <property name="java.runtime.version" value="21.0.1+12-LTS-29"/>
@@ -58,7 +58,7 @@
     <property name="socksNonProxyHosts" value="local|*.local|169.254/16|*.169.254/16"/>
     <property name="java.class.version" value="65.0"/>
   </properties>
-  <testcase name="testSqlitePQS" classname="dqetool.dbms.TestSQLitePQS" time="0.182">
+  <testcase name="testSqlitePQS" classname="dqetool.dbms.TestSQLitePQS" time="0.143">
     <error message="Invalid value for --oracle parameter. Allowed values:[DQE]" type="com.beust.jcommander.ParameterException">com.beust.jcommander.ParameterException: Invalid value for --oracle parameter. Allowed values:[DQE]
 	at dqetool.dbms.TestSQLitePQS.testSqlitePQS(TestSQLitePQS.java:14)
 </error>
