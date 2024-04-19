@@ -1,0 +1,610 @@
+GROUP,PACKAGE,CLASS,INSTRUCTION_MISSED,INSTRUCTION_COVERED,BRANCH_MISSED,BRANCH_COVERED,LINE_MISSED,LINE_COVERED,COMPLEXITY_MISSED,COMPLEXITY_COVERED,METHOD_MISSED,METHOD_COVERED
+dqetool,dqetool.sqlite3.oracle,SQLite3DQEOracle,1151,0,110,0,226,0,68,0,13,0
+dqetool,dqetool.cockroachdb,CockroachDBSchema.CockroachDBTables,4,0,0,0,2,0,1,0,1,0
+dqetool,dqetool.cockroachdb,CockroachDBProvider,575,0,72,0,133,0,48,0,8,0
+dqetool,dqetool.cockroachdb,CockroachDBOptions.CockroachDBOracleFactory.new CockroachDBOptions.CockroachDBOracleFactory() {...},10,0,0,0,2,0,2,0,2,0
+dqetool,dqetool.cockroachdb,CockroachDBProvider.CockroachDBGlobalState,10,0,0,0,2,0,2,0,2,0
+dqetool,dqetool.cockroachdb,CockroachDBSchema,386,0,45,0,84,0,38,0,8,0
+dqetool,dqetool.cockroachdb,CockroachDBCommon,61,0,6,0,9,0,5,0,2,0
+dqetool,dqetool.cockroachdb,CockroachDBSchema.CockroachDBColumn,18,0,0,0,6,0,3,0,3,0
+dqetool,dqetool.cockroachdb,CockroachDBOptions.CockroachDBOracleFactory,14,0,0,0,2,0,1,0,1,0
+dqetool,dqetool.cockroachdb,CockroachDBSchema.CockroachDBDataType,171,0,0,0,5,0,3,0,3,0
+dqetool,dqetool.cockroachdb,CockroachDBToStringVisitor,598,0,41,0,137,0,40,0,17,0
+dqetool,dqetool.cockroachdb,CockroachDBVisitor,105,0,22,0,28,0,13,0,2,0
+dqetool,dqetool.cockroachdb,CockroachDBSchema.CockroachDBTable,7,0,0,0,2,0,1,0,1,0
+dqetool,dqetool.cockroachdb,CockroachDBProvider.Action,410,0,6,0,54,0,11,0,8,0
+dqetool,dqetool.cockroachdb,CockroachDBErrors,904,0,28,0,242,0,22,0,8,0
+dqetool,dqetool.cockroachdb,CockroachDBOptions,24,0,0,0,6,0,2,0,2,0
+dqetool,dqetool.cockroachdb,CockroachDBBugs,29,0,0,0,14,0,1,0,1,0
+dqetool,dqetool.cockroachdb,CockroachDBSchema.CockroachDBCompositeDataType,298,0,40,0,57,0,38,0,14,0
+dqetool,dqetool.tidb.ast,TiDBOrderingTerm,23,0,2,0,8,0,6,0,5,0
+dqetool,dqetool.tidb.ast,TiDBFunctionCall,15,0,0,0,6,0,3,0,3,0
+dqetool,dqetool.tidb.ast,TiDBBinaryComparisonOperation.TiDBComparisonOperator,96,0,0,0,13,0,4,0,4,0
+dqetool,dqetool.tidb.ast,TiDBUnaryPrefixOperation,7,0,0,0,3,0,2,0,2,0
+dqetool,dqetool.tidb.ast,TiDBRegexOperation,6,0,0,0,2,0,1,0,1,0
+dqetool,dqetool.tidb.ast,TiDBTableReference,9,0,0,0,4,0,2,0,2,0
+dqetool,dqetool.tidb.ast,TiDBBinaryLogicalOperation.TiDBBinaryLogicalOperator,41,0,0,0,8,0,4,0,4,0
+dqetool,dqetool.tidb.ast,TiDBAggregate,5,0,0,0,2,0,1,0,1,0
+dqetool,dqetool.tidb.ast,TiDBText,9,0,0,0,4,0,2,0,2,0
+dqetool,dqetool.tidb.ast,TiDBJoin,180,0,10,0,40,0,20,0,13,0
+dqetool,dqetool.tidb.ast,TiDBCastOperation,15,0,0,0,6,0,3,0,3,0
+dqetool,dqetool.tidb.ast,TiDBConstant.TiDBBitConstant,14,0,0,0,5,0,3,0,3,0
+dqetool,dqetool.tidb.ast,TiDBBinaryBitOperation,6,0,0,0,2,0,1,0,1,0
+dqetool,dqetool.tidb.ast,TiDBFunctionCall.TiDBFunction,931,0,4,0,98,0,8,0,6,0
+dqetool,dqetool.tidb.ast,TiDBSelect,10,0,0,0,4,0,3,0,3,0
+dqetool,dqetool.tidb.ast,TiDBBinaryArithmeticOperation.TiDBBinaryArithmeticOperator,85,0,0,0,12,0,4,0,4,0
+dqetool,dqetool.tidb.ast,TiDBUnaryPostfixOperation,7,0,0,0,3,0,2,0,2,0
+dqetool,dqetool.tidb.ast,TiDBBinaryBitOperation.TiDBBinaryBitOperator,74,0,0,0,11,0,4,0,4,0
+dqetool,dqetool.tidb.ast,TiDBJoin.NaturalJoinType,38,0,0,0,3,0,2,0,2,0
+dqetool,dqetool.tidb.ast,TiDBRegexOperation.TiDBRegexOperator,63,0,0,0,10,0,4,0,4,0
+dqetool,dqetool.tidb.ast,TiDBAggregate.TiDBAggregateFunction,96,0,0,0,7,0,4,0,4,0
+dqetool,dqetool.tidb.ast,TiDBJoin.JoinType,58,0,0,0,3,0,2,0,2,0
+dqetool,dqetool.tidb.ast,TiDBCollate,19,0,0,0,5,0,3,0,3,0
+dqetool,dqetool.tidb.ast,TiDBConstant.TiDBNullConstant,5,0,0,0,2,0,2,0,2,0
+dqetool,dqetool.tidb.ast,TiDBConstant.TiDBIntConstant,13,0,0,0,5,0,3,0,3,0
+dqetool,dqetool.tidb.ast,TiDBConstant.TiDBTextConstant,19,0,0,0,5,0,3,0,3,0
+dqetool,dqetool.tidb.ast,TiDBFunctionCall.TiDBFunction.new TiDBFunctionCall.TiDBFunction() {...},27,0,0,0,2,0,2,0,2,0
+dqetool,dqetool.tidb.ast,TiDBUnaryPostfixOperation.TiDBUnaryPostfixOperator,41,0,0,0,8,0,4,0,4,0
+dqetool,dqetool.tidb.ast,TiDBColumnReference,9,0,0,0,4,0,2,0,2,0
+dqetool,dqetool.tidb.ast,TiDBBinaryComparisonOperation,6,0,0,0,2,0,1,0,1,0
+dqetool,dqetool.tidb.ast,TiDBBinaryLogicalOperation,6,0,0,0,2,0,1,0,1,0
+dqetool,dqetool.tidb.ast,TiDBUnaryPrefixOperation.TiDBUnaryPrefixOperator,74,0,0,0,11,0,4,0,4,0
+dqetool,dqetool.tidb.ast,TiDBConstant.TiDBDoubleConstant,27,0,4,0,9,0,5,0,3,0
+dqetool,dqetool.tidb.ast,TiDBCase,36,0,2,0,12,0,6,0,5,0
+dqetool,dqetool.tidb.ast,TiDBConstant.TiDBBooleanConstant,13,0,0,0,5,0,3,0,3,0
+dqetool,dqetool.tidb.ast,TiDBConstant,24,0,0,0,5,0,5,0,5,0
+dqetool,dqetool.tidb.ast,TiDBBinaryArithmeticOperation,6,0,0,0,2,0,1,0,1,0
+dqetool,dqetool.mysql.gen.admin,MySQLFlush,156,0,4,0,21,0,6,0,4,0
+dqetool,dqetool.mysql.gen.admin,MySQLReset,33,0,0,0,4,0,1,0,1,0
+dqetool,dqetool.tidb.oracle,TiDBDQEOracle,1400,0,160,0,259,0,93,0,13,0
+dqetool,dqetool.cockroachdb.oracle,CockroachDBDQEOracle,1384,0,136,0,264,0,81,0,13,0
+dqetool,dqetool.sqlite3,SQLite3ToStringVisitor,1184,0,97,0,284,0,85,0,32,0
+dqetool,dqetool.sqlite3,SQLite3Visitor,368,0,70,0,91,0,45,0,10,0
+dqetool,dqetool.sqlite3,SQLite3Options.SQLite3OracleFactory,14,0,0,0,2,0,1,0,1,0
+dqetool,dqetool.sqlite3,SQLite3Provider.Action,294,0,0,0,33,0,5,0,5,0
+dqetool,dqetool.sqlite3,SQLite3Errors,325,0,0,0,84,0,7,0,7,0
+dqetool,dqetool.sqlite3,SQLite3ExpectedValueVisitor,534,0,34,0,140,0,53,0,36,0
+dqetool,dqetool.sqlite3,SQLite3Provider,591,0,61,0,135,0,51,0,15,0
+dqetool,dqetool.sqlite3,SQLite3CollateHelper,18,0,8,0,3,0,5,0,1,0
+dqetool,dqetool.sqlite3,SQLite3GlobalState,6,0,0,0,2,0,2,0,2,0
+dqetool,dqetool.sqlite3,SQLite3SpecialStringGenerator.Options,54,0,0,0,2,0,1,0,1,0
+dqetool,dqetool.sqlite3,SQLite3Provider.Action.new SQLite3Provider.Action() {...},8,0,0,0,2,0,2,0,2,0
+dqetool,dqetool.sqlite3,SQLite3Provider.Action.new SQLite3Provider.Action() {...},8,0,0,0,2,0,2,0,2,0
+dqetool,dqetool.sqlite3,SQLite3Provider.Action.new SQLite3Provider.Action() {...},8,0,0,0,2,0,2,0,2,0
+dqetool,dqetool.sqlite3,SQLite3SpecialStringGenerator,209,0,10,0,17,0,8,0,1,0
+dqetool,dqetool.sqlite3,SQLite3Options,66,0,0,0,20,0,2,0,2,0
+dqetool,dqetool.sqlite3,SQLite3Provider.TableType,34,0,0,0,2,0,1,0,1,0
+dqetool,dqetool.sqlite3,SQLite3Options.SQLite3OracleFactory.new SQLite3Options.SQLite3OracleFactory() {...},10,0,0,0,2,0,2,0,2,0
+dqetool,dqetool.mariadb.ast,MariaDBVisitor,100,0,20,0,27,0,13,0,3,0
+dqetool,dqetool.mariadb.ast,MariaDBAggregate.MariaDBAggregateFunction,14,0,0,0,2,0,1,0,1,0
+dqetool,dqetool.mariadb.ast,MariaDBSelectStatement.MariaDBSelectType,14,0,0,0,2,0,1,0,1,0
+dqetool,dqetool.mariadb.ast,MariaDBConstant,22,0,0,0,5,0,5,0,5,0
+dqetool,dqetool.mariadb.ast,MariaDBInOperation,21,0,0,0,8,0,4,0,4,0
+dqetool,dqetool.mariadb.ast,MariaDBConstant.MariaDBDoubleConstant,13,0,0,0,5,0,3,0,3,0
+dqetool,dqetool.mariadb.ast,MariaDBSelectStatement,56,0,0,0,20,0,11,0,11,0
+dqetool,dqetool.mariadb.ast,MariaDBAggregate,15,0,0,0,6,0,3,0,3,0
+dqetool,dqetool.mariadb.ast,MariaDBFunctionName,160,0,2,0,17,0,9,0,8,0
+dqetool,dqetool.mariadb.ast,MariaDBExpression,3,0,0,0,1,0,1,0,1,0
+dqetool,dqetool.mariadb.ast,MariaDBBinaryOperator,21,0,0,0,8,0,4,0,4,0
+dqetool,dqetool.mariadb.ast,MariaDBConstant.MariaDBTextConstant,19,0,0,0,5,0,3,0,3,0
+dqetool,dqetool.mariadb.ast,MariaDBFunctionName.FunctionAttribute,14,0,0,0,2,0,1,0,1,0
+dqetool,dqetool.mariadb.ast,MariaDBFunction,15,0,0,0,6,0,3,0,3,0
+dqetool,dqetool.mariadb.ast,MariaDBColumnName,9,0,0,0,4,0,2,0,2,0
+dqetool,dqetool.mariadb.ast,MariaDBUnaryPrefixOperation,15,0,0,0,6,0,3,0,3,0
+dqetool,dqetool.mariadb.ast,MariaDBText,21,0,0,0,8,0,4,0,4,0
+dqetool,dqetool.mariadb.ast,MariaDBConstant.MariaDBIntConstant,13,0,0,0,5,0,3,0,3,0
+dqetool,dqetool.mariadb.ast,MariaDBConstant.MariaDBNullConstant,5,0,0,0,2,0,2,0,2,0
+dqetool,dqetool.mariadb.ast,MariaDBUnaryPrefixOperation.MariaDBUnaryPrefixOperator,38,0,0,0,6,0,3,0,3,0
+dqetool,dqetool.mariadb.ast,MariaDBBinaryOperator.MariaDBBinaryComparisonOperator,184,0,0,0,13,0,4,0,4,0
+dqetool,dqetool.mariadb.ast,MariaDBPostfixUnaryOperation,15,0,0,0,6,0,3,0,3,0
+dqetool,dqetool.mariadb.ast,MariaDBStringVisitor,354,0,24,0,78,0,26,0,14,0
+dqetool,dqetool.mariadb.ast,MariaDBPostfixUnaryOperation.MariaDBPostfixUnaryOperator,63,0,0,0,7,0,4,0,4,0
+dqetool,dqetool.mariadb.ast,MariaDBConstant.MariaDBBooleanConstant,13,0,0,0,5,0,3,0,3,0
+dqetool,dqetool.mariadb.gen,MariaDBTruncateGenerator,24,0,0,0,5,0,1,0,1,0
+dqetool,dqetool.mariadb.gen,MariaDBSetGenerator,121,0,9,0,27,0,8,0,3,0
+dqetool,dqetool.mariadb.gen,MariaDBInsertGenerator,75,0,6,0,17,0,4,0,1,0
+dqetool,dqetool.mariadb.gen,MariaDBIndexGenerator,137,0,10,0,27,0,6,0,1,0
+dqetool,dqetool.mariadb.gen,MariaDBTableGenerator.PrimaryKeyState,34,0,0,0,2,0,1,0,1,0
+dqetool,dqetool.mariadb.gen,MariaDBExpressionGenerator,250,0,33,0,54,0,32,0,11,0
+dqetool,dqetool.mariadb.gen,MariaDBTableAdminCommandGenerator,254,0,28,0,39,0,27,0,13,0
+dqetool,dqetool.mariadb.gen,MariaDBCommon,14,0,4,0,5,0,3,0,1,0
+dqetool,dqetool.mariadb.gen,MariaDBUpdateGenerator,82,0,10,0,20,0,6,0,1,0
+dqetool,dqetool.mariadb.gen,MariaDBSetGenerator.Action,1115,0,6,0,78,0,39,0,36,0
+dqetool,dqetool.mariadb.gen,MariaDBTableGenerator,376,0,43,0,80,0,30,0,7,0
+dqetool,dqetool.mariadb.gen,MariaDBSetGenerator.Scope,24,0,0,0,2,0,1,0,1,0
+dqetool,dqetool.mariadb.gen,MariaDBExpressionGenerator.ExpressionType,74,0,0,0,2,0,1,0,1,0
+dqetool,dqetool.mysql.gen,MySQLExpressionGenerator,440,0,58,0,90,0,46,0,10,0
+dqetool,dqetool.mysql.gen,MySQLInsertGenerator,266,0,18,0,51,0,15,0,6,0
+dqetool,dqetool.mysql.gen,MySQLTableGenerator.TableOptions,162,0,4,0,11,0,4,0,2,0
+dqetool,dqetool.mysql.gen,MySQLExpressionGenerator.ConstantType,59,0,0,0,3,0,2,0,2,0
+dqetool,dqetool.mysql.gen,MySQLTruncateTableGenerator,27,0,0,0,3,0,1,0,1,0
+dqetool,dqetool.mysql.gen,MySQLAlterTable.Action,234,0,0,0,22,0,2,0,2,0
+dqetool,dqetool.mysql.gen,MySQLDropIndex,119,0,6,0,18,0,4,0,1,0
+dqetool,dqetool.mysql.gen,MySQLSetGenerator.Action,1614,0,6,0,93,0,56,0,53,0
+dqetool,dqetool.mysql.gen,MySQLTableGenerator.ColumnOptions,64,0,0,0,2,0,1,0,1,0
+dqetool,dqetool.mysql.gen,MySQLAlterTable,570,0,39,0,87,0,31,0,5,0
+dqetool,dqetool.mysql.gen,MySQLExpressionGenerator.Actions,124,0,0,0,3,0,1,0,1,0
+dqetool,dqetool.mysql.gen,MySQLSetGenerator,116,0,9,0,26,0,8,0,3,0
+dqetool,dqetool.mysql.gen,MySQLTableGenerator.PartitionOptions,24,0,0,0,2,0,1,0,1,0
+dqetool,dqetool.mysql.gen,MySQLTableGenerator,1075,0,105,0,210,0,74,0,10,0
+dqetool,dqetool.mysql.gen,MySQLSetGenerator.Scope,24,0,0,0,2,0,1,0,1,0
+dqetool,dqetool.mysql.gen,MySQLDeleteGenerator,126,0,8,0,26,0,7,0,3,0
+dqetool,dqetool.tidb.gen,TiDBInsertGenerator,236,0,24,0,50,0,19,0,7,0
+dqetool,dqetool.tidb.gen,TiDBSetGenerator.Action,591,0,0,0,37,0,28,0,28,0
+dqetool,dqetool.tidb.gen,TiDBDeleteGenerator,146,0,14,0,32,0,10,0,3,0
+dqetool,dqetool.tidb.gen,TiDBDropTableGenerator,56,0,8,0,7,0,7,0,3,0
+dqetool,dqetool.tidb.gen,TiDBHintGenerator.IndexHint,204,0,0,0,21,0,1,0,1,0
+dqetool,dqetool.tidb.gen,TiDBRandomQuerySynthesizer,103,0,12,0,24,0,9,0,3,0
+dqetool,dqetool.tidb.gen,TiDBAlterTableGenerator.Action,74,0,0,0,2,0,1,0,1,0
+dqetool,dqetool.tidb.gen,TiDBDropViewGenerator,47,0,4,0,7,0,5,0,3,0
+dqetool,dqetool.tidb.gen,TiDBIndexGenerator,178,0,16,0,34,0,10,0,2,0
+dqetool,dqetool.tidb.gen,TiDBViewGenerator,136,0,12,0,28,0,7,0,1,0
+dqetool,dqetool.tidb.gen,TiDBAnalyzeTableGenerator,89,0,14,0,17,0,9,0,2,0
+dqetool,dqetool.tidb.gen,TiDBAlterTableGenerator,338,0,18,0,75,0,16,0,4,0
+dqetool,dqetool.tidb.gen,TiDBSetGenerator,35,0,0,0,7,0,1,0,1,0
+dqetool,dqetool.tidb.gen,TiDBUpdateGenerator,114,0,6,0,23,0,8,0,5,0
+dqetool,dqetool.tidb.gen,TiDBHintGenerator,322,0,29,0,90,0,34,0,10,0
+dqetool,dqetool.tidb.gen,TiDBTableGenerator,502,0,68,0,104,0,43,0,9,0
+dqetool,dqetool.mysql,MySQLSchema.MySQLDataType,88,0,5,0,9,0,6,0,3,0
+dqetool,dqetool.mysql,MySQLExpectedValueVisitor,238,0,10,0,67,0,25,0,20,0
+dqetool,dqetool.mysql,MySQLSchema.MySQLColumn,18,0,0,0,6,0,3,0,3,0
+dqetool,dqetool.mysql,MySQLSchema,227,0,16,0,52,0,16,0,6,0
+dqetool,dqetool.mysql,MySQLGlobalState,25,0,2,0,3,0,5,0,4,0
+dqetool,dqetool.mysql,MySQLSchema.MySQLTable.MySQLEngine,114,0,0,0,7,0,4,0,4,0
+dqetool,dqetool.mysql,MySQLOptions.MySQLOracleFactory.new MySQLOptions.MySQLOracleFactory() {...},12,0,0,0,3,0,3,0,3,0
+dqetool,dqetool.mysql,MySQLOptions.MySQLOracleFactory.new MySQLOptions.MySQLOracleFactory() {...},10,0,0,0,2,0,2,0,2,0
+dqetool,dqetool.mysql,MySQLOptions.MySQLOracleFactory.new MySQLOptions.MySQLOracleFactory() {...},10,0,0,0,2,0,2,0,2,0
+dqetool,dqetool.mysql,MySQLVisitor,154,0,32,0,41,0,19,0,3,0
+dqetool,dqetool.mysql,MySQLErrors,9,0,0,0,3,0,1,0,1,0
+dqetool,dqetool.mysql,MySQLOptions,15,0,0,0,3,0,2,0,2,0
+dqetool,dqetool.mysql,MySQLProvider.Action,227,0,0,0,25,0,6,0,6,0
+dqetool,dqetool.mysql,MySQLBugs,11,0,0,0,5,0,1,0,1,0
+dqetool,dqetool.mysql,MySQLSchema.MySQLTables,153,0,13,0,29,0,11,0,4,0
+dqetool,dqetool.mysql,MySQLSchema.MySQLRowValue,5,0,0,0,2,0,1,0,1,0
+dqetool,dqetool.mysql,MySQLProvider,284,0,30,0,71,0,28,0,6,0
+dqetool,dqetool.mysql,MySQLSchema.MySQLIndex,19,0,2,0,6,0,4,0,3,0
+dqetool,dqetool.mysql,MySQLToStringVisitor,723,0,58,0,160,0,50,0,19,0
+dqetool,dqetool.mysql,MySQLSchema.MySQLTable,22,0,0,0,5,0,4,0,4,0
+dqetool,dqetool.mysql,MySQLSchema.MySQLColumn.CollateSequence,38,0,0,0,3,0,2,0,2,0
+dqetool,dqetool.mysql,MySQLOptions.MySQLOracleFactory,34,0,0,0,4,0,1,0,1,0
+dqetool,dqetool,Main.QueryManager,61,0,4,0,17,0,8,0,6,0
+dqetool,dqetool,StatementExecutor,177,0,26,0,43,0,16,0,3,0
+dqetool,dqetool,MainOptions,233,0,10,0,74,0,45,0,40,0
+dqetool,dqetool,LikeImplementationHelper,126,0,27,0,25,0,16,0,2,0
+dqetool,dqetool,GlobalState,197,0,16,0,62,0,32,0,24,0
+dqetool,dqetool,ProviderAdapter,489,0,48,0,126,0,42,0,18,0
+dqetool,dqetool,AbstractAction,2,0,0,0,1,0,1,0,1,0
+dqetool,dqetool,SQLProviderAdapter,68,0,4,0,15,0,6,0,4,0
+dqetool,dqetool,Main.DBMSExecutorFactory,62,0,0,0,14,0,5,0,5,0
+dqetool,dqetool,ExecutionTimer,22,0,0,0,7,0,4,0,4,0
+dqetool,dqetool,Randomly.StringGenerationStrategy.new Randomly.StringGenerationStrategy() {...},9,0,0,0,2,0,2,0,2,0
+dqetool,dqetool,Randomly.StringGenerationStrategy.new Randomly.StringGenerationStrategy() {...},250,0,28,0,42,0,17,0,3,0
+dqetool,dqetool,StateToReproduce,96,0,6,0,27,0,15,0,12,0
+dqetool,dqetool,SQLGlobalState,32,0,8,0,9,0,6,0,2,0
+dqetool,dqetool,Randomly.StringGenerationStrategy.new Randomly.StringGenerationStrategy() {...},9,0,0,0,2,0,2,0,2,0
+dqetool,dqetool,Randomly.StringGenerationStrategy.new Randomly.StringGenerationStrategy() {...},9,0,0,0,2,0,2,0,2,0
+dqetool,dqetool,Main.StateLogger,404,0,36,0,98,0,33,0,15,0
+dqetool,dqetool,Randomly.StringGenerationStrategy,84,0,4,0,16,0,6,0,4,0
+dqetool,dqetool,SQLConnection,26,0,0,0,9,0,5,0,5,0
+dqetool,dqetool,StatementReducer,161,0,14,0,38,0,12,0,5,0
+dqetool,dqetool,Main,272,0,26,0,68,0,18,0,5,0
+dqetool,dqetool,Main.new Runnable() {...},64,0,2,0,13,0,4,0,3,0
+dqetool,dqetool,Main.new Runnable() {...},118,0,0,0,22,0,2,0,2,0
+dqetool,dqetool,Main.new Runnable() {...},138,0,12,0,33,0,10,0,4,0
+dqetool,dqetool,OracleFactory,2,0,0,0,1,0,1,0,1,0
+dqetool,dqetool,Main.DBMSExecutor,325,0,16,0,71,0,16,0,8,0
+dqetool,dqetool,ComparatorHelper,425,0,30,0,88,0,22,0,7,0
+dqetool,dqetool,StateToReproduce.OracleRunReproductionState,40,0,2,0,11,0,5,0,4,0
+dqetool,dqetool,IgnoreMeException,3,0,0,0,1,0,1,0,1,0
+dqetool,dqetool,Main.StateLogger.AlsoWriteToConsoleFileWriter,18,0,0,0,7,0,3,0,3,0
+dqetool,dqetool,Randomly,889,0,122,0,173,0,110,0,49,0
+dqetool,dqetool.mysql.gen.tblmaintenance,MySQLAnalyzeTable,180,0,8,0,37,0,13,0,9,0
+dqetool,dqetool.mysql.gen.tblmaintenance,MySQLOptimize,76,0,2,0,12,0,5,0,4,0
+dqetool,dqetool.mysql.gen.tblmaintenance,MySQLRepair,119,0,12,0,22,0,10,0,4,0
+dqetool,dqetool.mysql.gen.tblmaintenance,MySQLCheckTable,91,0,0,0,11,0,4,0,4,0
+dqetool,dqetool.mysql.gen.tblmaintenance,MySQLChecksum,71,0,2,0,11,0,5,0,4,0
+dqetool,dqetool.common.schema,AbstractTableColumn,140,0,14,0,26,0,17,0,10,0
+dqetool,dqetool.common.schema,AbstractSchema,315,0,30,0,54,0,41,0,26,0
+dqetool,dqetool.common.schema,AbstractRowValue,197,0,16,0,42,0,17,0,9,0
+dqetool,dqetool.common.schema,TableIndex,17,0,0,0,6,0,4,0,4,0
+dqetool,dqetool.common.schema,AbstractTables,57,0,2,0,10,0,7,0,6,0
+dqetool,dqetool.common.schema,AbstractTable,149,0,8,0,32,0,21,0,17,0
+dqetool,dqetool.common.schema,AbstractRelationalTable,54,0,4,0,13,0,4,0,2,0
+dqetool,dqetool.common.ast,BinaryNode,15,0,0,0,6,0,3,0,3,0
+dqetool,dqetool.common.ast,UnaryNode,9,0,0,0,4,0,2,0,2,0
+dqetool,dqetool.common.ast,BinaryOperatorNode,15,0,0,0,5,0,3,0,3,0
+dqetool,dqetool.common.ast,TernaryNode,21,0,0,0,8,0,4,0,4,0
+dqetool,dqetool.common.ast,SelectBase,133,0,18,0,45,0,29,0,20,0
+dqetool,dqetool.common.ast,FunctionNode,15,0,0,0,6,0,3,0,3,0
+dqetool,dqetool.common.ast,UnaryOperatorNode,11,0,0,0,4,0,2,0,2,0
+dqetool,dqetool.common.ast.newast,NewBetweenOperatorNode,27,0,0,0,10,0,5,0,5,0
+dqetool,dqetool.common.ast.newast,NewOrderingTerm,15,0,0,0,6,0,3,0,3,0
+dqetool,dqetool.common.ast.newast,NewUnaryPrefixOperatorNode,16,0,0,0,6,0,3,0,3,0
+dqetool,dqetool.common.ast.newast,NewAliasNode,15,0,0,0,6,0,3,0,3,0
+dqetool,dqetool.common.ast.newast,NewCaseOperatorNode,36,0,2,0,12,0,6,0,5,0
+dqetool,dqetool.common.ast.newast,NewPostfixTextNode,15,0,0,0,6,0,3,0,3,0
+dqetool,dqetool.common.ast.newast,ColumnReferenceNode,9,0,0,0,4,0,2,0,2,0
+dqetool,dqetool.common.ast.newast,NewInOperatorNode,21,0,0,0,8,0,4,0,4,0
+dqetool,dqetool.common.ast.newast,NewOrderingTerm.Ordering,28,0,0,0,3,0,2,0,2,0
+dqetool,dqetool.common.ast.newast,NewToStringVisitor,512,0,40,0,120,0,37,0,17,0
+dqetool,dqetool.common.ast.newast,TableReferenceNode,9,0,0,0,4,0,2,0,2,0
+dqetool,dqetool.common.ast.newast,NewUnaryPostfixOperatorNode,16,0,0,0,6,0,3,0,3,0
+dqetool,dqetool.common.ast.newast,NewFunctionNode,15,0,0,0,6,0,3,0,3,0
+dqetool,dqetool.common.ast.newast,NewBinaryOperatorNode,22,0,0,0,8,0,4,0,4,0
+dqetool,dqetool.common.ast.newast,NewTernaryNode,33,0,0,0,12,0,6,0,6,0
+dqetool,dqetool.sqlite3.gen,SQLite3VirtualFTSTableCommandGenerator,405,0,20,0,54,0,17,0,4,0
+dqetool,dqetool.sqlite3.gen,SQLite3AnalyzeGenerator,74,0,7,0,14,0,6,0,1,0
+dqetool,dqetool.sqlite3.gen,SQLite3ExpressionGenerator.RowValueComparison,34,0,0,0,2,0,1,0,1,0
+dqetool,dqetool.sqlite3.gen,SQLite3ColumnBuilder.Constraints,54,0,0,0,2,0,1,0,1,0
+dqetool,dqetool.sqlite3.gen,SQLite3ExpressionGenerator.AnyFunction.new SQLite3ExpressionGenerator.AnyFunction() {...},22,0,0,0,4,0,2,0,2,0
+dqetool,dqetool.sqlite3.gen,SQLite3AnalyzeGenerator.AnalyzeTarget,44,0,0,0,2,0,1,0,1,0
+dqetool,dqetool.sqlite3.gen,SQLite3ExpressionGenerator,1157,0,118,0,243,0,111,0,42,0
+dqetool,dqetool.sqlite3.gen,SQLite3ExpressionGenerator.AnyFunction,999,0,8,0,78,0,15,0,11,0
+dqetool,dqetool.sqlite3.gen,SQLite3ExplainGenerator,52,0,4,0,13,0,4,0,2,0
+dqetool,dqetool.sqlite3.gen,SQLite3ReindexGenerator,99,0,10,0,18,0,8,0,2,0
+dqetool,dqetool.sqlite3.gen,SQLite3ExpressionGenerator.new SQLite3Expression.SQLite3PostfixText() {...},11,0,0,0,2,0,2,0,2,0
+dqetool,dqetool.sqlite3.gen,SQLite3Common,311,0,28,0,64,0,29,0,15,0
+dqetool,dqetool.sqlite3.gen,SQLite3ColumnBuilder,347,0,52,0,84,0,40,0,12,0
+dqetool,dqetool.sqlite3.gen,SQLite3MatchStringGenerator.MatchAction,64,0,0,0,2,0,1,0,1,0
+dqetool,dqetool.sqlite3.gen,SQLite3ReindexGenerator.Target,34,0,0,0,2,0,1,0,1,0
+dqetool,dqetool.sqlite3.gen,SQLite3PragmaGenerator,489,0,48,0,106,0,74,0,35,0
+dqetool,dqetool.sqlite3.gen,SQLite3ExpressionGenerator.ExpressionType,164,0,0,0,4,0,1,0,1,0
+dqetool,dqetool.sqlite3.gen,SQLite3PragmaGenerator.Pragma,314,0,0,0,19,0,1,0,1,0
+dqetool,dqetool.sqlite3.gen,SQLite3ExpressionGenerator.LiteralValueType,54,0,0,0,2,0,1,0,1,0
+dqetool,dqetool.sqlite3.gen,SQLite3TransactionGenerator,114,0,4,0,15,0,5,0,3,0
+dqetool,dqetool.sqlite3.gen,SQLite3MatchStringGenerator,230,0,23,0,55,0,18,0,4,0
+dqetool,dqetool.sqlite3.gen,SQLite3VirtualFTSTableCommandGenerator.Action,94,0,0,0,2,0,1,0,1,0
+dqetool,dqetool.sqlite3.gen,SQLite3VacuumGenerator,47,0,2,0,6,0,2,0,1,0
+dqetool,dqetool.sqlite3.gen,SQLite3CreateVirtualRtreeTabelGenerator,161,0,8,0,32,0,6,0,2,0
+dqetool,dqetool.sqlite3.gen,SQLite3ExpressionGenerator.Attribute,24,0,0,0,2,0,1,0,1,0
+dqetool,dqetool.common.log,LoggableFactory,31,0,0,0,6,0,4,0,4,0
+dqetool,dqetool.common.log,SQLLoggableFactory,104,0,6,0,23,0,9,0,6,0
+dqetool,dqetool.common.log,LoggedString,9,0,0,0,4,0,2,0,2,0
+dqetool,dqetool.mysql.ast,MySQLBinaryComparisonOperation,31,0,0,0,9,0,5,0,5,0
+dqetool,dqetool.mysql.ast,MySQLBinaryLogicalOperation.MySQLBinaryLogicalOperator.new MySQLBinaryLogicalOperation.MySQLBinaryLogicalOperator() {...},45,0,16,0,12,0,10,0,2,0
+dqetool,dqetool.mysql.ast,MySQLBinaryLogicalOperation.MySQLBinaryLogicalOperator.new MySQLBinaryLogicalOperation.MySQLBinaryLogicalOperator() {...},32,0,12,0,8,0,8,0,2,0
+dqetool,dqetool.mysql.ast,MySQLBinaryLogicalOperation.MySQLBinaryLogicalOperator.new MySQLBinaryLogicalOperation.MySQLBinaryLogicalOperator() {...},23,0,4,0,5,0,4,0,2,0
+dqetool,dqetool.mysql.ast,MySQLConstant.MySQLIntConstant,218,0,40,0,53,0,33,0,13,0
+dqetool,dqetool.mysql.ast,MySQLUnaryPrefixOperation,23,0,2,0,7,0,4,0,3,0
+dqetool,dqetool.mysql.ast,MySQLBinaryComparisonOperation.BinaryComparisonOperator,96,0,0,0,13,0,4,0,4,0
+dqetool,dqetool.mysql.ast,MySQLUnaryPostfixOperation.UnaryPostfixOperator,34,0,0,0,2,0,1,0,1,0
+dqetool,dqetool.mysql.ast,MySQLCollate,19,0,0,0,5,0,3,0,3,0
+dqetool,dqetool.mysql.ast,MySQLExists,32,0,2,0,12,0,5,0,4,0
+dqetool,dqetool.mysql.ast,MySQLConstant.MySQLNoPQSConstant,25,0,0,0,8,0,8,0,8,0
+dqetool,dqetool.mysql.ast,MySQLBinaryOperation.MySQLBinaryOperator.new MySQLBinaryOperation.MySQLBinaryOperator() {...},18,0,0,0,2,0,3,0,3,0
+dqetool,dqetool.mysql.ast,MySQLBinaryOperation.MySQLBinaryOperator.new MySQLBinaryOperation.MySQLBinaryOperator() {...},18,0,0,0,2,0,3,0,3,0
+dqetool,dqetool.mysql.ast,MySQLBinaryOperation.MySQLBinaryOperator.new MySQLBinaryOperation.MySQLBinaryOperator() {...},18,0,0,0,2,0,3,0,3,0
+dqetool,dqetool.mysql.ast,MySQLUnaryPrefixOperation.MySQLUnaryPrefixOperator,75,0,0,0,9,0,4,0,4,0
+dqetool,dqetool.mysql.ast,MySQLBinaryLogicalOperation,52,0,4,0,15,0,8,0,6,0
+dqetool,dqetool.mysql.ast,MySQLOrderByTerm,20,0,0,0,7,0,4,0,4,0
+dqetool,dqetool.mysql.ast,MySQLBinaryLogicalOperation.MySQLBinaryLogicalOperator,79,0,0,0,9,0,4,0,4,0
+dqetool,dqetool.mysql.ast,MySQLJoin,7,0,0,0,2,0,2,0,2,0
+dqetool,dqetool.mysql.ast,MySQLBetweenOperation,109,0,12,0,22,0,11,0,5,0
+dqetool,dqetool.mysql.ast,MySQLBinaryOperation,109,0,28,0,23,0,19,0,5,0
+dqetool,dqetool.mysql.ast,MySQLOrderByTerm.MySQLOrder,28,0,0,0,3,0,2,0,2,0
+dqetool,dqetool.mysql.ast,MySQLUnaryPrefixOperation.MySQLUnaryPrefixOperator.new MySQLUnaryPrefixOperation.MySQLUnaryPrefixOperator() {...},33,0,6,0,8,0,5,0,2,0
+dqetool,dqetool.mysql.ast,MySQLConstant.MySQLNullConstant,23,0,0,0,9,0,9,0,9,0
+dqetool,dqetool.mysql.ast,MySQLUnaryPrefixOperation.MySQLUnaryPrefixOperator.new MySQLUnaryPrefixOperation.MySQLUnaryPrefixOperator() {...},8,0,0,0,2,0,2,0,2,0
+dqetool,dqetool.mysql.ast,MySQLUnaryPrefixOperation.MySQLUnaryPrefixOperator.new MySQLUnaryPrefixOperation.MySQLUnaryPrefixOperator() {...},15,0,2,0,2,0,3,0,2,0
+dqetool,dqetool.mysql.ast,MySQLBinaryOperation.MySQLBinaryOperator,82,0,4,0,15,0,7,0,5,0
+dqetool,dqetool.mysql.ast,MySQLComputableFunction,131,0,19,0,32,0,16,0,6,0
+dqetool,dqetool.mysql.ast,MySQLCastOperation,22,0,0,0,7,0,4,0,4,0
+dqetool,dqetool.mysql.ast,MySQLStringExpression,15,0,0,0,6,0,3,0,3,0
+dqetool,dqetool.mysql.ast,MySQLComputableFunction.MySQLFunction,172,0,4,0,35,0,12,0,10,0
+dqetool,dqetool.mysql.ast,MySQLSelect.SelectType,34,0,0,0,2,0,1,0,1,0
+dqetool,dqetool.mysql.ast,MySQLConstant.MySQLTextConstant,263,0,52,0,59,0,37,0,11,0
+dqetool,dqetool.mysql.ast,MySQLTableReference,9,0,0,0,4,0,2,0,2,0
+dqetool,dqetool.mysql.ast,MySQLConstant.MySQLDoubleConstant,20,0,4,0,6,0,4,0,2,0
+dqetool,dqetool.mysql.ast,MySQLExpression,5,0,0,0,1,0,1,0,1,0
+dqetool,dqetool.mysql.ast,MySQLColumnReference,24,0,0,0,8,0,5,0,5,0
+dqetool,dqetool.mysql.ast,MySQLConstant,72,0,2,0,18,0,19,0,18,0
+dqetool,dqetool.mysql.ast,MySQLComputableFunction.MySQLFunction.new MySQLComputableFunction.MySQLFunction() {...},47,0,4,0,9,0,4,0,2,0
+dqetool,dqetool.mysql.ast,MySQLComputableFunction.MySQLFunction.new MySQLComputableFunction.MySQLFunction() {...},25,0,2,0,6,0,3,0,2,0
+dqetool,dqetool.mysql.ast,MySQLComputableFunction.MySQLFunction.new MySQLComputableFunction.MySQLFunction() {...},26,0,2,0,6,0,3,0,2,0
+dqetool,dqetool.mysql.ast,MySQLComputableFunction.MySQLFunction.new MySQLComputableFunction.MySQLFunction() {...},39,0,4,0,8,0,5,0,3,0
+dqetool,dqetool.mysql.ast,MySQLSelect,29,0,0,0,12,0,7,0,7,0
+dqetool,dqetool.mysql.ast,MySQLComputableFunction.MySQLFunction.new MySQLComputableFunction.MySQLFunction() {...},21,0,2,0,2,0,4,0,3,0
+dqetool,dqetool.mysql.ast,MySQLComputableFunction.MySQLFunction.new MySQLComputableFunction.MySQLFunction() {...},21,0,2,0,2,0,4,0,3,0
+dqetool,dqetool.mysql.ast,MySQLInOperation,100,0,20,0,28,0,15,0,5,0
+dqetool,dqetool.mysql.ast,MySQLBinaryComparisonOperation.BinaryComparisonOperator.new MySQLBinaryComparisonOperation.BinaryComparisonOperator() {...},30,0,4,0,7,0,4,0,2,0
+dqetool,dqetool.mysql.ast,MySQLBinaryComparisonOperation.BinaryComparisonOperator.new MySQLBinaryComparisonOperation.BinaryComparisonOperator() {...},34,0,6,0,8,0,5,0,2,0
+dqetool,dqetool.mysql.ast,MySQLUnaryPostfixOperation,84,0,18,0,22,0,16,0,6,0
+dqetool,dqetool.mysql.ast,MySQLBinaryComparisonOperation.BinaryComparisonOperator.new MySQLBinaryComparisonOperation.BinaryComparisonOperator() {...},10,0,0,0,2,0,2,0,2,0
+dqetool,dqetool.mysql.ast,MySQLBinaryComparisonOperation.BinaryComparisonOperator.new MySQLBinaryComparisonOperation.BinaryComparisonOperator() {...},22,0,2,0,5,0,3,0,2,0
+dqetool,dqetool.mysql.ast,MySQLBinaryComparisonOperation.BinaryComparisonOperator.new MySQLBinaryComparisonOperation.BinaryComparisonOperator() {...},34,0,6,0,8,0,5,0,2,0
+dqetool,dqetool.mysql.ast,MySQLCastOperation.CastType,26,0,0,0,3,0,2,0,2,0
+dqetool,dqetool.mysql.ast,MySQLBinaryComparisonOperation.BinaryComparisonOperator.new MySQLBinaryComparisonOperation.BinaryComparisonOperator() {...},29,0,6,0,7,0,5,0,2,0
+dqetool,dqetool.mysql.ast,MySQLBinaryComparisonOperation.BinaryComparisonOperator.new MySQLBinaryComparisonOperation.BinaryComparisonOperator() {...},10,0,0,0,2,0,2,0,2,0
+dqetool,dqetool.sqlite3.schema,SQLite3Schema.SQLite3Table,51,0,2,0,15,0,10,0,9,0
+dqetool,dqetool.sqlite3.schema,SQLite3Schema.SQLite3RowValue,5,0,0,0,2,0,1,0,1,0
+dqetool,dqetool.sqlite3.schema,SQLite3Schema,713,0,116,0,164,0,86,0,23,0
+dqetool,dqetool.sqlite3.schema,SQLite3Schema.SQLite3Column,94,0,14,0,17,0,17,0,10,0
+dqetool,dqetool.sqlite3.schema,SQLite3Schema.SQLite3Tables,147,0,8,0,24,0,9,0,5,0
+dqetool,dqetool.sqlite3.schema,SQLite3Schema.SQLite3Column.SQLite3CollateSequence,38,0,0,0,3,0,2,0,2,0
+dqetool,dqetool.sqlite3.schema,SQLite3Schema.SQLite3Table.TableKind,24,0,0,0,2,0,1,0,1,0
+dqetool,dqetool.sqlite3.schema,SQLite3DataType,64,0,0,0,2,0,1,0,1,0
+dqetool,dqetool.common.visitor,UnaryOperation.OperatorKind,24,0,0,0,2,0,1,0,1,0
+dqetool,dqetool.common.visitor,ToStringVisitor,173,0,22,0,42,0,18,0,7,0
+dqetool,dqetool.common.visitor,UnaryOperation,2,0,0,0,1,0,1,0,1,0
+dqetool,dqetool.common.visitor,NodeVisitor,3,0,0,0,1,0,1,0,1,0
+dqetool,dqetool.cockroachdb.gen,CockroachDBGenerator,60,0,8,0,13,0,6,0,2,0
+dqetool,dqetool.cockroachdb.gen,CockroachDBTableGenerator,603,0,68,0,108,0,39,0,5,0
+dqetool,dqetool.cockroachdb.gen,CockroachDBDropTableGenerator,88,0,8,0,13,0,7,0,3,0
+dqetool,dqetool.cockroachdb.gen,CockroachDBCommentOnGenerator.Option,34,0,0,0,2,0,1,0,1,0
+dqetool,dqetool.cockroachdb.gen,CockroachDBIndexGenerator,201,0,18,0,40,0,13,0,4,0
+dqetool,dqetool.cockroachdb.gen,CockroachDBExpressionGenerator.BooleanExpression,94,0,0,0,2,0,1,0,1,0
+dqetool,dqetool.cockroachdb.gen,CockroachDBCreateStatisticsGenerator,58,0,4,0,9,0,4,0,2,0
+dqetool,dqetool.cockroachdb.gen,CockroachDBInsertGenerator,275,0,24,0,61,0,16,0,4,0
+dqetool,dqetool.cockroachdb.gen,CockroachDBExpressionGenerator,793,0,85,0,149,0,78,0,24,0
+dqetool,dqetool.cockroachdb.gen,CockroachDBDropViewGenerator,102,0,10,0,19,0,8,0,3,0
+dqetool,dqetool.cockroachdb.gen,CockroachDBRandomQuerySynthesizer,141,0,18,0,35,0,12,0,3,0
+dqetool,dqetool.cockroachdb.gen,CockroachDBCommentOnGenerator,117,0,10,0,26,0,8,0,2,0
+dqetool,dqetool.cockroachdb.gen,CockroachDBUpdateGenerator,159,0,6,0,30,0,8,0,5,0
+dqetool,dqetool.cockroachdb.gen,CockroachDBSetSessionGenerator,50,0,0,0,9,0,2,0,2,0
+dqetool,dqetool.cockroachdb.gen,CockroachDBDeleteGenerator,72,0,4,0,15,0,4,0,2,0
+dqetool,dqetool.cockroachdb.gen,CockroachDBSetSessionGenerator.CockroachDBSetting,216,0,0,0,15,0,9,0,9,0
+dqetool,dqetool.cockroachdb.gen,CockroachDBShowGenerator,125,0,16,0,30,0,14,0,3,0
+dqetool,dqetool.cockroachdb.gen,CockroachDBTruncateGenerator,106,0,14,0,18,0,10,0,3,0
+dqetool,dqetool.cockroachdb.gen,CockroachDBSetClusterSettingGenerator,51,0,2,0,13,0,2,0,1,0
+dqetool,dqetool.cockroachdb.gen,CockroachDBSetClusterSettingGenerator.CockroachDBClusterSetting,71,0,0,0,11,0,4,0,4,0
+dqetool,dqetool.cockroachdb.gen,CockroachDBShowGenerator.Option,74,0,0,0,3,0,1,0,1,0
+dqetool,dqetool.cockroachdb.gen,CockroachDBExpressionGenerator.StringExpression,14,0,0,0,2,0,1,0,1,0
+dqetool,dqetool.cockroachdb.gen,CockroachDBViewGenerator,80,0,4,0,18,0,3,0,1,0
+dqetool,dqetool.common.gen,AbstractInsertGenerator,55,0,8,0,12,0,6,0,2,0
+dqetool,dqetool.common.gen,UntypedExpressionGenerator,81,0,8,0,21,0,13,0,9,0
+dqetool,dqetool.common.gen,TypedExpressionGenerator,95,0,10,0,21,0,13,0,8,0
+dqetool,dqetool.common.gen,AbstractGenerator,26,0,0,0,5,0,2,0,2,0
+dqetool,dqetool.common.gen,AbstractUpdateGenerator,49,0,4,0,10,0,4,0,2,0
+dqetool,dqetool.sqlite3.gen.dml,SQLite3InsertGenerator,442,0,50,0,100,0,35,0,10,0
+dqetool,dqetool.sqlite3.gen.dml,SQLite3StatTableGenerator,200,0,18,0,46,0,12,0,3,0
+dqetool,dqetool.sqlite3.gen.dml,SQLite3DeleteGenerator,118,0,6,0,20,0,6,0,3,0
+dqetool,dqetool.sqlite3.gen.dml,SQLite3UpdateGenerator,262,0,18,0,54,0,16,0,7,0
+dqetool,dqetool.sqlite3.ast,SQLite3Constant.SQLite3RealConstant,149,0,30,0,38,0,27,0,12,0
+dqetool,dqetool.sqlite3.ast,SQLite3Aggregate,27,0,2,0,10,0,7,0,6,0
+dqetool,dqetool.sqlite3.ast,SQLite3Expression.BinaryComparisonOperation.BinaryComparisonOperator.new SQLite3Expression.BinaryComparisonOperation.BinaryComparisonOperator() {...},293,0,60,0,66,0,35,0,4,0
+dqetool,dqetool.sqlite3.ast,SQLite3WindowFunctionExpression.SQLite3FrameSpecKind,38,0,0,0,3,0,2,0,2,0
+dqetool,dqetool.sqlite3.ast,SQLite3Expression.Join,65,0,2,0,25,0,10,0,9,0
+dqetool,dqetool.sqlite3.ast,SQLite3Expression.BinaryComparisonOperation.BinaryComparisonOperator,271,0,10,0,37,0,13,0,8,0
+dqetool,dqetool.sqlite3.ast,SQLite3Expression.TypeLiteral,9,0,0,0,4,0,2,0,2,0
+dqetool,dqetool.sqlite3.ast,SQLite3Constant.SQLite3TextConstant,289,0,56,0,74,0,47,0,17,0
+dqetool,dqetool.sqlite3.ast,SQLite3Expression.Sqlite3BinaryOperation.BinaryOperator.new SQLite3Expression.Sqlite3BinaryOperation.BinaryOperator() {...},19,0,0,0,2,0,3,0,3,0
+dqetool,dqetool.sqlite3.ast,SQLite3Expression.Sqlite3BinaryOperation.BinaryOperator.new SQLite3Expression.Sqlite3BinaryOperation.BinaryOperator() {...},52,0,16,0,12,0,10,0,2,0
+dqetool,dqetool.sqlite3.ast,SQLite3Expression.Sqlite3BinaryOperation.BinaryOperator.new SQLite3Expression.Sqlite3BinaryOperation.BinaryOperator() {...},52,0,16,0,12,0,10,0,2,0
+dqetool,dqetool.sqlite3.ast,SQLite3Constant,132,0,4,0,22,0,24,0,22,0
+dqetool,dqetool.sqlite3.ast,SQLite3Expression.SQLite3OrderingTerm,19,0,0,0,7,0,4,0,4,0
+dqetool,dqetool.sqlite3.ast,SQLite3Expression.SQLite3PostfixUnaryOperation.PostfixUnaryOperator.new SQLite3Expression.SQLite3PostfixUnaryOperation.PostfixUnaryOperator() {...},13,0,2,0,4,0,3,0,2,0
+dqetool,dqetool.sqlite3.ast,SQLite3Expression.SQLite3PostfixUnaryOperation.PostfixUnaryOperator.new SQLite3Expression.SQLite3PostfixUnaryOperation.PostfixUnaryOperator() {...},13,0,2,0,4,0,3,0,2,0
+dqetool,dqetool.sqlite3.ast,SQLite3Expression.SQLite3PostfixUnaryOperation.PostfixUnaryOperator.new SQLite3Expression.SQLite3PostfixUnaryOperation.PostfixUnaryOperator() {...},15,0,2,0,4,0,3,0,2,0
+dqetool,dqetool.sqlite3.ast,SQLite3Expression.SQLite3PostfixUnaryOperation.PostfixUnaryOperator.new SQLite3Expression.SQLite3PostfixUnaryOperation.PostfixUnaryOperator() {...},13,0,2,0,4,0,3,0,2,0
+dqetool,dqetool.sqlite3.ast,SQLite3Expression.SQLite3PostfixUnaryOperation.PostfixUnaryOperator.new SQLite3Expression.SQLite3PostfixUnaryOperation.PostfixUnaryOperator() {...},17,0,2,0,4,0,3,0,2,0
+dqetool,dqetool.sqlite3.ast,SQLite3UnaryOperation.UnaryOperator,66,0,0,0,11,0,5,0,5,0
+dqetool,dqetool.sqlite3.ast,SQLite3WindowFunctionExpression.SQLite3WindowFunctionFrameSpecTerm.SQLite3WindowFunctionFrameSpecTermKind,70,0,0,0,7,0,3,0,3,0
+dqetool,dqetool.sqlite3.ast,SQLite3Expression.InOperation,131,0,24,0,40,0,19,0,7,0
+dqetool,dqetool.sqlite3.ast,SQLite3Case.SQLite3CaseWithBaseExpression,135,0,22,0,32,0,15,0,4,0
+dqetool,dqetool.sqlite3.ast,SQLite3Constant.SQLite3IntConstant,166,0,30,0,44,0,29,0,14,0
+dqetool,dqetool.sqlite3.ast,SQLite3Select,201,0,4,0,59,0,28,0,26,0
+dqetool,dqetool.sqlite3.ast,SQLite3WindowFunction.WindowFunction,145,0,2,0,21,0,6,0,5,0
+dqetool,dqetool.sqlite3.ast,SQLite3Expression.Sqlite3BinaryOperation.BinaryOperator.new SQLite3Expression.Sqlite3BinaryOperation.BinaryOperator() {...},59,0,8,0,9,0,7,0,3,0
+dqetool,dqetool.sqlite3.ast,SQLite3Expression.Sqlite3BinaryOperation.BinaryOperator.new SQLite3Expression.Sqlite3BinaryOperation.BinaryOperator() {...},59,0,8,0,9,0,7,0,3,0
+dqetool,dqetool.sqlite3.ast,SQLite3Expression.Sqlite3BinaryOperation.BinaryOperator.new SQLite3Expression.Sqlite3BinaryOperation.BinaryOperator() {...},19,0,0,0,2,0,3,0,3,0
+dqetool,dqetool.sqlite3.ast,SQLite3Expression.Sqlite3BinaryOperation.BinaryOperator.new SQLite3Expression.Sqlite3BinaryOperation.BinaryOperator() {...},8,0,0,0,2,0,2,0,2,0
+dqetool,dqetool.sqlite3.ast,SQLite3Expression.Sqlite3BinaryOperation.BinaryOperator.new SQLite3Expression.Sqlite3BinaryOperation.BinaryOperator() {...},8,0,0,0,2,0,2,0,2,0
+dqetool,dqetool.sqlite3.ast,SQLite3Expression.Sqlite3BinaryOperation.BinaryOperator.new SQLite3Expression.Sqlite3BinaryOperation.BinaryOperator() {...},8,0,0,0,2,0,2,0,2,0
+dqetool,dqetool.sqlite3.ast,SQLite3Expression.Sqlite3BinaryOperation.BinaryOperator.new SQLite3Expression.Sqlite3BinaryOperation.BinaryOperator() {...},8,0,0,0,2,0,2,0,2,0
+dqetool,dqetool.sqlite3.ast,SQLite3Expression.Sqlite3BinaryOperation.BinaryOperator.new SQLite3Expression.Sqlite3BinaryOperation.BinaryOperator() {...},57,0,18,0,13,0,11,0,2,0
+dqetool,dqetool.sqlite3.ast,SQLite3Expression.Sqlite3BinaryOperation.BinaryOperator.new SQLite3Expression.Sqlite3BinaryOperation.BinaryOperator() {...},8,0,0,0,2,0,2,0,2,0
+dqetool,dqetool.sqlite3.ast,SQLite3Expression.MatchOperation,17,0,0,0,7,0,4,0,4,0
+dqetool,dqetool.sqlite3.ast,SQLite3Expression.SQLite3PostfixUnaryOperation.PostfixUnaryOperator,77,0,0,0,12,0,5,0,5,0
+dqetool,dqetool.sqlite3.ast,SQLite3WindowFunctionExpression.SQLite3FrameSpecExclude,63,0,0,0,8,0,4,0,4,0
+dqetool,dqetool.sqlite3.ast,SQLite3Expression.TypeAffinity,77,0,6,0,3,0,5,0,2,0
+dqetool,dqetool.sqlite3.ast,SQLite3Constant.SQLite3NullConstant,22,0,0,0,10,0,10,0,10,0
+dqetool,dqetool.sqlite3.ast,SQLite3WindowFunction,91,0,8,0,20,0,10,0,6,0
+dqetool,dqetool.sqlite3.ast,SQLite3Expression.Cast,64,0,10,0,20,0,14,0,7,0
+dqetool,dqetool.sqlite3.ast,SQLite3WindowFunctionExpression,63,0,0,0,25,0,15,0,15,0
+dqetool,dqetool.sqlite3.ast,SQLite3Expression.Sqlite3BinaryOperation,82,0,10,0,20,0,13,0,8,0
+dqetool,dqetool.sqlite3.ast,SQLite3Constant.SQLite3BinaryConstant,173,0,30,0,37,0,27,0,12,0
+dqetool,dqetool.sqlite3.ast,SQLite3Case.CasePair,15,0,0,0,6,0,3,0,3,0
+dqetool,dqetool.sqlite3.ast,SQLite3UnaryOperation,54,0,6,0,17,0,11,0,8,0
+dqetool,dqetool.sqlite3.ast,SQLite3SetClause,23,0,0,0,9,0,5,0,5,0
+dqetool,dqetool.sqlite3.ast,SQLite3Expression.SQLite3ColumnName,52,0,6,0,16,0,12,0,7,0
+dqetool,dqetool.sqlite3.ast,SQLite3Expression.SQLite3PostfixText,43,0,2,0,16,0,10,0,9,0
+dqetool,dqetool.sqlite3.ast,SQLite3UnaryOperation.UnaryOperator.new SQLite3UnaryOperation.UnaryOperator() {...},56,0,12,0,15,0,8,0,2,0
+dqetool,dqetool.sqlite3.ast,SQLite3Cast,526,0,120,0,131,0,77,0,14,0
+dqetool,dqetool.sqlite3.ast,SQLite3UnaryOperation.UnaryOperator.new SQLite3UnaryOperation.UnaryOperator() {...},20,0,2,0,5,0,3,0,2,0
+dqetool,dqetool.sqlite3.ast,SQLite3Expression.BetweenOperation,87,0,6,0,24,0,11,0,8,0
+dqetool,dqetool.sqlite3.ast,SQLite3UnaryOperation.UnaryOperator.new SQLite3UnaryOperation.UnaryOperator() {...},8,0,0,0,2,0,2,0,2,0
+dqetool,dqetool.sqlite3.ast,SQLite3Expression.Function,44,0,4,0,10,0,6,0,4,0
+dqetool,dqetool.sqlite3.ast,SQLite3UnaryOperation.UnaryOperator.new SQLite3UnaryOperation.UnaryOperator() {...},28,0,4,0,6,0,4,0,2,0
+dqetool,dqetool.sqlite3.ast,SQLite3Case,61,0,8,0,14,0,8,0,4,0
+dqetool,dqetool.sqlite3.ast,SQLite3WindowFunctionExpression.SQLite3WindowFunctionFrameSpecTerm,26,0,0,0,11,0,5,0,5,0
+dqetool,dqetool.sqlite3.ast,SQLite3Expression.Subquery,16,0,0,0,6,0,4,0,4,0
+dqetool,dqetool.sqlite3.ast,SQLite3Expression.BinaryComparisonOperation,81,0,6,0,21,0,11,0,8,0
+dqetool,dqetool.sqlite3.ast,SQLite3Expression.ConstantTuple,9,0,0,0,4,0,1,0,1,0
+dqetool,dqetool.sqlite3.ast,SQLite3Function.ComputableFunction.new SQLite3Function.ComputableFunction() {...},11,0,0,0,2,0,2,0,2,0
+dqetool,dqetool.sqlite3.ast,SQLite3Function.ComputableFunction.new SQLite3Function.ComputableFunction() {...},11,0,0,0,2,0,2,0,2,0
+dqetool,dqetool.sqlite3.ast,SQLite3Function.ComputableFunction.new SQLite3Function.ComputableFunction() {...},63,0,10,0,12,0,7,0,2,0
+dqetool,dqetool.sqlite3.ast,SQLite3Function.ComputableFunction.new SQLite3Function.ComputableFunction() {...},9,0,0,0,2,0,2,0,2,0
+dqetool,dqetool.sqlite3.ast,SQLite3Function.ComputableFunction.new SQLite3Function.ComputableFunction() {...},91,0,16,0,17,0,11,0,3,0
+dqetool,dqetool.sqlite3.ast,SQLite3Function.ComputableFunction.new SQLite3Function.ComputableFunction() {...},37,0,4,0,8,0,4,0,2,0
+dqetool,dqetool.sqlite3.ast,SQLite3Function.ComputableFunction.new SQLite3Function.ComputableFunction() {...},32,0,4,0,5,0,4,0,2,0
+dqetool,dqetool.sqlite3.ast,SQLite3Function.ComputableFunction.new SQLite3Function.ComputableFunction() {...},32,0,4,0,6,0,5,0,3,0
+dqetool,dqetool.sqlite3.ast,SQLite3Function.ComputableFunction.new SQLite3Function.ComputableFunction() {...},67,0,12,0,15,0,8,0,2,0
+dqetool,dqetool.sqlite3.ast,SQLite3Case.SQLite3CaseWithoutBaseExpression,57,0,10,0,13,0,8,0,3,0
+dqetool,dqetool.sqlite3.ast,SQLite3Expression.BinaryComparisonOperation.BinaryComparisonOperator.new SQLite3Expression.BinaryComparisonOperation.BinaryComparisonOperator() {...},39,0,8,0,10,0,6,0,2,0
+dqetool,dqetool.sqlite3.ast,SQLite3Expression.BinaryComparisonOperation.BinaryComparisonOperator.new SQLite3Expression.BinaryComparisonOperation.BinaryComparisonOperator() {...},31,0,6,0,7,0,5,0,2,0
+dqetool,dqetool.sqlite3.ast,SQLite3Expression.BinaryComparisonOperation.BinaryComparisonOperator.new SQLite3Expression.BinaryComparisonOperation.BinaryComparisonOperator() {...},11,0,0,0,2,0,2,0,2,0
+dqetool,dqetool.sqlite3.ast,SQLite3Expression.BinaryComparisonOperation.BinaryComparisonOperator.new SQLite3Expression.BinaryComparisonOperation.BinaryComparisonOperator() {...},39,0,8,0,10,0,6,0,2,0
+dqetool,dqetool.sqlite3.ast,SQLite3Expression.BinaryComparisonOperation.BinaryComparisonOperator.new SQLite3Expression.BinaryComparisonOperation.BinaryComparisonOperator() {...},11,0,0,0,2,0,2,0,2,0
+dqetool,dqetool.sqlite3.ast,SQLite3Function.ComputableFunction,189,0,0,0,23,0,8,0,8,0
+dqetool,dqetool.sqlite3.ast,SQLite3Expression.BinaryComparisonOperation.BinaryComparisonOperator.new SQLite3Expression.BinaryComparisonOperation.BinaryComparisonOperator() {...},29,0,8,0,8,0,6,0,2,0
+dqetool,dqetool.sqlite3.ast,SQLite3Expression.BinaryComparisonOperation.BinaryComparisonOperator.new SQLite3Expression.BinaryComparisonOperation.BinaryComparisonOperator() {...},45,0,14,0,10,0,9,0,2,0
+dqetool,dqetool.sqlite3.ast,SQLite3Expression.BinaryComparisonOperation.BinaryComparisonOperator.new SQLite3Expression.BinaryComparisonOperation.BinaryComparisonOperator() {...},46,0,12,0,12,0,9,0,3,0
+dqetool,dqetool.sqlite3.ast,SQLite3Expression.BinaryComparisonOperation.BinaryComparisonOperator.new SQLite3Expression.BinaryComparisonOperation.BinaryComparisonOperator() {...},53,0,16,0,12,0,10,0,2,0
+dqetool,dqetool.sqlite3.ast,SQLite3WindowFunctionExpression.SQLite3WindowFunctionFrameSpecBetween,17,0,0,0,7,0,4,0,4,0
+dqetool,dqetool.sqlite3.ast,SQLite3Function.ComputableFunction.new SQLite3Function.ComputableFunction() {...},144,0,28,0,33,0,16,0,2,0
+dqetool,dqetool.sqlite3.ast,SQLite3Function.ComputableFunction.new SQLite3Function.ComputableFunction() {...},27,0,2,0,6,0,3,0,2,0
+dqetool,dqetool.sqlite3.ast,SQLite3Function.ComputableFunction.new SQLite3Function.ComputableFunction() {...},11,0,0,0,2,0,2,0,2,0
+dqetool,dqetool.sqlite3.ast,SQLite3Function.ComputableFunction.new SQLite3Function.ComputableFunction() {...},37,0,6,0,8,0,7,0,2,0
+dqetool,dqetool.sqlite3.ast,SQLite3Expression.Join.JoinType,64,0,0,0,2,0,1,0,1,0
+dqetool,dqetool.sqlite3.ast,SQLite3WindowFunction.WindowFunction.new SQLite3WindowFunction.WindowFunction() {...},8,0,0,0,2,0,2,0,2,0
+dqetool,dqetool.sqlite3.ast,SQLite3WindowFunction.WindowFunction.new SQLite3WindowFunction.WindowFunction() {...},10,0,0,0,2,0,2,0,2,0
+dqetool,dqetool.sqlite3.ast,SQLite3WindowFunction.WindowFunction.new SQLite3WindowFunction.WindowFunction() {...},8,0,0,0,2,0,2,0,2,0
+dqetool,dqetool.sqlite3.ast,SQLite3WindowFunction.WindowFunction.new SQLite3WindowFunction.WindowFunction() {...},8,0,0,0,2,0,2,0,2,0
+dqetool,dqetool.sqlite3.ast,SQLite3WindowFunction.WindowFunction.new SQLite3WindowFunction.WindowFunction() {...},10,0,0,0,2,0,2,0,2,0
+dqetool,dqetool.sqlite3.ast,SQLite3WindowFunction.WindowFunction.new SQLite3WindowFunction.WindowFunction() {...},25,0,4,0,5,0,4,0,2,0
+dqetool,dqetool.sqlite3.ast,SQLite3Expression.TypeLiteral.Type,54,0,0,0,6,0,1,0,1,0
+dqetool,dqetool.sqlite3.ast,SQLite3Expression.TypeLiteral.Type.new SQLite3Expression.TypeLiteral.Type() {...},8,0,0,0,2,0,2,0,2,0
+dqetool,dqetool.sqlite3.ast,SQLite3WindowFunction.WindowFunction.new SQLite3WindowFunction.WindowFunction() {...},8,0,0,0,2,0,2,0,2,0
+dqetool,dqetool.sqlite3.ast,SQLite3WindowFunction.WindowFunction.new SQLite3WindowFunction.WindowFunction() {...},8,0,0,0,2,0,2,0,2,0
+dqetool,dqetool.sqlite3.ast,SQLite3Expression.Sqlite3BinaryOperation.BinaryOperator,250,0,4,0,27,0,9,0,7,0
+dqetool,dqetool.sqlite3.ast,SQLite3Expression.TypeLiteral.Type.new SQLite3Expression.TypeLiteral.Type() {...},8,0,0,0,2,0,2,0,2,0
+dqetool,dqetool.sqlite3.ast,SQLite3Expression.TypeLiteral.Type.new SQLite3Expression.TypeLiteral.Type() {...},8,0,0,0,2,0,2,0,2,0
+dqetool,dqetool.sqlite3.ast,SQLite3Expression.TypeLiteral.Type.new SQLite3Expression.TypeLiteral.Type() {...},8,0,0,0,2,0,2,0,2,0
+dqetool,dqetool.sqlite3.ast,SQLite3Expression.TypeLiteral.Type.new SQLite3Expression.TypeLiteral.Type() {...},8,0,0,0,2,0,2,0,2,0
+dqetool,dqetool.sqlite3.ast,SQLite3Aggregate.SQLite3AggregateFunction.new SQLite3Aggregate.SQLite3AggregateFunction() {...},8,0,0,0,2,0,2,0,2,0
+dqetool,dqetool.sqlite3.ast,SQLite3Aggregate.SQLite3AggregateFunction.new SQLite3Aggregate.SQLite3AggregateFunction() {...},17,0,2,0,6,0,3,0,2,0
+dqetool,dqetool.sqlite3.ast,SQLite3SetClause.SQLite3ClauseType,63,0,0,0,7,0,4,0,4,0
+dqetool,dqetool.sqlite3.ast,SQLite3Aggregate.SQLite3AggregateFunction.new SQLite3Aggregate.SQLite3AggregateFunction() {...},8,0,0,0,2,0,2,0,2,0
+dqetool,dqetool.sqlite3.ast,SQLite3Aggregate.SQLite3AggregateFunction.new SQLite3Aggregate.SQLite3AggregateFunction() {...},18,0,4,0,5,0,4,0,2,0
+dqetool,dqetool.sqlite3.ast,SQLite3Aggregate.SQLite3AggregateFunction.new SQLite3Aggregate.SQLite3AggregateFunction() {...},7,0,0,0,2,0,2,0,2,0
+dqetool,dqetool.sqlite3.ast,SQLite3Aggregate.SQLite3AggregateFunction.new SQLite3Aggregate.SQLite3AggregateFunction() {...},7,0,0,0,2,0,2,0,2,0
+dqetool,dqetool.sqlite3.ast,SQLite3Aggregate.SQLite3AggregateFunction.new SQLite3Aggregate.SQLite3AggregateFunction() {...},8,0,0,0,2,0,2,0,2,0
+dqetool,dqetool.sqlite3.ast,SQLite3Aggregate.SQLite3AggregateFunction.new SQLite3Aggregate.SQLite3AggregateFunction() {...},14,0,2,0,4,0,3,0,2,0
+dqetool,dqetool.sqlite3.ast,SQLite3Expression.CollateOperation,26,0,0,0,9,0,6,0,6,0
+dqetool,dqetool.sqlite3.ast,SQLite3Expression.SQLite3OrderingTerm.Ordering,28,0,0,0,3,0,2,0,2,0
+dqetool,dqetool.sqlite3.ast,SQLite3RowValueExpression,30,0,4,0,9,0,5,0,3,0
+dqetool,dqetool.sqlite3.ast,SQLite3Select.SelectType,24,0,0,0,2,0,1,0,1,0
+dqetool,dqetool.sqlite3.ast,SQLite3Expression.SQLite3Text,17,0,0,0,7,0,4,0,4,0
+dqetool,dqetool.sqlite3.ast,SQLite3Function,112,0,14,0,23,0,13,0,6,0
+dqetool,dqetool.sqlite3.ast,SQLite3Aggregate.SQLite3AggregateFunction,112,0,2,0,16,0,4,0,3,0
+dqetool,dqetool.sqlite3.ast,SQLite3Expression.SQLite3TableReference,26,0,0,0,11,0,5,0,5,0
+dqetool,dqetool.sqlite3.ast,SQLite3Expression.SQLite3Exist,11,0,0,0,5,0,3,0,3,0
+dqetool,dqetool.sqlite3.ast,SQLite3Expression.SQLite3Distinct,21,0,0,0,7,0,5,0,5,0
+dqetool,dqetool.sqlite3.ast,SQLite3Expression.SQLite3PostfixUnaryOperation,38,0,2,0,12,0,8,0,7,0
+dqetool,dqetool.sqlite3.ast,SQLite3Expression,94,0,32,0,23,0,22,0,6,0
+dqetool,dqetool.common.query,SQLQueryResultCheckAdapter,33,0,0,0,10,0,2,0,2,0
+dqetool,dqetool.common.query,SQLQueryError,198,0,58,0,51,0,41,0,12,0
+dqetool,dqetool.common.query,SQLancerResultSet,64,0,2,0,19,0,11,0,10,0
+dqetool,dqetool.common.query,SQLQueryAdapter,286,0,34,0,79,0,36,0,19,0
+dqetool,dqetool.common.query,SQLQueryError.ErrorLevel,24,0,0,0,2,0,1,0,1,0
+dqetool,dqetool.common.query,ExpectedErrors,130,0,18,0,30,0,16,0,7,0
+dqetool,dqetool.common.query,Query,38,0,2,0,10,0,7,0,6,0
+dqetool,dqetool.mysql.oracle,MySQLQueryPartitioningBase,88,0,0,0,17,0,5,0,5,0
+dqetool,dqetool.mysql.oracle,MySQLTLPWhereOracle,89,0,2,0,21,0,3,0,2,0
+dqetool,dqetool.mysql.oracle,MySQLPivotedQuerySynthesisOracle,334,0,18,0,68,0,20,0,11,0
+dqetool,dqetool.mysql.oracle,MySQLDQEOracle,1397,0,160,0,259,0,93,0,13,0
+dqetool,dqetool.sqlite3.gen.ddl,SQLite3CreateTriggerGenerator.OnAction,34,0,0,0,2,0,1,0,1,0
+dqetool,dqetool.sqlite3.gen.ddl,SQLite3CreateVirtualFTSTableGenerator,521,0,40,0,108,0,38,0,13,0
+dqetool,dqetool.sqlite3.gen.ddl,SQLite3IndexGenerator,292,0,26,0,68,0,19,0,6,0
+dqetool,dqetool.sqlite3.gen.ddl,SQLite3AlterTable.Option,34,0,0,0,2,0,1,0,1,0
+dqetool,dqetool.sqlite3.gen.ddl,SQLite3DropTableGenerator,70,0,8,0,11,0,7,0,3,0
+dqetool,dqetool.sqlite3.gen.ddl,SQLite3CreateTriggerGenerator.TriggerAction,44,0,0,0,2,0,1,0,1,0
+dqetool,dqetool.sqlite3.gen.ddl,SQLite3CreateTriggerGenerator,341,0,33,0,75,0,24,0,5,0
+dqetool,dqetool.sqlite3.gen.ddl,SQLite3AlterTable,208,0,10,0,43,0,10,0,4,0
+dqetool,dqetool.sqlite3.gen.ddl,SQLite3CreateVirtualFTSTableGenerator.Fts5Options,54,0,0,0,6,0,1,0,1,0
+dqetool,dqetool.sqlite3.gen.ddl,SQLite3CreateVirtualFTSTableGenerator.Fts4Options,74,0,0,0,2,0,1,0,1,0
+dqetool,dqetool.sqlite3.gen.ddl,SQLite3TableGenerator,643,0,80,0,125,0,49,0,9,0
+dqetool,dqetool.sqlite3.gen.ddl,SQLite3DropIndexGenerator,45,0,2,0,11,0,2,0,1,0
+dqetool,dqetool.mysql.gen.datadef,MySQLIndexGenerator,442,0,38,0,95,0,26,0,7,0
+dqetool,dqetool.tidb,TiDBSchema.TiDBCompositeDataType,140,0,17,0,34,0,19,0,7,0
+dqetool,dqetool.tidb,TiDBProvider.TiDBGlobalState,10,0,0,0,2,0,2,0,2,0
+dqetool,dqetool.tidb,TiDBProvider.Action,190,0,2,0,19,0,7,0,6,0
+dqetool,dqetool.tidb,TiDBOptions,21,0,0,0,5,0,2,0,2,0
+dqetool,dqetool.tidb,TiDBSchema.TiDBTables,4,0,0,0,2,0,1,0,1,0
+dqetool,dqetool.tidb,TiDBExpressionGenerator.Gen,124,0,0,0,6,0,1,0,1,0
+dqetool,dqetool.tidb,TiDBSchema.TiDBTable,16,0,0,0,3,0,3,0,3,0
+dqetool,dqetool.tidb,TiDBSchema.TiDBColumn,18,0,0,0,6,0,3,0,3,0
+dqetool,dqetool.tidb,TiDBOptions.TiDBOracleFactory.new TiDBOptions.TiDBOracleFactory() {...},10,0,0,0,2,0,2,0,2,0
+dqetool,dqetool.tidb,TiDBProvider,307,0,25,0,70,0,24,0,9,0
+dqetool,dqetool.tidb,TiDBErrors,199,0,8,0,54,0,7,0,3,0
+dqetool,dqetool.tidb,TiDBOptions.TiDBOracleFactory,14,0,0,0,2,0,1,0,1,0
+dqetool,dqetool.tidb,TiDBExpressionGenerator,411,0,45,0,69,0,41,0,8,0
+dqetool,dqetool.tidb,TiDBSchema,342,0,37,0,89,0,31,0,8,0
+dqetool,dqetool.tidb,TiDBBugs,9,0,0,0,4,0,1,0,1,0
+dqetool,dqetool.tidb,TiDBSchema.TiDBDataType,135,0,6,0,18,0,11,0,7,0
+dqetool,dqetool.mariadb.oracle,MariaDBNoRECOracle,312,0,12,0,65,0,10,0,4,0
+dqetool,dqetool.mariadb.oracle,MariaDBDQEOracle,1394,0,160,0,259,0,93,0,13,0
+dqetool,dqetool.cockroachdb.ast,CockroachDBBinaryArithmeticOperation.CockroachDBBinaryArithmeticOperator,63,0,0,0,7,0,4,0,4,0
+dqetool,dqetool.cockroachdb.ast,CockroachDBBetweenOperation.CockroachDBBetweenOperatorType,63,0,0,0,8,0,4,0,4,0
+dqetool,dqetool.cockroachdb.ast,CockroachDBJoin.JoinType,48,0,0,0,3,0,2,0,2,0
+dqetool,dqetool.cockroachdb.ast,CockroachDBBinaryComparisonOperator,6,0,0,0,2,0,1,0,1,0
+dqetool,dqetool.cockroachdb.ast,CockroachDBAggregate,15,0,0,0,6,0,3,0,3,0
+dqetool,dqetool.cockroachdb.ast,CockroachDBBinaryComparisonOperator.CockroachDBComparisonOperator,107,0,0,0,8,0,4,0,4,0
+dqetool,dqetool.cockroachdb.ast,CockroachDBCaseOperation,21,0,0,0,8,0,4,0,4,0
+dqetool,dqetool.cockroachdb.ast,CockroachDBFunction,996,0,10,0,94,0,16,0,11,0
+dqetool,dqetool.cockroachdb.ast,CockroachDBConstant,97,0,4,0,16,0,15,0,13,0
+dqetool,dqetool.cockroachdb.ast,CockroachDBAlias,20,0,0,0,8,0,5,0,5,0
+dqetool,dqetool.cockroachdb.ast,CockroachDBBinaryLogicalOperation.CockroachDBBinaryLogicalOperator,41,0,0,0,7,0,4,0,4,0
+dqetool,dqetool.cockroachdb.ast,CockroachDBFunctionCall,19,0,0,0,7,0,4,0,4,0
+dqetool,dqetool.cockroachdb.ast,CockroachDBConstant.CockroachDBNullConstant,5,0,0,0,2,0,2,0,2,0
+dqetool,dqetool.cockroachdb.ast,CockroachDBConstant.CockroachDBIntConstant,13,0,0,0,5,0,3,0,3,0
+dqetool,dqetool.cockroachdb.ast,CockroachDBConstant.CockroachDBTimeRelatedConstant,36,0,0,0,7,0,2,0,2,0
+dqetool,dqetool.cockroachdb.ast,CockroachDBUnaryPostfixOperation.CockroachDBUnaryPostfixOperator,103,0,0,0,10,0,3,0,3,0
+dqetool,dqetool.cockroachdb.ast,CockroachDBConstant.CockroachDBDoubleConstant,27,0,4,0,9,0,5,0,3,0
+dqetool,dqetool.cockroachdb.ast,CockroachDBNotOperation,8,0,0,0,4,0,3,0,3,0
+dqetool,dqetool.cockroachdb.ast,CockroachDBConstant.CockroachDBBitConstant,20,0,0,0,8,0,4,0,4,0
+dqetool,dqetool.cockroachdb.ast,CockroachDBUnaryPostfixOperation,7,0,0,0,3,0,2,0,2,0
+dqetool,dqetool.cockroachdb.ast,CockroachDBUnaryArithmeticOperation,7,0,0,0,3,0,2,0,2,0
+dqetool,dqetool.cockroachdb.ast,CockroachDBConcatOperation,7,0,0,0,3,0,2,0,2,0
+dqetool,dqetool.cockroachdb.ast,CockroachDBAggregate.CockroachDBAggregateFunction,446,0,8,0,35,0,13,0,9,0
+dqetool,dqetool.cockroachdb.ast,CockroachDBConstant.CockroachDBBooleanConstant,13,0,0,0,5,0,3,0,3,0
+dqetool,dqetool.cockroachdb.ast,CockroachDBConstant.CockroachDBTextConstant,16,0,0,0,5,0,3,0,3,0
+dqetool,dqetool.cockroachdb.ast,CockroachDBJoin,63,0,0,0,18,0,10,0,10,0
+dqetool,dqetool.cockroachdb.ast,CockroachDBColumnReference,9,0,0,0,4,0,2,0,2,0
+dqetool,dqetool.cockroachdb.ast,CockroachDBBinaryArithmeticOperation,6,0,0,0,2,0,1,0,1,0
+dqetool,dqetool.cockroachdb.ast,CockroachDBInOperation,15,0,0,0,6,0,3,0,3,0
+dqetool,dqetool.cockroachdb.ast,CockroachDBCollate,16,0,0,0,6,0,4,0,4,0
+dqetool,dqetool.cockroachdb.ast,CockroachDBBinaryLogicalOperation,6,0,0,0,2,0,1,0,1,0
+dqetool,dqetool.cockroachdb.ast,CockroachDBTypeAnnotation,14,0,0,0,5,0,3,0,3,0
+dqetool,dqetool.cockroachdb.ast,CockroachDBAggregate.CockroachDBAggregateFunction.new CockroachDBAggregate.CockroachDBAggregateFunction() {...},8,0,0,0,2,0,2,0,2,0
+dqetool,dqetool.cockroachdb.ast,CockroachDBAggregate.CockroachDBAggregateFunction.new CockroachDBAggregate.CockroachDBAggregateFunction() {...},8,0,0,0,2,0,2,0,2,0
+dqetool,dqetool.cockroachdb.ast,CockroachDBAggregate.CockroachDBAggregateFunction.new CockroachDBAggregate.CockroachDBAggregateFunction() {...},8,0,0,0,2,0,2,0,2,0
+dqetool,dqetool.cockroachdb.ast,CockroachDBAggregate.CockroachDBAggregateFunction.new CockroachDBAggregate.CockroachDBAggregateFunction() {...},14,0,0,0,2,0,2,0,2,0
+dqetool,dqetool.cockroachdb.ast,CockroachDBAggregate.CockroachDBAggregateFunction.new CockroachDBAggregate.CockroachDBAggregateFunction() {...},18,0,0,0,2,0,2,0,2,0
+dqetool,dqetool.cockroachdb.ast,CockroachDBIndexReference,56,0,2,0,10,0,6,0,5,0
+dqetool,dqetool.cockroachdb.ast,CockroachDBMultiValuedComparison.MultiValuedComparisonType,38,0,0,0,3,0,2,0,2,0
+dqetool,dqetool.cockroachdb.ast,CockroachDBTableReference,9,0,0,0,4,0,2,0,2,0
+dqetool,dqetool.cockroachdb.ast,CockroachDBRegexOperation,12,0,0,0,4,0,2,0,2,0
+dqetool,dqetool.cockroachdb.ast,CockroachDBRegexOperation.CockroachDBRegexOperator,126,0,0,0,12,0,3,0,3,0
+dqetool,dqetool.cockroachdb.ast,CockroachDBConstant.CockroachDBIntervalConstant,63,0,0,0,10,0,2,0,2,0
+dqetool,dqetool.cockroachdb.ast,CockroachDBUnaryArithmeticOperation.CockroachDBUnaryAritmeticOperator,48,0,0,0,6,0,3,0,3,0
+dqetool,dqetool.cockroachdb.ast,CockroachDBConstant.CockroachDBArrayConstant,45,0,4,0,11,0,5,0,3,0
+dqetool,dqetool.cockroachdb.ast,CockroachDBSelect,10,0,0,0,4,0,3,0,3,0
+dqetool,dqetool.cockroachdb.ast,CockroachDBOrderingTerm,23,0,2,0,8,0,6,0,5,0
+dqetool,dqetool.cockroachdb.ast,CockroachDBMultiValuedComparison.MultiValuedComparisonOperator,94,0,0,0,7,0,4,0,4,0
+dqetool,dqetool.cockroachdb.ast,CockroachDBJoin.OuterType,38,0,0,0,3,0,2,0,2,0
+dqetool,dqetool.cockroachdb.ast,CockroachDBMultiValuedComparison,27,0,0,0,10,0,5,0,5,0
+dqetool,dqetool.cockroachdb.ast,CockroachDBBetweenOperation,27,0,0,0,10,0,5,0,5,0
+dqetool,dqetool.cockroachdb.ast,CockroachDBFunction.new CockroachDBFunction() {...},21,0,0,0,3,0,3,0,3,0
+dqetool,dqetool.cockroachdb.ast,CockroachDBFunction.new CockroachDBFunction() {...},25,0,0,0,4,0,3,0,3,0
+dqetool,dqetool.cockroachdb.ast,CockroachDBFunction.new CockroachDBFunction() {...},26,0,2,0,6,0,3,0,2,0
+dqetool,dqetool.cockroachdb.ast,CockroachDBFunction.new CockroachDBFunction() {...},32,0,0,0,5,0,3,0,3,0
+dqetool,dqetool.cockroachdb.ast,CockroachDBCast,19,0,0,0,7,0,4,0,4,0
+dqetool,dqetool.common.oracle,DQEBase,89,0,0,0,17,0,3,0,3,0
+dqetool,dqetool.common.oracle,NoRECBase,24,0,0,0,7,0,1,0,1,0
+dqetool,dqetool.common.oracle,TernaryLogicPartitioningOracleBase,62,0,8,0,18,0,7,0,3,0
+dqetool,dqetool.common.oracle,DQEBase.SQLQueryResult,97,0,14,0,23,0,15,0,8,0
+dqetool,dqetool.common.oracle,CompositeTestOracle,58,0,4,0,13,0,5,0,3,0
+dqetool,dqetool.common.oracle,TestOracle,7,0,0,0,2,0,2,0,2,0
+dqetool,dqetool.common.oracle,DocumentRemovalOracleBase,27,0,4,0,10,0,4,0,2,0
+dqetool,dqetool.common.oracle,PivotedQuerySynthesisBase,200,0,18,0,40,0,13,0,4,0
+dqetool,dqetool.tidb.visitor,TiDBToStringVisitor,432,0,40,0,107,0,36,0,13,0
+dqetool,dqetool.tidb.visitor,TiDBVisitor,97,0,20,0,26,0,12,0,2,0
+dqetool,dqetool.mariadb,MariaDBErrors,86,0,0,0,23,0,2,0,2,0
+dqetool,dqetool.mariadb,MariaDBSchema.MariaDBTable,13,0,0,0,4,0,2,0,2,0
+dqetool,dqetool.mariadb,MariaDBSchema.MariaDBTable.MariaDBEngine,66,0,0,0,8,0,6,0,6,0
+dqetool,dqetool.mariadb,MariaDBSchema.MariaDBIndex,14,0,2,0,5,0,3,0,2,0
+dqetool,dqetool.mariadb,MariaDBSchema.MariaDBColumn.CollateSequence,38,0,0,0,3,0,2,0,2,0
+dqetool,dqetool.mariadb,MariaDBProvider.Action,104,0,0,0,11,0,1,0,1,0
+dqetool,dqetool.mariadb,MariaDBOptions.MariaDBOracleFactory,24,0,0,0,3,0,1,0,1,0
+dqetool,dqetool.mariadb,MariaDBSchema.MariaDBDataType,44,0,0,0,2,0,1,0,1,0
+dqetool,dqetool.mariadb,MariaDBOptions.MariaDBOracleFactory.new MariaDBOptions.MariaDBOracleFactory() {...},10,0,0,0,2,0,2,0,2,0
+dqetool,dqetool.mariadb,MariaDBOptions.MariaDBOracleFactory.new MariaDBOptions.MariaDBOracleFactory() {...},10,0,0,0,2,0,2,0,2,0
+dqetool,dqetool.mariadb,MariaDBSchema.MariaDBColumn,18,0,0,0,6,0,3,0,3,0
+dqetool,dqetool.mariadb,MariaDBOptions,10,0,0,0,3,0,2,0,2,0
+dqetool,dqetool.mariadb,MariaDBBugs,3,0,0,0,1,0,1,0,1,0
+dqetool,dqetool.mariadb,MariaDBProvider.MariaDBGlobalState,10,0,0,0,2,0,2,0,2,0
+dqetool,dqetool.mariadb,MariaDBSchema,225,0,14,0,50,0,14,0,6,0
+dqetool,dqetool.mariadb,MariaDBSchema.MariaDBTables,75,0,2,0,12,0,9,0,8,0
+dqetool,dqetool.mariadb,MariaDBProvider,375,0,37,0,91,0,29,0,5,0
+dqetool,dqetool.common,DBMSCommon,67,0,4,0,14,0,8,0,6,0

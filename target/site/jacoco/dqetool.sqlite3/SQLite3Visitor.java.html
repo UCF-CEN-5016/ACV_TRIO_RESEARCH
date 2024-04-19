@@ -1,0 +1,221 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>SQLite3Visitor.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">dqetool</a> &gt; <a href="index.source.html" class="el_package">dqetool.sqlite3</a> &gt; <span class="el_source">SQLite3Visitor.java</span></div><h1>SQLite3Visitor.java</h1><pre class="source lang-java linenums">package dqetool.sqlite3;
+
+import dqetool.sqlite3.ast.SQLite3Aggregate;
+import dqetool.sqlite3.ast.SQLite3Case.SQLite3CaseWithBaseExpression;
+import dqetool.sqlite3.ast.SQLite3Case.SQLite3CaseWithoutBaseExpression;
+import dqetool.sqlite3.ast.SQLite3Constant;
+import dqetool.sqlite3.ast.SQLite3Expression;
+import dqetool.sqlite3.ast.SQLite3Expression.BetweenOperation;
+import dqetool.sqlite3.ast.SQLite3Expression.BinaryComparisonOperation;
+import dqetool.sqlite3.ast.SQLite3Expression.Cast;
+import dqetool.sqlite3.ast.SQLite3Expression.CollateOperation;
+import dqetool.sqlite3.ast.SQLite3Expression.Function;
+import dqetool.sqlite3.ast.SQLite3Expression.InOperation;
+import dqetool.sqlite3.ast.SQLite3Expression.Join;
+import dqetool.sqlite3.ast.SQLite3Expression.MatchOperation;
+import dqetool.sqlite3.ast.SQLite3Expression.SQLite3ColumnName;
+import dqetool.sqlite3.ast.SQLite3Expression.SQLite3Distinct;
+import dqetool.sqlite3.ast.SQLite3Expression.SQLite3Exist;
+import dqetool.sqlite3.ast.SQLite3Expression.SQLite3OrderingTerm;
+import dqetool.sqlite3.ast.SQLite3Expression.SQLite3PostfixText;
+import dqetool.sqlite3.ast.SQLite3Expression.SQLite3PostfixUnaryOperation;
+import dqetool.sqlite3.ast.SQLite3Expression.SQLite3TableReference;
+import dqetool.sqlite3.ast.SQLite3Expression.SQLite3Text;
+import dqetool.sqlite3.ast.SQLite3Expression.Sqlite3BinaryOperation;
+import dqetool.sqlite3.ast.SQLite3Expression.Subquery;
+import dqetool.sqlite3.ast.SQLite3Expression.TypeLiteral;
+import dqetool.sqlite3.ast.SQLite3Function;
+import dqetool.sqlite3.ast.SQLite3RowValueExpression;
+import dqetool.sqlite3.ast.SQLite3Select;
+import dqetool.sqlite3.ast.SQLite3SetClause;
+import dqetool.sqlite3.ast.SQLite3UnaryOperation;
+import dqetool.sqlite3.ast.SQLite3WindowFunction;
+import dqetool.sqlite3.ast.SQLite3WindowFunctionExpression;
+import dqetool.sqlite3.ast.SQLite3WindowFunctionExpression.SQLite3WindowFunctionFrameSpecBetween;
+import dqetool.sqlite3.ast.SQLite3WindowFunctionExpression.SQLite3WindowFunctionFrameSpecTerm;
+
+public interface SQLite3Visitor {
+
+    static byte[] hexStringToByteArray(String s) {
+<span class="nc" id="L40">        byte[] b = new byte[s.length() / 2];</span>
+<span class="nc bnc" id="L41" title="All 2 branches missed.">        for (int i = 0; i &lt; b.length; i++) {</span>
+<span class="nc" id="L42">            int index = i * 2;</span>
+<span class="nc" id="L43">            int v = Integer.parseInt(s.substring(index, index + 2), 16);</span>
+<span class="nc" id="L44">            b[i] = (byte) v;</span>
+        }
+<span class="nc" id="L46">        return b;</span>
+    }
+
+    static String byteArrayToHex(byte[] a) {
+<span class="nc" id="L50">        StringBuilder sb = new StringBuilder(a.length * 2);</span>
+<span class="nc bnc" id="L51" title="All 2 branches missed.">        for (byte b : a) {</span>
+<span class="nc" id="L52">            sb.append(String.format(&quot;%02x&quot;, b));</span>
+        }
+<span class="nc" id="L54">        return sb.toString();</span>
+    }
+
+    // TODO remove these default methods
+
+    default void visit(BinaryComparisonOperation op) {
+
+<span class="nc" id="L61">    }</span>
+
+    default void visit(Sqlite3BinaryOperation op) {
+
+<span class="nc" id="L65">    }</span>
+
+    default void visit(SQLite3UnaryOperation exp) {
+
+<span class="nc" id="L69">    }</span>
+
+    default void visit(SQLite3PostfixText op) {
+
+<span class="nc" id="L73">    }</span>
+
+    default void visit(SQLite3PostfixUnaryOperation exp) {
+
+<span class="nc" id="L77">    }</span>
+
+    void visit(BetweenOperation op);
+
+    void visit(SQLite3ColumnName c);
+
+    void visit(SQLite3Constant c);
+
+    void visit(Function f);
+
+    void visit(SQLite3Select s, boolean inner);
+
+    void visit(SQLite3OrderingTerm term);
+
+    void visit(SQLite3TableReference tableReference);
+
+    void visit(SQLite3SetClause set);
+
+    void visit(CollateOperation op);
+
+    void visit(Cast cast);
+
+    void visit(TypeLiteral literal);
+
+    void visit(InOperation op);
+
+    void visit(Subquery query);
+
+    void visit(SQLite3Exist exist);
+
+    void visit(Join join);
+
+    void visit(MatchOperation match);
+
+    void visit(SQLite3Function func);
+
+    void visit(SQLite3Text func);
+
+    void visit(SQLite3Distinct distinct);
+
+    void visit(SQLite3CaseWithoutBaseExpression casExpr);
+
+    void visit(SQLite3CaseWithBaseExpression casExpr);
+
+    void visit(SQLite3Aggregate aggr);
+
+    void visit(SQLite3WindowFunction func);
+
+    void visit(SQLite3RowValueExpression rw);
+
+    void visit(SQLite3WindowFunctionExpression windowFunction);
+
+    void visit(SQLite3WindowFunctionFrameSpecTerm term);
+
+    void visit(SQLite3WindowFunctionFrameSpecBetween between);
+
+    default void visit(SQLite3Expression expr) {
+<span class="nc bnc" id="L134" title="All 2 branches missed.">        if (expr instanceof Sqlite3BinaryOperation) {</span>
+<span class="nc" id="L135">            visit((Sqlite3BinaryOperation) expr);</span>
+<span class="nc bnc" id="L136" title="All 2 branches missed.">        } else if (expr instanceof SQLite3ColumnName) {</span>
+<span class="nc" id="L137">            visit((SQLite3ColumnName) expr);</span>
+<span class="nc bnc" id="L138" title="All 2 branches missed.">        } else if (expr instanceof SQLite3Constant) {</span>
+<span class="nc" id="L139">            visit((SQLite3Constant) expr);</span>
+<span class="nc bnc" id="L140" title="All 2 branches missed.">        } else if (expr instanceof SQLite3UnaryOperation) {</span>
+<span class="nc" id="L141">            visit((SQLite3UnaryOperation) expr);</span>
+<span class="nc bnc" id="L142" title="All 2 branches missed.">        } else if (expr instanceof SQLite3PostfixUnaryOperation) {</span>
+<span class="nc" id="L143">            visit((SQLite3PostfixUnaryOperation) expr);</span>
+<span class="nc bnc" id="L144" title="All 2 branches missed.">        } else if (expr instanceof Function) {</span>
+<span class="nc" id="L145">            visit((Function) expr);</span>
+<span class="nc bnc" id="L146" title="All 2 branches missed.">        } else if (expr instanceof BetweenOperation) {</span>
+<span class="nc" id="L147">            visit((BetweenOperation) expr);</span>
+<span class="nc bnc" id="L148" title="All 2 branches missed.">        } else if (expr instanceof CollateOperation) {</span>
+<span class="nc" id="L149">            visit((CollateOperation) expr);</span>
+<span class="nc bnc" id="L150" title="All 2 branches missed.">        } else if (expr instanceof SQLite3OrderingTerm) {</span>
+<span class="nc" id="L151">            visit((SQLite3OrderingTerm) expr);</span>
+<span class="nc bnc" id="L152" title="All 2 branches missed.">        } else if (expr instanceof SQLite3Expression.InOperation) {</span>
+<span class="nc" id="L153">            visit((InOperation) expr);</span>
+<span class="nc bnc" id="L154" title="All 2 branches missed.">        } else if (expr instanceof Cast) {</span>
+<span class="nc" id="L155">            visit((Cast) expr);</span>
+<span class="nc bnc" id="L156" title="All 2 branches missed.">        } else if (expr instanceof Subquery) {</span>
+<span class="nc" id="L157">            visit((Subquery) expr);</span>
+<span class="nc bnc" id="L158" title="All 2 branches missed.">        } else if (expr instanceof Join) {</span>
+<span class="nc" id="L159">            visit((Join) expr);</span>
+<span class="nc bnc" id="L160" title="All 2 branches missed.">        } else if (expr instanceof SQLite3Select) {</span>
+<span class="nc" id="L161">            visit((SQLite3Select) expr, true);</span>
+<span class="nc bnc" id="L162" title="All 2 branches missed.">        } else if (expr instanceof SQLite3Exist) {</span>
+<span class="nc" id="L163">            visit((SQLite3Exist) expr);</span>
+<span class="nc bnc" id="L164" title="All 2 branches missed.">        } else if (expr instanceof BinaryComparisonOperation) {</span>
+<span class="nc" id="L165">            visit((BinaryComparisonOperation) expr);</span>
+<span class="nc bnc" id="L166" title="All 2 branches missed.">        } else if (expr instanceof SQLite3Function) {</span>
+<span class="nc" id="L167">            visit((SQLite3Function) expr);</span>
+<span class="nc bnc" id="L168" title="All 2 branches missed.">        } else if (expr instanceof SQLite3Distinct) {</span>
+<span class="nc" id="L169">            visit((SQLite3Distinct) expr);</span>
+<span class="nc bnc" id="L170" title="All 2 branches missed.">        } else if (expr instanceof SQLite3CaseWithoutBaseExpression) {</span>
+<span class="nc" id="L171">            visit((SQLite3CaseWithoutBaseExpression) expr);</span>
+<span class="nc bnc" id="L172" title="All 2 branches missed.">        } else if (expr instanceof SQLite3CaseWithBaseExpression) {</span>
+<span class="nc" id="L173">            visit((SQLite3CaseWithBaseExpression) expr);</span>
+<span class="nc bnc" id="L174" title="All 2 branches missed.">        } else if (expr instanceof SQLite3Aggregate) {</span>
+<span class="nc" id="L175">            visit((SQLite3Aggregate) expr);</span>
+<span class="nc bnc" id="L176" title="All 2 branches missed.">        } else if (expr instanceof SQLite3PostfixText) {</span>
+<span class="nc" id="L177">            visit((SQLite3PostfixText) expr);</span>
+<span class="nc bnc" id="L178" title="All 2 branches missed.">        } else if (expr instanceof SQLite3WindowFunction) {</span>
+<span class="nc" id="L179">            visit((SQLite3WindowFunction) expr);</span>
+<span class="nc bnc" id="L180" title="All 2 branches missed.">        } else if (expr instanceof MatchOperation) {</span>
+<span class="nc" id="L181">            visit((MatchOperation) expr);</span>
+<span class="nc bnc" id="L182" title="All 2 branches missed.">        } else if (expr instanceof SQLite3RowValueExpression) {</span>
+<span class="nc" id="L183">            visit((SQLite3RowValueExpression) expr);</span>
+<span class="nc bnc" id="L184" title="All 2 branches missed.">        } else if (expr instanceof SQLite3Text) {</span>
+<span class="nc" id="L185">            visit((SQLite3Text) expr);</span>
+<span class="nc bnc" id="L186" title="All 2 branches missed.">        } else if (expr instanceof SQLite3WindowFunctionExpression) {</span>
+<span class="nc" id="L187">            visit((SQLite3WindowFunctionExpression) expr);</span>
+<span class="nc bnc" id="L188" title="All 2 branches missed.">        } else if (expr instanceof SQLite3WindowFunctionFrameSpecTerm) {</span>
+<span class="nc" id="L189">            visit((SQLite3WindowFunctionFrameSpecTerm) expr);</span>
+<span class="nc bnc" id="L190" title="All 2 branches missed.">        } else if (expr instanceof SQLite3WindowFunctionFrameSpecBetween) {</span>
+<span class="nc" id="L191">            visit((SQLite3WindowFunctionFrameSpecBetween) expr);</span>
+<span class="nc bnc" id="L192" title="All 2 branches missed.">        } else if (expr instanceof SQLite3TableReference) {</span>
+<span class="nc" id="L193">            visit((SQLite3TableReference) expr);</span>
+<span class="nc bnc" id="L194" title="All 2 branches missed.">        } else if (expr instanceof SQLite3SetClause) {</span>
+<span class="nc" id="L195">            visit((SQLite3SetClause) expr);</span>
+<span class="nc" id="L196">        } else {</span>
+<span class="nc" id="L197">            throw new AssertionError(expr);</span>
+        }
+<span class="nc" id="L199">    }</span>
+
+    static String asString(SQLite3Expression expr) {
+<span class="nc bnc" id="L202" title="All 2 branches missed.">        if (expr == null) {</span>
+<span class="nc" id="L203">            throw new AssertionError();</span>
+        }
+<span class="nc" id="L205">        SQLite3ToStringVisitor visitor = new SQLite3ToStringVisitor();</span>
+<span class="nc bnc" id="L206" title="All 2 branches missed.">        if (expr instanceof SQLite3Select) {</span>
+<span class="nc" id="L207">            visitor.visit((SQLite3Select) expr, false);</span>
+<span class="nc" id="L208">        } else {</span>
+<span class="nc" id="L209">            visitor.visit(expr);</span>
+        }
+<span class="nc" id="L211">        return visitor.get();</span>
+    }
+
+    static String asExpectedValues(SQLite3Expression expr) {
+<span class="nc" id="L215">        SQLite3ExpectedValueVisitor visitor = new SQLite3ExpectedValueVisitor();</span>
+<span class="nc" id="L216">        visitor.visit(expr);</span>
+<span class="nc" id="L217">        return visitor.get();</span>
+    }
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.8.202204050719</span></div></body></html>

@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>MySQLInOperation.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">dqetool</a> &gt; <a href="index.source.html" class="el_package">dqetool.mysql.ast</a> &gt; <span class="el_source">MySQLInOperation.java</span></div><h1>MySQLInOperation.java</h1><pre class="source lang-java linenums">package dqetool.mysql.ast;
+
+import java.util.List;
+
+import dqetool.IgnoreMeException;
+
+/**
+ * @see &lt;a href=&quot;https://dev.mysql.com/doc/refman/8.0/en/comparison-operators.html#operator_in&quot;&gt;Comparison Functions and
+ *      Operators&lt;/a&gt;
+ */
+public class MySQLInOperation implements MySQLExpression {
+
+    private final MySQLExpression expr;
+    private final List&lt;MySQLExpression&gt; listElements;
+    private final boolean isTrue;
+
+<span class="nc" id="L17">    public MySQLInOperation(MySQLExpression expr, List&lt;MySQLExpression&gt; listElements, boolean isTrue) {</span>
+<span class="nc" id="L18">        this.expr = expr;</span>
+<span class="nc" id="L19">        this.listElements = listElements;</span>
+<span class="nc" id="L20">        this.isTrue = isTrue;</span>
+<span class="nc" id="L21">    }</span>
+
+    public MySQLExpression getExpr() {
+<span class="nc" id="L24">        return expr;</span>
+    }
+
+    public List&lt;MySQLExpression&gt; getListElements() {
+<span class="nc" id="L28">        return listElements;</span>
+    }
+
+    @Override
+    public MySQLConstant getExpectedValue() {
+<span class="nc" id="L33">        MySQLConstant leftVal = expr.getExpectedValue();</span>
+<span class="nc bnc" id="L34" title="All 2 branches missed.">        if (leftVal.isNull()) {</span>
+<span class="nc" id="L35">            return MySQLConstant.createNullConstant();</span>
+        }
+        /* workaround for https://bugs.mysql.com/bug.php?id=95957 */
+<span class="nc bnc" id="L38" title="All 4 branches missed.">        if (leftVal.isInt() &amp;&amp; !leftVal.isSigned()) {</span>
+<span class="nc" id="L39">            throw new IgnoreMeException();</span>
+        }
+
+<span class="nc" id="L42">        boolean isNull = false;</span>
+<span class="nc bnc" id="L43" title="All 2 branches missed.">        for (MySQLExpression rightExpr : listElements) {</span>
+<span class="nc" id="L44">            MySQLConstant rightVal = rightExpr.getExpectedValue();</span>
+
+            /* workaround for https://bugs.mysql.com/bug.php?id=95957 */
+<span class="nc bnc" id="L47" title="All 4 branches missed.">            if (rightVal.isInt() &amp;&amp; !rightVal.isSigned()) {</span>
+<span class="nc" id="L48">                throw new IgnoreMeException();</span>
+            }
+<span class="nc" id="L50">            MySQLConstant convertedRightVal = rightVal;</span>
+<span class="nc" id="L51">            MySQLConstant isEquals = leftVal.isEquals(convertedRightVal);</span>
+<span class="nc bnc" id="L52" title="All 2 branches missed.">            if (isEquals.isNull()) {</span>
+<span class="nc" id="L53">                isNull = true;</span>
+<span class="nc" id="L54">            } else {</span>
+<span class="nc bnc" id="L55" title="All 2 branches missed.">                if (isEquals.getInt() == 1) {</span>
+<span class="nc" id="L56">                    return MySQLConstant.createBoolean(isTrue);</span>
+                }
+            }
+        }
+<span class="nc bnc" id="L60" title="All 2 branches missed.">        if (isNull) {</span>
+<span class="nc" id="L61">            return MySQLConstant.createNullConstant();</span>
+        } else {
+<span class="nc bnc" id="L63" title="All 2 branches missed.">            return MySQLConstant.createBoolean(!isTrue);</span>
+        }
+
+    }
+
+    public boolean isTrue() {
+<span class="nc" id="L69">        return isTrue;</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.8.202204050719</span></div></body></html>

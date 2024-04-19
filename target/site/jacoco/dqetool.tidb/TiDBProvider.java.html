@@ -1,0 +1,214 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>TiDBProvider.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">dqetool</a> &gt; <a href="index.source.html" class="el_package">dqetool.tidb</a> &gt; <span class="el_source">TiDBProvider.java</span></div><h1>TiDBProvider.java</h1><pre class="source lang-java linenums">package dqetool.tidb;
+
+import java.io.IOException;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.SQLException;
+import java.sql.Statement;
+
+import com.google.auto.service.AutoService;
+
+import dqetool.AbstractAction;
+import dqetool.DatabaseProvider;
+import dqetool.IgnoreMeException;
+import dqetool.MainOptions;
+import dqetool.Randomly;
+import dqetool.SQLConnection;
+import dqetool.SQLGlobalState;
+import dqetool.SQLProviderAdapter;
+import dqetool.StatementExecutor;
+import dqetool.common.query.SQLQueryAdapter;
+import dqetool.common.query.SQLQueryProvider;
+import dqetool.common.query.SQLancerResultSet;
+import dqetool.tidb.TiDBProvider.TiDBGlobalState;
+import dqetool.tidb.gen.TiDBAlterTableGenerator;
+import dqetool.tidb.gen.TiDBAnalyzeTableGenerator;
+import dqetool.tidb.gen.TiDBDeleteGenerator;
+import dqetool.tidb.gen.TiDBDropTableGenerator;
+import dqetool.tidb.gen.TiDBDropViewGenerator;
+import dqetool.tidb.gen.TiDBIndexGenerator;
+import dqetool.tidb.gen.TiDBInsertGenerator;
+import dqetool.tidb.gen.TiDBSetGenerator;
+import dqetool.tidb.gen.TiDBTableGenerator;
+import dqetool.tidb.gen.TiDBUpdateGenerator;
+import dqetool.tidb.gen.TiDBViewGenerator;
+
+@AutoService(DatabaseProvider.class)
+public class TiDBProvider extends SQLProviderAdapter&lt;TiDBGlobalState, TiDBOptions&gt; {
+
+    public TiDBProvider() {
+<span class="nc" id="L40">        super(TiDBGlobalState.class, TiDBOptions.class);</span>
+<span class="nc" id="L41">    }</span>
+
+<span class="nc" id="L43">    public enum Action implements AbstractAction&lt;TiDBGlobalState&gt; {</span>
+<span class="nc" id="L44">        CREATE_TABLE(TiDBTableGenerator::createRandomTableStatement), // 0</span>
+<span class="nc" id="L45">        CREATE_INDEX(TiDBIndexGenerator::getQuery), // 1</span>
+<span class="nc" id="L46">        VIEW_GENERATOR(TiDBViewGenerator::getQuery), // 2</span>
+<span class="nc" id="L47">        INSERT(TiDBInsertGenerator::getQuery), // 3</span>
+<span class="nc" id="L48">        ALTER_TABLE(TiDBAlterTableGenerator::getQuery), // 4</span>
+<span class="nc bnc" id="L49" title="All 2 branches missed.">        TRUNCATE((g) -&gt; new SQLQueryAdapter(&quot;TRUNCATE &quot; + g.getSchema().getRandomTable(t -&gt; !t.isView()).getName())), // 5</span>
+<span class="nc" id="L50">        UPDATE(TiDBUpdateGenerator::getQuery), // 6</span>
+<span class="nc" id="L51">        DELETE(TiDBDeleteGenerator::getQuery), // 7</span>
+<span class="nc" id="L52">        SET(TiDBSetGenerator::getQuery), // 8</span>
+<span class="nc" id="L53">        ADMIN_CHECKSUM_TABLE(</span>
+<span class="nc" id="L54">                (g) -&gt; new SQLQueryAdapter(&quot;ADMIN CHECKSUM TABLE &quot; + g.getSchema().getRandomTable().getName())), // 9</span>
+<span class="nc" id="L55">        ANALYZE_TABLE(TiDBAnalyzeTableGenerator::getQuery), // 10</span>
+<span class="nc" id="L56">        DROP_TABLE(TiDBDropTableGenerator::dropTable), // 11</span>
+<span class="nc" id="L57">        DROP_VIEW(TiDBDropViewGenerator::dropView); // 12</span>
+
+        private final SQLQueryProvider&lt;TiDBGlobalState&gt; sqlQueryProvider;
+
+<span class="nc" id="L61">        Action(SQLQueryProvider&lt;TiDBGlobalState&gt; sqlQueryProvider) {</span>
+<span class="nc" id="L62">            this.sqlQueryProvider = sqlQueryProvider;</span>
+<span class="nc" id="L63">        }</span>
+
+        @Override
+        public SQLQueryAdapter getQuery(TiDBGlobalState state) throws Exception {
+<span class="nc" id="L67">            return sqlQueryProvider.getQuery(state);</span>
+        }
+    }
+
+<span class="nc" id="L71">    public static class TiDBGlobalState extends SQLGlobalState&lt;TiDBOptions, TiDBSchema&gt; {</span>
+
+        @Override
+        protected TiDBSchema readSchema() throws SQLException {
+<span class="nc" id="L75">            return TiDBSchema.fromConnection(getConnection(), getDatabaseName());</span>
+        }
+
+    }
+
+    private static int mapActions(TiDBGlobalState globalState, Action a) {
+<span class="nc" id="L81">        Randomly r = globalState.getRandomly();</span>
+<span class="nc bnc" id="L82" title="All 7 branches missed.">        switch (a) {</span>
+        case ANALYZE_TABLE:
+        case CREATE_INDEX:
+<span class="nc" id="L85">            return r.getInteger(0, 2);</span>
+        case INSERT:
+        case TRUNCATE:
+        case DELETE:
+        case ADMIN_CHECKSUM_TABLE:
+<span class="nc" id="L90">            return r.getInteger(0, 2);</span>
+        case SET:
+        case UPDATE:
+<span class="nc" id="L93">            return r.getInteger(0, 5);</span>
+        case VIEW_GENERATOR:
+            // https://github.com/tidb-challenge-program/bug-hunting-issue/issues/8
+<span class="nc" id="L96">            return r.getInteger(0, 2);</span>
+        case ALTER_TABLE:
+<span class="nc" id="L98">            return r.getInteger(0, 10); // https://github.com/tidb-challenge-program/bug-hunting-issue/issues/10</span>
+        case CREATE_TABLE:
+        case DROP_TABLE:
+        case DROP_VIEW:
+<span class="nc" id="L102">            return 0;</span>
+        default:
+<span class="nc" id="L104">            throw new AssertionError(a);</span>
+        }
+
+    }
+
+    @Override
+    public void generateDatabase(TiDBGlobalState globalState) throws Exception {
+<span class="nc bnc" id="L111" title="All 2 branches missed.">        for (int i = 0; i &lt; Randomly.fromOptions(1, 2); i++) {</span>
+            boolean success;
+            do {
+<span class="nc" id="L114">                SQLQueryAdapter qt = new TiDBTableGenerator().getQuery(globalState);</span>
+<span class="nc" id="L115">                success = globalState.executeStatement(qt);</span>
+<span class="nc bnc" id="L116" title="All 2 branches missed.">            } while (!success);</span>
+        }
+
+<span class="nc" id="L119">        StatementExecutor&lt;TiDBGlobalState, Action&gt; se = new StatementExecutor&lt;&gt;(globalState, Action.values(),</span>
+<span class="nc" id="L120">                TiDBProvider::mapActions, (q) -&gt; {</span>
+<span class="nc bnc" id="L121" title="All 2 branches missed.">                    if (globalState.getSchema().getDatabaseTables().isEmpty()) {</span>
+<span class="nc" id="L122">                        throw new IgnoreMeException();</span>
+                    }
+<span class="nc" id="L124">                });</span>
+        try {
+<span class="nc" id="L126">            se.executeStatements();</span>
+<span class="nc" id="L127">        } catch (SQLException e) {</span>
+<span class="nc" id="L128">            if (e.getMessage().contains(</span>
+<span class="nc bnc" id="L129" title="All 2 branches missed.">                    &quot;references invalid table(s) or column(s) or function(s) or definer/invoker of view lack rights to use them&quot;)) {</span>
+<span class="nc" id="L130">                throw new IgnoreMeException(); // TODO: drop view instead</span>
+            } else {
+<span class="nc" id="L132">                throw new AssertionError(e);</span>
+            }
+        }
+<span class="nc" id="L135">    }</span>
+
+    @Override
+    public SQLConnection createDatabase(TiDBGlobalState globalState) throws SQLException {
+<span class="nc" id="L139">        String host = globalState.getOptions().getHost();</span>
+<span class="nc" id="L140">        int port = globalState.getOptions().getPort();</span>
+<span class="nc bnc" id="L141" title="All 2 branches missed.">        if (host == null) {</span>
+<span class="nc" id="L142">            host = TiDBOptions.DEFAULT_HOST;</span>
+        }
+<span class="nc bnc" id="L144" title="All 2 branches missed.">        if (port == MainOptions.NO_SET_PORT) {</span>
+<span class="nc" id="L145">            port = TiDBOptions.DEFAULT_PORT;</span>
+        }
+
+<span class="nc" id="L148">        String databaseName = globalState.getDatabaseName();</span>
+<span class="nc" id="L149">        String url = String.format(&quot;jdbc:mysql://%s:%d/&quot;, host, port);</span>
+<span class="nc" id="L150">        Connection con = DriverManager.getConnection(url, globalState.getOptions().getUserName(),</span>
+<span class="nc" id="L151">                globalState.getOptions().getPassword());</span>
+<span class="nc" id="L152">        globalState.getState().logStatement(&quot;USE test&quot;);</span>
+<span class="nc" id="L153">        globalState.getState().logStatement(&quot;DROP DATABASE IF EXISTS &quot; + databaseName);</span>
+<span class="nc" id="L154">        String createDatabaseCommand = &quot;CREATE DATABASE &quot; + databaseName;</span>
+<span class="nc" id="L155">        globalState.getState().logStatement(createDatabaseCommand);</span>
+<span class="nc" id="L156">        globalState.getState().logStatement(&quot;USE &quot; + databaseName);</span>
+<span class="nc" id="L157">        try (Statement s = con.createStatement()) {</span>
+<span class="nc" id="L158">            s.execute(&quot;DROP DATABASE IF EXISTS &quot; + databaseName);</span>
+        }
+<span class="nc" id="L160">        try (Statement s = con.createStatement()) {</span>
+<span class="nc" id="L161">            s.execute(createDatabaseCommand);</span>
+        }
+<span class="nc" id="L163">        con.close();</span>
+<span class="nc" id="L164">        con = DriverManager.getConnection(url + databaseName, globalState.getOptions().getUserName(),</span>
+<span class="nc" id="L165">                globalState.getOptions().getPassword());</span>
+<span class="nc" id="L166">        return new SQLConnection(con);</span>
+    }
+
+    @Override
+    public String getDBMSName() {
+<span class="nc" id="L171">        return &quot;tidb&quot;;</span>
+    }
+
+    @Override
+    public String getQueryPlan(String selectStr, TiDBGlobalState globalState) throws Exception {
+<span class="nc" id="L176">        String queryPlan = &quot;&quot;;</span>
+<span class="nc bnc" id="L177" title="All 2 branches missed.">        if (globalState.getOptions().logEachSelect()) {</span>
+<span class="nc" id="L178">            globalState.getLogger().writeCurrent(selectStr);</span>
+            try {
+<span class="nc" id="L180">                globalState.getLogger().getCurrentFileWriter().flush();</span>
+<span class="nc" id="L181">            } catch (IOException e) {</span>
+<span class="nc" id="L182">                e.printStackTrace();</span>
+            }
+        }
+
+<span class="nc" id="L186">        SQLQueryAdapter q = new SQLQueryAdapter(&quot;EXPLAIN &quot; + selectStr);</span>
+<span class="nc" id="L187">        try (SQLancerResultSet rs = q.executeAndGet(globalState)) {</span>
+<span class="nc bnc" id="L188" title="All 2 branches missed.">            if (rs != null) {</span>
+<span class="nc bnc" id="L189" title="All 2 branches missed.">                while (rs.next()) {</span>
+<span class="nc" id="L190">                    String targetQueryPlan = rs.getString(1).replace(&quot;├─&quot;, &quot;&quot;).replace(&quot;└─&quot;, &quot;&quot;).replace(&quot;│&quot;, &quot;&quot;).trim()</span>
+                            + &quot;;&quot;; // Unify format
+<span class="nc" id="L192">                    queryPlan += targetQueryPlan;</span>
+                }
+            }
+<span class="nc" id="L195">        } catch (Throwable e) {</span>
+<span class="nc" id="L196">            e.printStackTrace();</span>
+        }
+
+<span class="nc" id="L199">        return queryPlan;</span>
+    }
+
+    @Override
+    protected double[] initializeWeightedAverageReward() {
+<span class="nc" id="L204">        return new double[Action.values().length];</span>
+    }
+
+    @Override
+    protected void executeMutator(int index, TiDBGlobalState globalState) throws Exception {
+<span class="nc" id="L209">        SQLQueryAdapter queryMutateTable = Action.values()[index].getQuery(globalState);</span>
+<span class="nc" id="L210">        globalState.executeStatement(queryMutateTable);</span>
+<span class="nc" id="L211">    }</span>
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.8.202204050719</span></div></body></html>

@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>TiDBAggregate.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">dqetool</a> &gt; <a href="index.source.html" class="el_package">dqetool.tidb.ast</a> &gt; <span class="el_source">TiDBAggregate.java</span></div><h1>TiDBAggregate.java</h1><pre class="source lang-java linenums">package dqetool.tidb.ast;
+
+import java.util.List;
+
+import dqetool.Randomly;
+import dqetool.common.ast.FunctionNode;
+import dqetool.tidb.ast.TiDBAggregate.TiDBAggregateFunction;
+
+public class TiDBAggregate extends FunctionNode&lt;TiDBAggregateFunction, TiDBExpression&gt; implements TiDBExpression {
+
+<span class="nc" id="L11">    public enum TiDBAggregateFunction {</span>
+<span class="nc" id="L12">        AVG(1), BIT_AND(1), BIT_OR(1), COUNT(1), SUM(1), MIN(1), MAX(1);</span>
+
+        private int nrArgs;
+
+<span class="nc" id="L16">        TiDBAggregateFunction(int nrArgs) {</span>
+<span class="nc" id="L17">            this.nrArgs = nrArgs;</span>
+<span class="nc" id="L18">        }</span>
+
+        public static TiDBAggregateFunction getRandom() {
+<span class="nc" id="L21">            return Randomly.fromOptions(values());</span>
+        }
+
+        public int getNrArgs() {
+<span class="nc" id="L25">            return nrArgs;</span>
+        }
+
+    }
+
+    public TiDBAggregate(List&lt;TiDBExpression&gt; args, TiDBAggregateFunction func) {
+<span class="nc" id="L31">        super(func, args);</span>
+<span class="nc" id="L32">    }</span>
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.8.202204050719</span></div></body></html>

@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>MySQLCheckTable.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">dqetool</a> &gt; <a href="index.source.html" class="el_package">dqetool.mysql.gen.tblmaintenance</a> &gt; <span class="el_source">MySQLCheckTable.java</span></div><h1>MySQLCheckTable.java</h1><pre class="source lang-java linenums">package dqetool.mysql.gen.tblmaintenance;
+
+import java.util.List;
+import java.util.stream.Collectors;
+
+import dqetool.Randomly;
+import dqetool.common.query.SQLQueryAdapter;
+import dqetool.mysql.MySQLGlobalState;
+import dqetool.mysql.MySQLSchema.MySQLTable;
+
+/**
+ * @see &lt;a href=&quot;https://dev.mysql.com/doc/refman/8.0/en/check-table.html&quot;&gt;CHECK TABLE Statement&lt;/a&gt;
+ */
+public class MySQLCheckTable {
+
+    private final List&lt;MySQLTable&gt; tables;
+<span class="nc" id="L17">    private final StringBuilder sb = new StringBuilder();</span>
+
+<span class="nc" id="L19">    public MySQLCheckTable(List&lt;MySQLTable&gt; tables) {</span>
+<span class="nc" id="L20">        this.tables = tables;</span>
+<span class="nc" id="L21">    }</span>
+
+    public static SQLQueryAdapter check(MySQLGlobalState globalState) {
+<span class="nc" id="L24">        return new MySQLCheckTable(globalState.getSchema().getDatabaseTablesRandomSubsetNotEmpty()).generate();</span>
+    }
+
+    // CHECK TABLE tbl_name [, tbl_name] ... [option] ...
+    //
+    // option: {
+    // FOR UPGRADE
+    // | QUICK
+    // | FAST
+    // | MEDIUM
+    // | EXTENDED
+    // | CHANGED
+    // }
+    private SQLQueryAdapter generate() {
+<span class="nc" id="L38">        sb.append(&quot;CHECK TABLE &quot;);</span>
+<span class="nc" id="L39">        sb.append(tables.stream().map(t -&gt; t.getName()).collect(Collectors.joining(&quot;, &quot;)));</span>
+<span class="nc" id="L40">        sb.append(&quot; &quot;);</span>
+<span class="nc" id="L41">        List&lt;String&gt; options = Randomly.subset(&quot;FOR UPGRADE&quot;, &quot;QUICK&quot;, &quot;FAST&quot;, &quot;MEDIUM&quot;, &quot;EXTENDED&quot;, &quot;CHANGED&quot;);</span>
+<span class="nc" id="L42">        sb.append(options.stream().collect(Collectors.joining(&quot; &quot;)));</span>
+<span class="nc" id="L43">        return new SQLQueryAdapter(sb.toString());</span>
+    }
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.8.202204050719</span></div></body></html>

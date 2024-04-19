@@ -1,0 +1,261 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>CockroachDBConstant.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">dqetool</a> &gt; <a href="index.source.html" class="el_package">dqetool.cockroachdb.ast</a> &gt; <span class="el_source">CockroachDBConstant.java</span></div><h1>CockroachDBConstant.java</h1><pre class="source lang-java linenums">package dqetool.cockroachdb.ast;
+
+import java.sql.Timestamp;
+import java.text.SimpleDateFormat;
+import java.util.List;
+
+import dqetool.Randomly;
+import dqetool.cockroachdb.CockroachDBVisitor;
+
+public class CockroachDBConstant implements CockroachDBExpression {
+
+    private CockroachDBConstant() {
+    }
+
+<span class="nc" id="L15">    public static class CockroachDBNullConstant extends CockroachDBConstant {</span>
+
+        @Override
+        public String toString() {
+<span class="nc" id="L19">            return &quot;NULL&quot;;</span>
+        }
+
+    }
+
+    public static class CockroachDBIntConstant extends CockroachDBConstant {
+
+        private final long value;
+
+<span class="nc" id="L28">        public CockroachDBIntConstant(long value) {</span>
+<span class="nc" id="L29">            this.value = value;</span>
+<span class="nc" id="L30">        }</span>
+
+        @Override
+        public String toString() {
+<span class="nc" id="L34">            return String.valueOf(value);</span>
+        }
+
+        public long getValue() {
+<span class="nc" id="L38">            return value;</span>
+        }
+
+    }
+
+    public static class CockroachDBDoubleConstant extends CockroachDBConstant {
+
+        private final double value;
+
+<span class="nc" id="L47">        public CockroachDBDoubleConstant(double value) {</span>
+<span class="nc" id="L48">            this.value = value;</span>
+<span class="nc" id="L49">        }</span>
+
+        public double getValue() {
+<span class="nc" id="L52">            return value;</span>
+        }
+
+        @Override
+        public String toString() {
+<span class="nc bnc" id="L57" title="All 2 branches missed.">            if (value == Double.POSITIVE_INFINITY) {</span>
+<span class="nc" id="L58">                return &quot;FLOAT '+Inf'&quot;;</span>
+<span class="nc bnc" id="L59" title="All 2 branches missed.">            } else if (value == Double.NEGATIVE_INFINITY) {</span>
+<span class="nc" id="L60">                return &quot;FLOAT '-Inf'&quot;;</span>
+            }
+<span class="nc" id="L62">            return String.valueOf(value);</span>
+        }
+
+    }
+
+    public static class CockroachDBTextConstant extends CockroachDBConstant {
+
+        private final String value;
+
+<span class="nc" id="L71">        public CockroachDBTextConstant(String value) {</span>
+<span class="nc" id="L72">            this.value = value;</span>
+<span class="nc" id="L73">        }</span>
+
+        public String getValue() {
+<span class="nc" id="L76">            return value;</span>
+        }
+
+        @Override
+        public String toString() {
+<span class="nc" id="L81">            return &quot;'&quot; + value.replace(&quot;'&quot;, &quot;''&quot;) + &quot;'&quot;;</span>
+        }
+
+    }
+
+    public static class CockroachDBBitConstant extends CockroachDBConstant {
+
+        private final String value;
+
+<span class="nc" id="L90">        public CockroachDBBitConstant(long value) {</span>
+<span class="nc" id="L91">            this.value = Long.toBinaryString(value);</span>
+<span class="nc" id="L92">        }</span>
+
+<span class="nc" id="L94">        public CockroachDBBitConstant(String binaryString) {</span>
+<span class="nc" id="L95">            this.value = binaryString;</span>
+<span class="nc" id="L96">        }</span>
+
+        public String getValue() {
+<span class="nc" id="L99">            return value;</span>
+        }
+
+        @Override
+        public String toString() {
+<span class="nc" id="L104">            return &quot;B'&quot; + value + &quot;'&quot;;</span>
+        }
+
+    }
+
+    public static class CockroachDBBooleanConstant extends CockroachDBConstant {
+
+        private final boolean value;
+
+<span class="nc" id="L113">        public CockroachDBBooleanConstant(boolean value) {</span>
+<span class="nc" id="L114">            this.value = value;</span>
+<span class="nc" id="L115">        }</span>
+
+        public boolean getValue() {
+<span class="nc" id="L118">            return value;</span>
+        }
+
+        @Override
+        public String toString() {
+<span class="nc" id="L123">            return String.valueOf(value);</span>
+        }
+
+    }
+
+    public static class CockroachDBArrayConstant extends CockroachDBConstant {
+
+        private final List&lt;CockroachDBExpression&gt; elements;
+
+<span class="nc" id="L132">        public CockroachDBArrayConstant(List&lt;CockroachDBExpression&gt; elements) {</span>
+<span class="nc" id="L133">            this.elements = elements;</span>
+<span class="nc" id="L134">        }</span>
+
+        public List&lt;CockroachDBExpression&gt; getElements() {
+<span class="nc" id="L137">            return elements;</span>
+        }
+
+        @Override
+        public String toString() {
+<span class="nc" id="L142">            StringBuilder sb = new StringBuilder(&quot;ARRAY[&quot;);</span>
+<span class="nc bnc" id="L143" title="All 2 branches missed.">            for (int i = 0; i &lt; elements.size(); i++) {</span>
+<span class="nc bnc" id="L144" title="All 2 branches missed.">                if (i != 0) {</span>
+<span class="nc" id="L145">                    sb.append(&quot;, &quot;);</span>
+                }
+<span class="nc" id="L147">                sb.append(CockroachDBVisitor.asString(elements.get(i)));</span>
+            }
+<span class="nc" id="L149">            sb.append(&quot;]&quot;);</span>
+<span class="nc" id="L150">            return sb.toString();</span>
+        }
+    }
+
+    public static class CockroachDBIntervalConstant extends CockroachDBConstant {
+
+        private final long year;
+        private final long month;
+        private final long day;
+        private final long hour;
+        private final long minute;
+        private final long second;
+
+<span class="nc" id="L163">        public CockroachDBIntervalConstant(long year, long month, long day, long hour, long minute, long second) {</span>
+<span class="nc" id="L164">            this.year = year;</span>
+<span class="nc" id="L165">            this.month = month;</span>
+<span class="nc" id="L166">            this.day = day;</span>
+<span class="nc" id="L167">            this.hour = hour;</span>
+<span class="nc" id="L168">            this.minute = minute;</span>
+<span class="nc" id="L169">            this.second = second;</span>
+<span class="nc" id="L170">        }</span>
+
+        @Override
+        public String toString() {
+<span class="nc" id="L174">            return String.valueOf(String.format(&quot;(INTERVAL '%d year %d months %d days %d hours %d minutes %d seconds')&quot;,</span>
+<span class="nc" id="L175">                    year, month, day, hour, minute, second));</span>
+        }
+
+    }
+
+    public static class CockroachDBTimeRelatedConstant extends CockroachDBConstant {
+
+        private final String textRepr;
+        private final String typeRepresentation;
+
+<span class="nc" id="L185">        public CockroachDBTimeRelatedConstant(String typeRepresentation, long val, String format) {</span>
+<span class="nc" id="L186">            this.typeRepresentation = typeRepresentation;</span>
+<span class="nc" id="L187">            Timestamp timestamp = new Timestamp(val);</span>
+<span class="nc" id="L188">            SimpleDateFormat dateFormat = new SimpleDateFormat(format);</span>
+<span class="nc" id="L189">            textRepr = dateFormat.format(timestamp);</span>
+
+<span class="nc" id="L191">        }</span>
+
+        @Override
+        public String toString() {
+<span class="nc" id="L195">            return String.format(&quot;%s '%s'&quot;, typeRepresentation, textRepr);</span>
+        }
+
+    }
+
+    public static CockroachDBTextConstant createStringConstant(String text) {
+<span class="nc" id="L201">        return new CockroachDBTextConstant(text);</span>
+    }
+
+    public static CockroachDBDoubleConstant createFloatConstant(double val) {
+<span class="nc" id="L205">        return new CockroachDBDoubleConstant(val);</span>
+    }
+
+    public static CockroachDBIntConstant createIntConstant(long val) {
+<span class="nc" id="L209">        return new CockroachDBIntConstant(val);</span>
+    }
+
+    public static CockroachDBNullConstant createNullConstant() {
+<span class="nc" id="L213">        return new CockroachDBNullConstant();</span>
+    }
+
+    public static CockroachDBConstant createBooleanConstant(boolean val) {
+<span class="nc" id="L217">        return new CockroachDBBooleanConstant(val);</span>
+    }
+
+    public static CockroachDBExpression createBitConstant(long integer) {
+<span class="nc" id="L221">        return new CockroachDBBitConstant(integer);</span>
+    }
+
+    public static CockroachDBExpression createBitConstantWithSize(int size) {
+<span class="nc" id="L225">        StringBuilder sb = new StringBuilder();</span>
+<span class="nc bnc" id="L226" title="All 2 branches missed.">        for (int i = 0; i &lt; size; i++) {</span>
+<span class="nc bnc" id="L227" title="All 2 branches missed.">            sb.append(Randomly.getBoolean() ? 0 : 1);</span>
+        }
+<span class="nc" id="L229">        return new CockroachDBBitConstant(sb.toString());</span>
+    }
+
+    public static CockroachDBExpression createTimestampConstant(long integer) {
+<span class="nc" id="L233">        return new CockroachDBTimeRelatedConstant(&quot;TIMESTAMP&quot;, integer, &quot;yyyy-MM-dd'T'HH:mm:ss&quot;);</span>
+    }
+
+    public static CockroachDBExpression createTimeConstant(long integer) {
+<span class="nc" id="L237">        return new CockroachDBTimeRelatedConstant(&quot;TIME&quot;, integer, &quot;yyyy-MM-dd'T'HH:mm:ss&quot;);</span>
+    }
+
+    public static CockroachDBExpression createTimetz(long integer) {
+<span class="nc" id="L241">        return new CockroachDBTimeRelatedConstant(&quot;TIMETZ&quot;, integer, &quot;yyyy-MM-dd'T'HH:mm:ss&quot;); // TODO: support the</span>
+                                                                                               // complete format
+    }
+
+    public static CockroachDBExpression createTimestamptzConstant(long integer) {
+<span class="nc" id="L246">        return new CockroachDBTimeRelatedConstant(&quot;TIMESTAMPTZ&quot;, integer, &quot;yyyy-MM-dd'T'HH:mm:ss&quot;); // TODO: support the</span>
+                                                                                                    // complete
+        // format
+    }
+
+    public static CockroachDBExpression createIntervalConstant(long year, long month, long day, long hour, long minute,
+            long second) {
+<span class="nc" id="L253">        return new CockroachDBIntervalConstant(year, month, day, hour, minute, second);</span>
+    }
+
+    public static CockroachDBExpression createArrayConstant(List&lt;CockroachDBExpression&gt; elements) {
+<span class="nc" id="L257">        return new CockroachDBArrayConstant(elements);</span>
+    }
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.8.202204050719</span></div></body></html>

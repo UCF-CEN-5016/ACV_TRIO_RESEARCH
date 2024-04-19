@@ -1,0 +1,321 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>CockroachDBErrors.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">dqetool</a> &gt; <a href="index.source.html" class="el_package">dqetool.cockroachdb</a> &gt; <span class="el_source">CockroachDBErrors.java</span></div><h1>CockroachDBErrors.java</h1><pre class="source lang-java linenums">package dqetool.cockroachdb;
+
+import dqetool.common.query.ExpectedErrors;
+
+public final class CockroachDBErrors {
+
+    private CockroachDBErrors() {
+    }
+
+    public static void addExpressionErrors(ExpectedErrors errors) {
+<span class="nc" id="L11">        errors.add(&quot; non-streaming operator encountered when vectorize=auto&quot;);</span>
+
+<span class="nc bnc" id="L13" title="All 2 branches missed.">        if (CockroachDBBugs.bug46915) {</span>
+<span class="nc" id="L14">            errors.add(&quot;ERROR: at or near \&quot;unknown\&quot;: syntax error&quot;);</span>
+        }
+
+<span class="nc bnc" id="L17" title="All 2 branches missed.">        if (CockroachDBBugs.bug45703) {</span>
+<span class="nc" id="L18">            errors.add(&quot;github.com/cockroachdb/cockroach/pkg/sql/execinfra/expr.go:78: processExpression()&quot;);</span>
+        }
+
+<span class="nc" id="L21">        errors.add(&quot;exceeds supported timestamp bounds&quot;);</span>
+
+<span class="nc" id="L23">        errors.add(&quot;cannot cast negative integer to bit varying with unbounded width&quot;);</span>
+
+<span class="nc" id="L25">        errors.add(&quot;negative value for LIMIT&quot;);</span>
+<span class="nc" id="L26">        errors.add(&quot;negative value for OFFSET&quot;);</span>
+
+<span class="nc" id="L28">        errors.add(&quot;LIKE regexp compilation failed&quot;);</span>
+<span class="nc" id="L29">        errors.add(&quot;error parsing regexp&quot;);</span>
+
+<span class="nc" id="L31">        errors.add(&quot;expected 9223372036854775808 to be of type int, found type decimal&quot;); // int overflow</span>
+<span class="nc" id="L32">        errors.add(&quot;integer out of range&quot;);</span>
+<span class="nc" id="L33">        errors.add(&quot;expected -9223372036854775809 to be of type int, found type decimal&quot;);</span>
+<span class="nc" id="L34">        errors.add(&quot;to be of type int4, found type decimal&quot;);</span>
+
+<span class="nc" id="L36">        errors.add(&quot;as type bool&quot;);</span>
+<span class="nc" id="L37">        errors.add(&quot;as type int&quot;);</span>
+<span class="nc" id="L38">        errors.add(&quot;as type float&quot;);</span>
+
+<span class="nc" id="L40">        errors.add(&quot;is not in select list&quot;);</span>
+<span class="nc" id="L41">        errors.add(&quot;non-integer constant in ORDER BY&quot;);</span>
+
+<span class="nc" id="L43">        errors.add(&quot;collatedstring&quot;);</span>
+
+<span class="nc" id="L45">        errors.add(&quot;invalid cast:&quot;);</span>
+
+        // string to bytes
+<span class="nc" id="L48">        errors.add(&quot;invalid bytea escape sequence&quot;);</span>
+<span class="nc" id="L49">        errors.add(&quot;bytea encoded value ends with incomplete escape sequence&quot;);</span>
+<span class="nc" id="L50">        errors.add(&quot;bytea encoded value ends with escape character&quot;);</span>
+<span class="nc" id="L51">        errors.add(&quot;encoding/hex: invalid byte&quot;);</span>
+
+<span class="nc" id="L53">        errors.add(&quot;unsupported comparison operator: &lt;bytes&gt; &gt; &lt;string&gt;&quot;);</span>
+<span class="nc" id="L54">        errors.add(&quot;unsupported comparison operator: &lt;bytes&gt; &lt; &lt;string&gt;&quot;);</span>
+<span class="nc" id="L55">        errors.add(&quot;unsupported comparison operator: &lt;string&gt; &gt; &lt;bytes&gt;&quot;);</span>
+<span class="nc" id="L56">        errors.add(&quot;unsupported comparison operator: &lt;bytes&gt; &gt;= &lt;string&gt;&quot;);</span>
+<span class="nc" id="L57">        errors.add(&quot;unsupported comparison operator: &lt;string&gt; &lt; &lt;bytes&gt;&quot;);</span>
+<span class="nc" id="L58">        errors.add(&quot;ERROR: unsupported comparison operator: &lt;string&gt; != &lt;bytes&gt;&quot;);</span>
+<span class="nc" id="L59">        errors.add(&quot;unsupported comparison operator: &lt;string&gt; IS NOT DISTINCT FROM &lt;bytes&gt;&quot;);</span>
+<span class="nc" id="L60">        errors.add(&quot;unsupported comparison operator: &lt;bytes&gt; IS NOT DISTINCT FROM &lt;string&gt;&quot;);</span>
+<span class="nc" id="L61">        errors.add(&quot;unsupported comparison operator: &lt;string&gt; IS DISTINCT FROM &lt;bytes&gt;&quot;);</span>
+<span class="nc" id="L62">        errors.add(&quot;unsupported comparison operator: &lt;bytes&gt; = &lt;string&gt;&quot;);</span>
+<span class="nc" id="L63">        errors.add(&quot;unsupported comparison operator: &lt;string&gt; &gt;= &lt;bytes&gt;&quot;);</span>
+<span class="nc" id="L64">        errors.add(&quot;ERROR: unsupported comparison operator: &lt;string&gt; = &lt;bytes&gt;&quot;);</span>
+<span class="nc" id="L65">        errors.add(&quot;unsupported comparison operator: &lt;bytes&gt; IS DISTINCT FROM &lt;string&gt;&quot;);</span>
+<span class="nc" id="L66">        errors.add(&quot;unsupported comparison operator: &lt;bytes&gt; &lt;= &lt;string&gt;&quot;);</span>
+<span class="nc" id="L67">        errors.add(&quot;unsupported comparison operator: &lt;bytes&gt; != &lt;string&gt;&quot;);</span>
+<span class="nc" id="L68">        errors.add(&quot;unsupported comparison operator: &lt;string&gt; = &lt;bytes&gt;&quot;);</span>
+<span class="nc" id="L69">        errors.add(&quot;unsupported comparison operator: &lt;string&gt; &lt;= &lt;bytes&gt;&quot;);</span>
+<span class="nc" id="L70">        errors.add(&quot;to be of type string, found type bytes&quot;);</span>
+<span class="nc" id="L71">        errors.add(&quot;unknown signature: bit_length(collatedstring&quot;);</span>
+<span class="nc" id="L72">        errors.add(&quot;unsupported comparison operator: &lt;string&gt; !~ &lt;collatedstring{&quot;);</span>
+<span class="nc" id="L73">        errors.add(&quot;unsupported comparison operator: &lt;collatedstring&quot;);</span>
+<span class="nc" id="L74">        errors.add(&quot; unsupported comparison operator: &lt;string&gt; NOT LIKE &lt;collatedstring{&quot;);</span>
+<span class="nc" id="L75">        errors.add(&quot;unsupported comparison operator: &lt;string&gt; != &lt;bytes&gt;&quot;);</span>
+<span class="nc" id="L76">        errors.add(&quot;expected DEFAULT expression to have type bytes&quot;);</span>
+<span class="nc" id="L77">        errors.add(&quot;value type string doesn't match type bytes of column&quot;);</span>
+<span class="nc" id="L78">        errors.add(&quot;as decimal, found type: int&quot;);</span>
+<span class="nc" id="L79">        errors.add(&quot;to be of type decimal, found type float&quot;);</span>
+<span class="nc" id="L80">        errors.add(&quot;to be of type float, found type decimal&quot;);</span>
+<span class="nc" id="L81">        errors.add(&quot;to be of type bytes, found type string&quot;);</span>
+<span class="nc" id="L82">        errors.add(&quot;as bytes, found type: string&quot;);</span>
+
+<span class="nc" id="L84">        errors.add(&quot;bit string length&quot;); // TODO restrict generated bit constants</span>
+<span class="nc" id="L85">        errors.add(&quot;could not parse string as bit array&quot;);</span>
+
+<span class="nc" id="L87">        errors.add(&quot;ambiguous call&quot;);</span>
+
+<span class="nc" id="L89">        errors.add(&quot; could not produce a query plan conforming to the&quot;);</span>
+<span class="nc" id="L90">        errors.add(&quot;LOOKUP can only be used with INNER or LEFT joins&quot;); // TODO</span>
+
+<span class="nc" id="L92">        errors.add(&quot;ambiguous binary operator: &lt;unknown&gt; || &lt;unknown&gt;&quot;);</span>
+<span class="nc" id="L93">        errors.add(&quot; ERROR: unsupported binary operator: &lt;string&gt; || &lt;string&gt; (desired &lt;bytes&gt;)&quot;);</span>
+<span class="nc" id="L94">        errors.add(&quot;unsupported binary operator: &lt;unknown&gt; || &lt;string&gt; (desired &lt;bytes&gt;)&quot;);</span>
+<span class="nc" id="L95">        errors.add(&quot;incompatible value type: unsupported binary operator: &lt;string&gt; || &lt;unknown&gt; (desired &lt;bytes&gt;)&quot;);</span>
+<span class="nc" id="L96">        errors.add(&quot;unsupported binary operator: &lt;string&gt; || &lt;unknown&gt; (desired &lt;bytes&gt;)&quot;);</span>
+<span class="nc" id="L97">        errors.add(&quot;unsupported binary operator: &lt;string&gt; || &lt;string&gt; (desired &lt;bytes&gt;)&quot;);</span>
+<span class="nc" id="L98">        errors.add(&quot;parsing as type timestamp: empty or blank input&quot;);</span>
+<span class="nc" id="L99">        errors.add(&quot;parsing as type timestamp: field&quot;);</span>
+<span class="nc" id="L100">        errors.add(&quot;as type time&quot;);</span>
+<span class="nc" id="L101">        errors.add(&quot;as TimeTZ&quot;);</span>
+<span class="nc" id="L102">        errors.add(&quot;as type decimal&quot;);</span>
+<span class="nc" id="L103">        addIntervalTypeErrors(errors);</span>
+<span class="nc" id="L104">        addFunctionErrors(errors);</span>
+<span class="nc" id="L105">        addGroupByErrors(errors);</span>
+<span class="nc" id="L106">        addJoinTypes(errors);</span>
+<span class="nc" id="L107">        errors.add(&quot;as int4, found type: decimal&quot;);</span>
+<span class="nc" id="L108">        errors.add(&quot;to be of type int2, found type decimal&quot;);</span>
+<span class="nc" id="L109">        errors.add(&quot;to be of type int, found type decimal&quot;); // arithmetic overflows</span>
+<span class="nc" id="L110">        errors.add(&quot;unknown signature: left&quot;);</span>
+<span class="nc" id="L111">        errors.add(&quot;numeric constant out of int64 range&quot;);</span>
+<span class="nc" id="L112">        errors.add(&quot;unknown signature: overlay&quot;);</span>
+<span class="nc" id="L113">        errors.add(&quot;unknown signature: substring&quot;);</span>
+<span class="nc" id="L114">        errors.add(&quot;unsupported binary operator: &lt;unknown&gt; + &lt;decimal&gt; (desired &lt;int&gt;)&quot;);</span>
+<span class="nc" id="L115">        errors.add(&quot;unsupported comparison operator&quot;);</span>
+<span class="nc" id="L116">        errors.add(&quot;unknown signature: chr(decimal) (desired &lt;string&gt;)&quot;);</span>
+<span class="nc" id="L117">        errors.add(&quot;unknown signature: to_english(decimal) (desired &lt;string&gt;)&quot;);</span>
+<span class="nc" id="L118">        errors.add(&quot;unknown signature: to_hex(decimal) (desired &lt;string&gt;)&quot;);</span>
+<span class="nc" id="L119">        errors.add(&quot;incompatible value type: expected rowid to be of type decimal, found type int&quot;);</span>
+<span class="nc" id="L120">        errors.add(&quot;unknown signature: to_english(decimal)&quot;);</span>
+<span class="nc" id="L121">        errors.add(&quot;unknown signature: chr(decimal)&quot;);</span>
+<span class="nc" id="L122">        errors.add(&quot;unknown signature: split_part&quot;);</span>
+<span class="nc" id="L123">        errors.add(&quot;division by zero&quot;);</span>
+<span class="nc" id="L124">        errors.add(&quot;as int, found type: decimal&quot;);</span>
+<span class="nc" id="L125">        errors.add(&quot;value type decimal doesn't match type int2 &quot;);</span>
+<span class="nc" id="L126">        errors.add(&quot;has type decimal&quot;);</span>
+<span class="nc" id="L127">        errors.add(&quot;to be of type decimal, found type int&quot;);</span>
+<span class="nc" id="L128">        errors.add(&quot;value type decimal doesn't match type int&quot;);</span>
+<span class="nc" id="L129">        errors.add(&quot;unsupported binary operator: &lt;int&gt; / &lt;int&gt; (desired &lt;int4&gt;)&quot;);</span>
+<span class="nc" id="L130">        errors.add(&quot;(desired &lt;int&gt;)&quot;);</span>
+<span class="nc" id="L131">        errors.add(&quot;(desired &lt;int2&gt;)&quot;);</span>
+<span class="nc" id="L132">        errors.add(&quot;(desired &lt;int4&gt;)&quot;);</span>
+<span class="nc" id="L133">        errors.add(&quot;found type: decimal&quot;);</span>
+<span class="nc" id="L134">        errors.add(&quot;(desired &lt;decimal&gt;)&quot;);</span>
+<span class="nc" id="L135">        errors.add(&quot;unknown signature: to_hex(decimal)&quot;);</span>
+<span class="nc" id="L136">        errors.add(&quot;division undefined&quot;);</span>
+<span class="nc" id="L137">        errors.add(&quot;decimal out of range&quot;);</span>
+<span class="nc" id="L138">        errors.add(&quot;unknown signature: xor_agg(decimal)&quot;);</span>
+<span class="nc" id="L139">        errors.add(&quot;unknown signature: sum_int(decimal)&quot;);</span>
+<span class="nc" id="L140">        errors.add(&quot;unknown signature: bit_and(decimal)&quot;);</span>
+<span class="nc" id="L141">        errors.add(&quot;unknown signature: bit_or(decimal)&quot;);</span>
+
+<span class="nc" id="L143">        errors.add(&quot;exists but is not a directory&quot;); // TODO</span>
+
+<span class="nc" id="L145">        errors.add(&quot;could not parse JSON: trailing characters after JSON document&quot;);</span>
+<span class="nc" id="L146">        errors.add(&quot;could not parse JSON: unable to decode JSON: invalid character&quot;);</span>
+<span class="nc" id="L147">        errors.add(&quot;could not parse JSON: unable to decode JSON: EOF&quot;);</span>
+<span class="nc" id="L148">        errors.add(&quot;could not parse JSON: unable to decode JSON: unexpected EOF&quot;);</span>
+<span class="nc" id="L149">        errors.add(&quot;can't order by column type jsonb&quot;);</span>
+<span class="nc" id="L150">        errors.add(&quot;odd length hex string&quot;);</span>
+
+        // TODO: better control what is generated in a view
+<span class="nc" id="L153">        errors.add(&quot;aggregate functions are not allowed in GROUP BY&quot;);</span>
+<span class="nc" id="L154">        errors.add(&quot; must appear in the GROUP BY clause or be used in an aggregate function&quot;);</span>
+
+<span class="nc bnc" id="L156" title="All 2 branches missed.">        if (CockroachDBBugs.bug83874) {</span>
+<span class="nc" id="L157">            errors.add(&quot;no builtin aggregate&quot;);</span>
+        }
+<span class="nc bnc" id="L159" title="All 2 branches missed.">        if (CockroachDBBugs.bug83792) {</span>
+<span class="nc" id="L160">            errors.add(&quot;comparison overload not found&quot;);</span>
+        }
+<span class="nc bnc" id="L162" title="All 2 branches missed.">        if (CockroachDBBugs.bug83973) {</span>
+<span class="nc" id="L163">            errors.add(&quot;invalid memory address&quot;);</span>
+        }
+<span class="nc bnc" id="L165" title="All 2 branches missed.">        if (CockroachDBBugs.bug83976) {</span>
+<span class="nc" id="L166">            errors.add(&quot;cannot execute distinct on no columns&quot;);</span>
+        }
+<span class="nc bnc" id="L168" title="All 2 branches missed.">        if (CockroachDBBugs.bug85356) {</span>
+<span class="nc" id="L169">            errors.add(&quot;inconsistent Case return types&quot;);</span>
+        }
+<span class="nc bnc" id="L171" title="All 2 branches missed.">        if (CockroachDBBugs.bug85371) {</span>
+<span class="nc" id="L172">            errors.add(&quot;index out of range&quot;);</span>
+        }
+<span class="nc bnc" id="L174" title="All 2 branches missed.">        if (CockroachDBBugs.bug85389) {</span>
+<span class="nc" id="L175">            errors.add(&quot;no volatility for cast decimal&quot;);</span>
+        }
+<span class="nc bnc" id="L177" title="All 2 branches missed.">        if (CockroachDBBugs.bug85390) {</span>
+<span class="nc" id="L178">            errors.add(&quot;lookup for ComparisonExpr&quot;);</span>
+        }
+<span class="nc bnc" id="L180" title="All 2 branches missed.">        if (CockroachDBBugs.bug85393) {</span>
+<span class="nc" id="L181">            errors.add(&quot;no output column equivalent to&quot;);</span>
+        }
+<span class="nc bnc" id="L183" title="All 2 branches missed.">        if (CockroachDBBugs.bug85441) {</span>
+<span class="nc" id="L184">            errors.add(&quot;cannot cast jsonb numeric to type bool&quot;);</span>
+        }
+<span class="nc bnc" id="L186" title="All 2 branches missed.">        if (CockroachDBBugs.bug85499) {</span>
+<span class="nc" id="L187">            errors.add(&quot;estimated row count must be non-zero&quot;);</span>
+        }
+<span class="nc bnc" id="L189" title="All 2 branches missed.">        if (CockroachDBBugs.bug88037) {</span>
+<span class="nc" id="L190">            errors.add(&quot;expected required columns to be a subset of output columns&quot;);</span>
+        }
+
+<span class="nc" id="L193">        errors.add(&quot;unable to vectorize execution plan&quot;); // SET vectorize=experimental_always;</span>
+<span class="nc" id="L194">        errors.add(&quot; mismatched physical types at index&quot;); // SET vectorize=experimental_always;</span>
+<span class="nc" id="L195">        errors.add(&quot;unsupported type time&quot;);</span>
+<span class="nc" id="L196">        errors.add(&quot;unsupported type varbit&quot;);</span>
+<span class="nc" id="L197">        errors.add(&quot;unsupported type bit&quot;);</span>
+
+<span class="nc" id="L199">        errors.add(&quot;unknown signature: xor_agg(string)&quot;);</span>
+<span class="nc" id="L200">        errors.add(&quot;unknown signature: string_agg(string, bytes)&quot;);</span>
+<span class="nc" id="L201">        errors.add(&quot;unknown signature: string_agg(bytes, string)&quot;);</span>
+<span class="nc" id="L202">        errors.add(&quot;arguments to xor must all be the same length&quot;);</span>
+<span class="nc" id="L203">        errors.add(&quot;unknown signature: acos(decimal)&quot;);</span>
+
+<span class="nc" id="L205">        errors.add(&quot;argument of OFFSET must be type int, not type decimal&quot;);</span>
+<span class="nc" id="L206">        errors.add(&quot;ERROR: for SELECT DISTINCT, ORDER BY expressions must appear in select list&quot;);</span>
+
+<span class="nc" id="L208">        addArrayErrors(errors);</span>
+<span class="nc" id="L209">        addComputedColumnErrors(errors);</span>
+<span class="nc" id="L210">    }</span>
+
+    private static void addArrayErrors(ExpectedErrors errors) {
+        // arrays
+<span class="nc" id="L214">        errors.add(&quot;cannot determine type of empty array&quot;);</span>
+<span class="nc" id="L215">        errors.add(&quot;unknown signature: max(unknown[])&quot;);</span>
+<span class="nc" id="L216">        errors.add(&quot;unknown signature: min(unknown[])&quot;);</span>
+<span class="nc" id="L217">        errors.add(&quot;unknown signature: max(interval[])&quot;);</span>
+<span class="nc" id="L218">        errors.add(&quot;unknown signature: min(interval[])&quot;);</span>
+<span class="nc" id="L219">        errors.add(&quot;unknown signature: max(string[])&quot;);</span>
+<span class="nc" id="L220">        errors.add(&quot;unknown signature: min(string[])&quot;);</span>
+<span class="nc" id="L221">        errors.add(&quot;unknown signature: max(decimal[])&quot;);</span>
+<span class="nc" id="L222">        errors.add(&quot;unknown signature: min(decimal[])&quot;);</span>
+<span class="nc" id="L223">        errors.add(&quot;unknown signature: max(varbit[])&quot;);</span>
+<span class="nc" id="L224">        errors.add(&quot;unknown signature: min(varbit[])&quot;);</span>
+<span class="nc" id="L225">        errors.add(&quot;unknown signature: max(int[])&quot;);</span>
+<span class="nc" id="L226">        errors.add(&quot;unknown signature: min(int[])&quot;);</span>
+<span class="nc" id="L227">        errors.add(&quot;unknown signature: min(bool[])&quot;);</span>
+<span class="nc" id="L228">        errors.add(&quot;unknown signature: max(bool[])&quot;);</span>
+<span class="nc" id="L229">        errors.add(&quot;unknown signature: max(timestamp[])&quot;);</span>
+<span class="nc" id="L230">        errors.add(&quot;unknown signature: min(timestamp[])&quot;);</span>
+<span class="nc" id="L231">        errors.add(&quot;unknown signature: min(timestamptz[])&quot;);</span>
+<span class="nc" id="L232">        errors.add(&quot;unknown signature: max(timestamptz[])&quot;);</span>
+<span class="nc" id="L233">        errors.add(&quot;unknown signature: min(timetz[])&quot;);</span>
+<span class="nc" id="L234">        errors.add(&quot;unknown signature: max(timetz[])&quot;);</span>
+<span class="nc" id="L235">        errors.add(&quot;unknown signature: max(time[])&quot;);</span>
+<span class="nc" id="L236">        errors.add(&quot;unknown signature: min(time[])&quot;);</span>
+<span class="nc" id="L237">        errors.add(&quot;unknown signature: min(int2[])&quot;);</span>
+<span class="nc" id="L238">        errors.add(&quot;unknown signature: max(int2[])&quot;);</span>
+<span class="nc" id="L239">        errors.add(&quot;unknown signature: max(int4[])&quot;);</span>
+<span class="nc" id="L240">        errors.add(&quot;unknown signature: min(int4[])&quot;);</span>
+<span class="nc" id="L241">        errors.add(&quot;unknown signature: max(bytes[])&quot;);</span>
+<span class="nc" id="L242">        errors.add(&quot;unknown signature: min(bytes[])&quot;);</span>
+<span class="nc" id="L243">        errors.add(&quot;unknown signature: min(bit[])&quot;);</span>
+<span class="nc" id="L244">        errors.add(&quot;unknown signature: max(bit[])&quot;);</span>
+<span class="nc" id="L245">        errors.add(&quot;unknown signature: min(float[])&quot;);</span>
+<span class="nc" id="L246">        errors.add(&quot;unknown signature: max(float[])&quot;);</span>
+
+<span class="nc" id="L248">        errors.add(&quot;array must be enclosed in { and }&quot;); // when casting a string to an array</span>
+<span class="nc" id="L249">        errors.add(&quot;extra text after closing right brace&quot;);</span>
+<span class="nc" id="L250">        errors.add(&quot;unimplemented: nested arrays not supported&quot;); // e.g., casting a string {{1}} to an array</span>
+<span class="nc" id="L251">        errors.add(&quot;malformed array&quot;);</span>
+
+<span class="nc" id="L253">        errors.add(&quot;as bytes[], found type: varbit[]&quot;);</span>
+<span class="nc" id="L254">        errors.add(&quot;to be of type decimal[], found type float[]&quot;);</span>
+<span class="nc" id="L255">        errors.add(&quot;to be of type int[], found type decimal[]&quot;);</span>
+
+<span class="nc" id="L257">        errors.add(&quot;to be of type unknown[]&quot;); // IF with null array</span>
+<span class="nc" id="L258">    }</span>
+
+    private static void addIntervalTypeErrors(ExpectedErrors errors) {
+<span class="nc" id="L261">        errors.add(&quot;overflow during Encode&quot;);</span>
+<span class="nc" id="L262">        errors.add(&quot;type interval&quot;);</span>
+<span class="nc" id="L263">    }</span>
+
+    private static void addJoinTypes(ExpectedErrors errors) {
+<span class="nc" id="L266">        errors.add(&quot;JOIN/USING types&quot;);</span>
+<span class="nc" id="L267">    }</span>
+
+    private static void addGroupByErrors(ExpectedErrors errors) {
+<span class="nc" id="L270">        errors.add(&quot;non-integer constant in GROUP BY&quot;);</span>
+
+        // https://github.com/cockroachdb/cockroach/pull/46649 -&gt; aggregates on NULL are
+        // not typed strings
+<span class="nc" id="L274">        errors.add(&quot;ERROR: argument of HAVING must be type bool, not type string&quot;); // MAX(NULL) etc.</span>
+<span class="nc" id="L275">        errors.add(&quot;incompatible condition type: string&quot;); // CASE WHEN MAX(NULL) etc.</span>
+<span class="nc" id="L276">        errors.add(&quot;incompatible NOT argument type: string&quot;); // NOT MAX(NULL) etc.</span>
+<span class="nc" id="L277">        errors.add(&quot;incompatible AND argument type: string&quot;);</span>
+<span class="nc" id="L278">        errors.add(&quot;incompatible OR argument type: string&quot;);</span>
+<span class="nc" id="L279">        errors.add(&quot;ERROR: incompatible IF condition type: string&quot;);</span>
+<span class="nc" id="L280">        errors.add(&quot;, found type: string&quot;);</span>
+<span class="nc" id="L281">        errors.add(&quot;incompatible NULLIF expressions&quot;);</span>
+<span class="nc" id="L282">        errors.add(&quot;ERROR: unsupported binary operator&quot;);</span>
+<span class="nc" id="L283">        errors.add(&quot;incompatible value type&quot;);</span>
+<span class="nc" id="L284">        errors.add(&quot; ERROR: incompatible IF expressions&quot;);</span>
+<span class="nc" id="L285">        errors.add(&quot; to be of type string&quot;);</span>
+<span class="nc" id="L286">        errors.add(&quot;found type string&quot;);</span>
+
+<span class="nc" id="L288">        errors.add(&quot;unknown signature: abs(string)&quot;);</span>
+<span class="nc" id="L289">        errors.add(&quot;unknown signature: acos(string)&quot;);</span>
+
+<span class="nc" id="L291">    }</span>
+
+    private static void addFunctionErrors(ExpectedErrors errors) {
+        // functions
+<span class="nc" id="L295">        errors.add(&quot;abs of min integer value (-9223372036854775808) not defined&quot;); // ABS</span>
+<span class="nc" id="L296">        errors.add(&quot;the input string must not be empty&quot;); // ASCII</span>
+<span class="nc" id="L297">        errors.add(&quot;overlay(): non-positive substring length not allowed&quot;); // overlay</span>
+<span class="nc" id="L298">        errors.add(&quot;non-positive substring length not allowed&quot;); // overlay</span>
+<span class="nc" id="L299">        errors.add(&quot;lpad(): requested length too large&quot;); // lpad</span>
+<span class="nc" id="L300">        errors.add(&quot;input value must be &gt;= 0&quot;); // chr</span>
+<span class="nc" id="L301">        errors.add(&quot;input value must be &lt;= 1114111 (maximum Unicode code point)&quot;); // chr</span>
+<span class="nc" id="L302">        errors.add(&quot;to_ip(): invalid IP format&quot;); // to_ip</span>
+<span class="nc" id="L303">        errors.add(&quot;invalid IP format&quot;); // to_ip</span>
+<span class="nc" id="L304">        errors.add(&quot;incorrect UUID length&quot;); // to_uuid</span>
+<span class="nc" id="L305">        errors.add(&quot;incorrect UUID format&quot;); // to_uuid</span>
+<span class="nc" id="L306">        errors.add(&quot;substring(): negative substring length&quot;); // substring</span>
+<span class="nc" id="L307">        errors.add(&quot;negative substring length&quot;); // substring</span>
+<span class="nc" id="L308">        errors.add(&quot;must be greater than zero&quot;); // split_part</span>
+<span class="nc" id="L309">    }</span>
+
+    public static void addTransactionErrors(ExpectedErrors errors) {
+<span class="nc" id="L312">        errors.add(&quot;current transaction is aborted&quot;);</span>
+<span class="nc" id="L313">    }</span>
+
+    private static void addComputedColumnErrors(ExpectedErrors errors) {
+        // computed columns
+<span class="nc" id="L317">        errors.add(&quot;computed column expressions cannot reference computed columns&quot;);</span>
+<span class="nc" id="L318">    }</span>
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.8.202204050719</span></div></body></html>

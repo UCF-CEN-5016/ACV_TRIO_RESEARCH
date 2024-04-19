@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>TiDBErrors.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">dqetool</a> &gt; <a href="index.source.html" class="el_package">dqetool.tidb</a> &gt; <span class="el_source">TiDBErrors.java</span></div><h1>TiDBErrors.java</h1><pre class="source lang-java linenums">package dqetool.tidb;
+
+import dqetool.common.query.ExpectedErrors;
+
+public final class TiDBErrors {
+
+    private TiDBErrors() {
+    }
+
+    public static void addExpressionErrors(ExpectedErrors errors) {
+<span class="nc" id="L11">        errors.add(&quot;DECIMAL value is out of range&quot;);</span>
+<span class="nc" id="L12">        errors.add(&quot;error parsing regexp&quot;);</span>
+<span class="nc" id="L13">        errors.add(&quot;BIGINT UNSIGNED value is out of range&quot;);</span>
+<span class="nc" id="L14">        errors.add(&quot;Data truncation: Truncated incorrect time value&quot;);</span>
+<span class="nc" id="L15">        errors.add(&quot;Data truncation: Incorrect time value&quot;);</span>
+<span class="nc" id="L16">        errors.add(&quot;overflows double&quot;);</span>
+<span class="nc" id="L17">        errors.add(&quot;overflows bigint&quot;);</span>
+<span class="nc" id="L18">        errors.add(&quot;strconv.ParseFloat: parsing&quot;);</span>
+<span class="nc" id="L19">        errors.add(&quot;in 'order clause'&quot;); // int constants in order by clause</span>
+
+        // functions
+<span class="nc" id="L22">        errors.add(&quot;BIGINT value is out of range&quot;);</span>
+<span class="nc" id="L23">        errors.add(&quot;doesn't have a default value&quot;); // default</span>
+<span class="nc" id="L24">        errors.add(&quot;is not valid for CHARACTER SET&quot;);</span>
+<span class="nc" id="L25">        errors.add(&quot;DOUBLE value is out of range&quot;);</span>
+
+<span class="nc" id="L27">        errors.add(&quot;Data truncation: %s value is out of range in '%s'&quot;);</span>
+<span class="nc" id="L28">        errors.add(&quot;Truncated incorrect FLOAT value&quot;);</span>
+<span class="nc" id="L29">        errors.add(&quot;Bad Number&quot;);</span>
+
+        // regex
+<span class="nc" id="L32">        errors.add(&quot;error parsing regexp&quot;);</span>
+<span class="nc" id="L33">        errors.add(&quot;from regexp&quot;);</span>
+<span class="nc" id="L34">        errors.add(&quot;Empty pattern is invalid&quot;);</span>
+<span class="nc" id="L35">        errors.add(&quot;Invalid regexp pattern&quot;);</span>
+
+        // To avoid bugs
+<span class="nc" id="L38">        errors.add(&quot;Unknown column&quot;); // https://github.com/pingcap/tidb/issues/35522</span>
+<span class="nc" id="L39">        errors.add(&quot;Can\'t find column&quot;); // https://github.com/pingcap/tidb/issues/35527</span>
+<span class="nc" id="L40">        errors.add(&quot;Cannot convert&quot;); // https://github.com/pingcap/tidb/issues/35652</span>
+
+<span class="nc bnc" id="L42" title="All 2 branches missed.">        if (TiDBBugs.bug35677) {</span>
+<span class="nc" id="L43">            errors.add(&quot;for function inet_aton&quot;);</span>
+        }
+<span class="nc bnc" id="L45" title="All 2 branches missed.">        if (TiDBBugs.bug35522) {</span>
+<span class="nc" id="L46">            errors.add(&quot;ERROR 1054 (42S22)&quot;);</span>
+        }
+<span class="nc bnc" id="L48" title="All 2 branches missed.">        if (TiDBBugs.bug35652) {</span>
+<span class="nc" id="L49">            errors.add(&quot;from binary to utf8&quot;);</span>
+        }
+<span class="nc bnc" id="L51" title="All 2 branches missed.">        if (TiDBBugs.bug38295) {</span>
+<span class="nc" id="L52">            errors.add(&quot;assertion failed&quot;);</span>
+        }
+<span class="nc" id="L54">    }</span>
+
+    public static void addExpressionHavingErrors(ExpectedErrors errors) {
+<span class="nc" id="L57">        errors.add(&quot;is not in GROUP BY clause and contains nonaggregated column&quot;);</span>
+<span class="nc" id="L58">        errors.add(&quot;Unknown column&quot;);</span>
+<span class="nc" id="L59">    }</span>
+
+    public static void addInsertErrors(ExpectedErrors errors) {
+<span class="nc" id="L62">        errors.add(&quot;Duplicate entry&quot;);</span>
+<span class="nc" id="L63">        errors.add(&quot;cannot be null&quot;);</span>
+<span class="nc" id="L64">        errors.add(&quot;doesn't have a default value&quot;);</span>
+<span class="nc" id="L65">        errors.add(&quot;Out of range value&quot;);</span>
+<span class="nc" id="L66">        errors.add(&quot;Incorrect double value&quot;);</span>
+<span class="nc" id="L67">        errors.add(&quot;Incorrect float value&quot;);</span>
+<span class="nc" id="L68">        errors.add(&quot;Incorrect int value&quot;);</span>
+<span class="nc" id="L69">        errors.add(&quot;Incorrect tinyint value&quot;);</span>
+<span class="nc" id="L70">        errors.add(&quot;Data truncation&quot;);</span>
+<span class="nc" id="L71">        errors.add(&quot;Bad Number&quot;);</span>
+<span class="nc" id="L72">        errors.add(&quot;The value specified for generated column&quot;); // TODO: do not insert data into generated columns</span>
+<span class="nc" id="L73">        errors.add(&quot;incorrect utf8 value&quot;);</span>
+<span class="nc" id="L74">        errors.add(&quot;Data truncation: %s value is out of range in '%s'&quot;);</span>
+<span class="nc" id="L75">        errors.add(&quot;Incorrect smallint value&quot;);</span>
+<span class="nc" id="L76">        errors.add(&quot;Incorrect bigint value&quot;);</span>
+<span class="nc" id="L77">        errors.add(&quot;Incorrect decimal value&quot;);</span>
+<span class="nc" id="L78">        errors.add(&quot;error parsing regexp&quot;);</span>
+<span class="nc" id="L79">        errors.add(&quot;is not valid for CHARACTER SET&quot;);</span>
+<span class="nc" id="L80">    }</span>
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.8.202204050719</span></div></body></html>

@@ -1,0 +1,118 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>SQLQueryError.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">dqetool</a> &gt; <a href="index.source.html" class="el_package">dqetool.common.query</a> &gt; <span class="el_source">SQLQueryError.java</span></div><h1>SQLQueryError.java</h1><pre class="source lang-java linenums">package dqetool.common.query;
+
+<span class="nc" id="L3">public class SQLQueryError implements Comparable&lt;SQLQueryError&gt; {</span>
+
+<span class="nc" id="L5">    public enum ErrorLevel {</span>
+<span class="nc" id="L6">        WARNING, ERROR</span>
+    }
+
+    private ErrorLevel level;
+    private int code;
+    private String message;
+
+    public void setLevel(String level) {
+        // value of is case-sensitive
+<span class="nc" id="L15">        this.level = ErrorLevel.valueOf(level.toUpperCase());</span>
+<span class="nc" id="L16">    }</span>
+
+    public void setCode(int code) {
+<span class="nc" id="L19">        this.code = code;</span>
+<span class="nc" id="L20">    }</span>
+
+    public void setMessage(String message) {
+<span class="nc" id="L23">        this.message = message;</span>
+<span class="nc" id="L24">    }</span>
+
+    public ErrorLevel getLevel() {
+<span class="nc" id="L27">        return level;</span>
+    }
+
+    public int getCode() {
+<span class="nc" id="L31">        return code;</span>
+    }
+
+    public String getMessage() {
+<span class="nc" id="L35">        return message;</span>
+    }
+
+    public boolean hasSameLevel(SQLQueryError that) {
+<span class="nc bnc" id="L39" title="All 4 branches missed.">        if (level == null &amp;&amp; that.getLevel() == null) {</span>
+<span class="nc" id="L40">            return true;</span>
+<span class="nc bnc" id="L41" title="All 4 branches missed.">        } else if (level != null &amp;&amp; level.equals(that.getLevel())) {</span>
+<span class="nc" id="L42">            return true;</span>
+        } else {
+<span class="nc" id="L44">            return false;</span>
+        }
+    }
+
+    public boolean hasSameCodeAndMessage(SQLQueryError that) {
+<span class="nc bnc" id="L49" title="All 2 branches missed.">        if (code != that.getCode()) {</span>
+<span class="nc" id="L50">            return false;</span>
+        }
+<span class="nc bnc" id="L52" title="All 4 branches missed.">        if (message == null &amp;&amp; that.getMessage() == null) {</span>
+<span class="nc" id="L53">            return true;</span>
+<span class="nc bnc" id="L54" title="All 4 branches missed.">        } else if (message != null &amp;&amp; message.equals(that.getMessage())) {</span>
+<span class="nc" id="L55">            return true;</span>
+        } else {
+<span class="nc" id="L57">            return false;</span>
+        }
+    }
+
+    @Override
+    public boolean equals(Object that) {
+<span class="nc bnc" id="L63" title="All 2 branches missed.">        if (that == null) {</span>
+<span class="nc" id="L64">            return false;</span>
+        }
+<span class="nc bnc" id="L66" title="All 2 branches missed.">        if (that instanceof SQLQueryError) {</span>
+<span class="nc" id="L67">            SQLQueryError thatError = (SQLQueryError) that;</span>
+<span class="nc bnc" id="L68" title="All 4 branches missed.">            if (hasSameLevel(thatError) &amp;&amp; hasSameCodeAndMessage(thatError)) {</span>
+<span class="nc" id="L69">                return true;</span>
+            }
+        }
+<span class="nc" id="L72">        return false;</span>
+    }
+
+    @Override
+    public String toString() {
+<span class="nc" id="L77">        return String.format(&quot;Level: %s; Code: %d; Message: %s.&quot;, level, code, message);</span>
+    }
+
+    @Override
+    public int compareTo(SQLQueryError that) {
+<span class="nc bnc" id="L82" title="All 2 branches missed.">        if (code &lt; that.getCode()) {</span>
+<span class="nc" id="L83">            return -1;</span>
+<span class="nc bnc" id="L84" title="All 2 branches missed.">        } else if (code &gt; that.getCode()) {</span>
+<span class="nc" id="L85">            return 1;</span>
+        }
+
+<span class="nc bnc" id="L88" title="All 4 branches missed.">        if (level == null &amp;&amp; that.getLevel() != null) {</span>
+<span class="nc" id="L89">            return -1;</span>
+        }
+<span class="nc bnc" id="L91" title="All 4 branches missed.">        if (level != null &amp;&amp; that.getLevel() == null) {</span>
+<span class="nc" id="L92">            return 1;</span>
+        }
+<span class="nc bnc" id="L94" title="All 4 branches missed.">        if (level != null &amp;&amp; that.getLevel() != null) {</span>
+<span class="nc" id="L95">            int res = level.compareTo(that.getLevel());</span>
+<span class="nc bnc" id="L96" title="All 2 branches missed.">            if (res != 0) {</span>
+<span class="nc" id="L97">                return res;</span>
+            }
+        }
+
+<span class="nc bnc" id="L101" title="All 4 branches missed.">        if (message == null &amp;&amp; that.getMessage() != null) {</span>
+<span class="nc" id="L102">            return -1;</span>
+        }
+<span class="nc bnc" id="L104" title="All 4 branches missed.">        if (message != null &amp;&amp; that.getMessage() == null) {</span>
+<span class="nc" id="L105">            return 1;</span>
+        }
+<span class="nc bnc" id="L107" title="All 4 branches missed.">        if (message != null &amp;&amp; that.getMessage() != null) {</span>
+<span class="nc" id="L108">            int res = message.compareTo(that.getMessage());</span>
+<span class="nc bnc" id="L109" title="All 2 branches missed.">            if (res != 0) {</span>
+<span class="nc" id="L110">                return res;</span>
+            }
+        }
+
+<span class="nc" id="L114">        return 0;</span>
+    }
+}
+
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.8.202204050719</span></div></body></html>

@@ -1,0 +1,195 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>SQLite3CreateVirtualFTSTableGenerator.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">dqetool</a> &gt; <a href="index.source.html" class="el_package">dqetool.sqlite3.gen.ddl</a> &gt; <span class="el_source">SQLite3CreateVirtualFTSTableGenerator.java</span></div><h1>SQLite3CreateVirtualFTSTableGenerator.java</h1><pre class="source lang-java linenums">package dqetool.sqlite3.gen.ddl;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+
+import dqetool.IgnoreMeException;
+import dqetool.Randomly;
+import dqetool.common.DBMSCommon;
+import dqetool.common.query.ExpectedErrors;
+import dqetool.common.query.SQLQueryAdapter;
+import dqetool.sqlite3.SQLite3GlobalState;
+
+public class SQLite3CreateVirtualFTSTableGenerator {
+
+    private final String tableName;
+    private final Randomly r;
+<span class="nc" id="L18">    private final StringBuilder sb = new StringBuilder();</span>
+
+<span class="nc" id="L20">    public SQLite3CreateVirtualFTSTableGenerator(String tableName, Randomly r) {</span>
+<span class="nc" id="L21">        this.tableName = tableName;</span>
+<span class="nc" id="L22">        this.r = r;</span>
+<span class="nc" id="L23">    }</span>
+
+    public static SQLQueryAdapter createRandomTableStatement(SQLite3GlobalState globalState) {
+<span class="nc" id="L26">        if (globalState.getSchema().getTables().getTables()</span>
+<span class="nc bnc" id="L27" title="All 2 branches missed.">                .size() &gt; globalState.getDbmsSpecificOptions().maxNumTables) {</span>
+<span class="nc" id="L28">            throw new IgnoreMeException();</span>
+        }
+<span class="nc" id="L30">        return createTableStatement(globalState.getSchema().getFreeVirtualTableName(), globalState.getRandomly());</span>
+    }
+
+    public static SQLQueryAdapter createTableStatement(String tableName, Randomly r) {
+<span class="nc" id="L34">        return new SQLite3CreateVirtualFTSTableGenerator(tableName, r).create();</span>
+    }
+
+<span class="nc" id="L37">    private enum Fts5Options {</span>
+<span class="nc" id="L38">        PREFIX, // 4.2. Prefix Indexes</span>
+<span class="nc" id="L39">        TOKENIZE, // 4.3. Tokenizers</span>
+<span class="nc" id="L40">        COLUMNSIZE, // 4.5. The Columnsize Option</span>
+<span class="nc" id="L41">        DETAIL, // 4.6. The Detail Option</span>
+<span class="nc" id="L42">        CONTENTLESS, //</span>
+    };
+
+<span class="nc" id="L45">    private enum Fts4Options {</span>
+<span class="nc" id="L46">        MATCHINFO, TOKENIZE, PREFIX, ORDER, LANGUAGEID, COMPRESS, NOT_INDEXED</span>
+    }
+
+    public SQLQueryAdapter create() {
+<span class="nc" id="L50">        sb.append(&quot;CREATE VIRTUAL TABLE &quot;);</span>
+<span class="nc" id="L51">        sb.append(tableName);</span>
+<span class="nc" id="L52">        sb.append(&quot; USING &quot;);</span>
+<span class="nc bnc" id="L53" title="All 2 branches missed.">        if (Randomly.getBoolean()) {</span>
+<span class="nc" id="L54">            createFts4Table();</span>
+<span class="nc" id="L55">        } else {</span>
+<span class="nc" id="L56">            createFts5Table();</span>
+        }
+<span class="nc" id="L58">        return new SQLQueryAdapter(sb.toString(),</span>
+<span class="nc" id="L59">                ExpectedErrors.from(&quot;unrecognized parameter&quot;, &quot;unknown tokenizer: ascii&quot;), true);</span>
+    }
+
+    private void createFts4Table() {
+<span class="nc" id="L63">        createTable(&quot;fts4&quot;, () -&gt; {</span>
+<span class="nc bnc" id="L64" title="All 2 branches missed.">            if (Randomly.getBoolean()) {</span>
+<span class="nc" id="L65">                sb.append(&quot; UNINDEXED&quot;);</span>
+            }
+<span class="nc" id="L67">        }, () -&gt; {</span>
+<span class="nc" id="L68">            List&lt;Fts4Options&gt; possibleActions = new ArrayList&lt;&gt;(Arrays.asList(Fts4Options.values()));</span>
+<span class="nc bnc" id="L69" title="All 2 branches missed.">            for (int i = 0; i &lt; Randomly.smallNumber(); i++) {</span>
+<span class="nc" id="L70">                sb.append(&quot;, &quot;);</span>
+<span class="nc" id="L71">                Fts4Options option = Randomly.fromList(possibleActions);</span>
+<span class="nc bnc" id="L72" title="All 8 branches missed.">                switch (option) {</span>
+                case COMPRESS:
+<span class="nc" id="L74">                    sb.append(&quot;compress=likely, uncompress=likely&quot;);</span>
+<span class="nc" id="L75">                    break;</span>
+                case MATCHINFO:
+<span class="nc" id="L77">                    sb.append(&quot;matchinfo=fts3&quot;);</span>
+<span class="nc" id="L78">                    break;</span>
+                case TOKENIZE:
+<span class="nc" id="L80">                    sb.append(&quot;tokenize=&quot;);</span>
+<span class="nc" id="L81">                    sb.append(Randomly.fromOptions(&quot;simple&quot;, &quot;porter&quot;, &quot;unicode61&quot;));</span>
+<span class="nc" id="L82">                    possibleActions.remove(Fts4Options.TOKENIZE);</span>
+<span class="nc" id="L83">                    break;</span>
+                case PREFIX:
+<span class="nc" id="L85">                    sb.append(&quot;prefix=&quot;);</span>
+<span class="nc" id="L86">                    sb.append(r.getInteger(1, 999));</span>
+<span class="nc" id="L87">                    sb.append(&quot;&quot;);</span>
+<span class="nc" id="L88">                    break;</span>
+                case ORDER:
+<span class="nc" id="L90">                    sb.append(&quot;order=&quot;);</span>
+<span class="nc" id="L91">                    sb.append(Randomly.fromOptions(&quot;ASC&quot;, &quot;DESC&quot;));</span>
+<span class="nc" id="L92">                    break;</span>
+                case LANGUAGEID:
+<span class="nc" id="L94">                    sb.append(&quot;languageid=\&quot;lid\&quot;&quot;);</span>
+<span class="nc" id="L95">                    break;</span>
+                case NOT_INDEXED:
+                    // TODO also create for other columns
+<span class="nc" id="L98">                    sb.append(&quot;notindexed=c0&quot;);</span>
+<span class="nc" id="L99">                    break;</span>
+                default:
+<span class="nc" id="L101">                    throw new AssertionError();</span>
+                }
+            }
+<span class="nc" id="L104">        });</span>
+<span class="nc" id="L105">    }</span>
+
+    private void prefix() {
+<span class="nc" id="L108">        sb.append(&quot;prefix = &quot;);</span>
+<span class="nc" id="L109">        sb.append(r.getInteger(1, 999));</span>
+<span class="nc" id="L110">    }</span>
+
+    private void createFts5Table() throws AssertionError {
+<span class="nc" id="L113">        createTable(&quot;fts5&quot;, () -&gt; {</span>
+<span class="nc bnc" id="L114" title="All 2 branches missed.">            if (Randomly.getBoolean()) {</span>
+                // 4.1. The UNINDEXED column option
+<span class="nc" id="L116">                sb.append(&quot; UNINDEXED&quot;);</span>
+            }
+<span class="nc" id="L118">        }, () -&gt; {</span>
+<span class="nc" id="L119">            List&lt;Fts5Options&gt; possibleActions = new ArrayList&lt;&gt;(Arrays.asList(Fts5Options.values()));</span>
+<span class="nc bnc" id="L120" title="All 2 branches missed.">            for (int i = 0; i &lt; Randomly.smallNumber(); i++) {</span>
+<span class="nc" id="L121">                Fts5Options option = Randomly.fromList(possibleActions);</span>
+<span class="nc" id="L122">                sb.append(&quot;, &quot;);</span>
+<span class="nc bnc" id="L123" title="All 6 branches missed.">                switch (option) {</span>
+                case COLUMNSIZE:
+<span class="nc bnc" id="L125" title="All 2 branches missed.">                    if (Randomly.getBoolean()) {</span>
+<span class="nc" id="L126">                        sb.append(&quot;, columnsize=&quot;);</span>
+<span class="nc" id="L127">                        sb.append(Randomly.fromOptions(0, 1));</span>
+                    }
+<span class="nc" id="L129">                    break;</span>
+                case DETAIL:
+<span class="nc" id="L131">                    sb.append(&quot;detail=&quot;);</span>
+<span class="nc" id="L132">                    sb.append(Randomly.fromOptions(&quot;full&quot;, &quot;column&quot;, &quot;none&quot;));</span>
+<span class="nc" id="L133">                    break;</span>
+                case PREFIX:
+<span class="nc" id="L135">                    prefix();</span>
+<span class="nc" id="L136">                    break;</span>
+                case TOKENIZE:
+<span class="nc" id="L138">                    sb.append(&quot;tokenize = &quot;);</span>
+<span class="nc" id="L139">                    sb.append(&quot;\&quot;&quot;);</span>
+<span class="nc" id="L140">                    String tokenizer = Randomly.fromOptions(&quot;porter ascii&quot;, &quot;porter&quot;, &quot;unicode61&quot;, &quot;ascii&quot;);</span>
+<span class="nc" id="L141">                    sb.append(tokenizer);</span>
+<span class="nc bnc" id="L142" title="All 2 branches missed.">                    if (tokenizer.contentEquals(&quot;unicode61&quot;)) {</span>
+<span class="nc bnc" id="L143" title="All 2 branches missed.">                        if (Randomly.getBoolean()) {</span>
+<span class="nc" id="L144">                            sb.append(&quot; remove_diacritics &quot;);</span>
+<span class="nc" id="L145">                            sb.append(Randomly.fromOptions(0, 1, 2));</span>
+                        }
+<span class="nc bnc" id="L147" title="All 2 branches missed.">                        if (Randomly.getBoolean()) {</span>
+<span class="nc" id="L148">                            sb.append(&quot; tokenchars &quot;);</span>
+<span class="nc" id="L149">                            getString();</span>
+                        }
+<span class="nc bnc" id="L151" title="All 2 branches missed.">                        if (Randomly.getBoolean()) {</span>
+<span class="nc" id="L152">                            sb.append(&quot; separators &quot;);</span>
+<span class="nc" id="L153">                            getString();</span>
+                        }
+                    }
+<span class="nc" id="L156">                    sb.append(&quot;\&quot;&quot;);</span>
+<span class="nc" id="L157">                    possibleActions.remove(Fts5Options.TOKENIZE); // no duplicates allowed</span>
+<span class="nc" id="L158">                    break;</span>
+                case CONTENTLESS:
+<span class="nc" id="L160">                    sb.append(&quot;content=''&quot;);</span>
+<span class="nc" id="L161">                    possibleActions.remove(Fts5Options.CONTENTLESS);</span>
+<span class="nc" id="L162">                    break;</span>
+                default:
+<span class="nc" id="L164">                    throw new AssertionError(option);</span>
+                }
+            }
+<span class="nc" id="L167">        });</span>
+<span class="nc" id="L168">    }</span>
+
+    private void getString() {
+<span class="nc" id="L171">        sb.append(&quot;'&quot;);</span>
+<span class="nc" id="L172">        sb.append(r.getString().replace(&quot;'&quot;, &quot;''&quot;).replace(&quot;\&quot;&quot;, &quot;\&quot;\&quot;&quot;));</span>
+<span class="nc" id="L173">        sb.append(&quot;'&quot;);</span>
+<span class="nc" id="L174">    }</span>
+
+    public interface Ac {
+        void action();
+    }
+
+    private void createTable(String ftsVersion, Ac columnAction, Ac tableAction) {
+<span class="nc" id="L181">        sb.append(ftsVersion);</span>
+<span class="nc" id="L182">        sb.append(&quot;(&quot;);</span>
+<span class="nc bnc" id="L183" title="All 2 branches missed.">        for (int i = 0; i &lt; 1 + Randomly.smallNumber(); i++) {</span>
+<span class="nc bnc" id="L184" title="All 2 branches missed.">            if (i != 0) {</span>
+<span class="nc" id="L185">                sb.append(&quot;, &quot;);</span>
+            }
+<span class="nc" id="L187">            sb.append(DBMSCommon.createColumnName(i));</span>
+<span class="nc" id="L188">            columnAction.action();</span>
+        }
+<span class="nc" id="L190">        tableAction.action();</span>
+<span class="nc" id="L191">        sb.append(&quot;)&quot;);</span>
+<span class="nc" id="L192">    }</span>
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.8.202204050719</span></div></body></html>

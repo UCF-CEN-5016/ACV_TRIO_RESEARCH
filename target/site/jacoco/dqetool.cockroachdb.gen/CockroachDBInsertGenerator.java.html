@@ -1,0 +1,102 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>CockroachDBInsertGenerator.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">dqetool</a> &gt; <a href="index.source.html" class="el_package">dqetool.cockroachdb.gen</a> &gt; <span class="el_source">CockroachDBInsertGenerator.java</span></div><h1>CockroachDBInsertGenerator.java</h1><pre class="source lang-java linenums">package dqetool.cockroachdb.gen;
+
+import java.util.List;
+import java.util.stream.Collectors;
+
+import dqetool.Randomly;
+import dqetool.cockroachdb.CockroachDBErrors;
+import dqetool.cockroachdb.CockroachDBProvider.CockroachDBGlobalState;
+import dqetool.cockroachdb.CockroachDBSchema.CockroachDBColumn;
+import dqetool.cockroachdb.CockroachDBSchema.CockroachDBTable;
+import dqetool.cockroachdb.CockroachDBVisitor;
+import dqetool.common.query.ExpectedErrors;
+import dqetool.common.query.SQLQueryAdapter;
+
+public final class CockroachDBInsertGenerator {
+
+    private CockroachDBInsertGenerator() {
+    }
+
+    public static SQLQueryAdapter insert(CockroachDBGlobalState globalState) {
+<span class="nc" id="L21">        ExpectedErrors errors = new ExpectedErrors();</span>
+
+<span class="nc" id="L23">        CockroachDBErrors.addExpressionErrors(errors); // e.g., caused by computed columns</span>
+<span class="nc" id="L24">        errors.add(&quot;violates not-null constraint&quot;);</span>
+<span class="nc" id="L25">        errors.add(&quot;violates unique constraint&quot;);</span>
+<span class="nc" id="L26">        errors.add(&quot;primary key column&quot;);</span>
+<span class="nc" id="L27">        errors.add(&quot;cannot write directly to computed column&quot;); // TODO: do not select generated columns</span>
+
+<span class="nc" id="L29">        errors.add(&quot;failed to satisfy CHECK constraint&quot;);</span>
+
+<span class="nc" id="L31">        errors.add(&quot;violates foreign key constraint&quot;);</span>
+<span class="nc" id="L32">        errors.add(&quot;foreign key violation&quot;);</span>
+<span class="nc" id="L33">        errors.add(&quot;multi-part foreign key&quot;);</span>
+<span class="nc" id="L34">        StringBuilder sb = new StringBuilder();</span>
+<span class="nc bnc" id="L35" title="All 2 branches missed.">        CockroachDBTable table = globalState.getSchema().getRandomTable(t -&gt; !t.isView());</span>
+<span class="nc" id="L36">        boolean isUpsert = Randomly.getBoolean();</span>
+<span class="nc bnc" id="L37" title="All 2 branches missed.">        if (!isUpsert) {</span>
+<span class="nc" id="L38">            sb.append(&quot;INSERT INTO &quot;);</span>
+<span class="nc" id="L39">        } else {</span>
+<span class="nc" id="L40">            sb.append(&quot;UPSERT INTO &quot;);</span>
+<span class="nc" id="L41">            errors.add(&quot;UPSERT or INSERT...ON CONFLICT command cannot affect row a second time&quot;);</span>
+        }
+<span class="nc" id="L43">        sb.append(table.getName());</span>
+<span class="nc" id="L44">        sb.append(&quot; &quot;);</span>
+<span class="nc" id="L45">        CockroachDBExpressionGenerator gen = new CockroachDBExpressionGenerator(globalState);</span>
+<span class="nc bnc" id="L46" title="All 2 branches missed.">        if (Randomly.getBooleanWithSmallProbability()) {</span>
+<span class="nc" id="L47">            sb.append(&quot;DEFAULT VALUES&quot;);</span>
+<span class="nc" id="L48">        } else {</span>
+<span class="nc" id="L49">            List&lt;CockroachDBColumn&gt; columns = table.getRandomNonEmptyColumnSubset();</span>
+<span class="nc" id="L50">            sb.append(&quot;(&quot;);</span>
+<span class="nc" id="L51">            sb.append(columns.stream().map(c -&gt; c.getName()).collect(Collectors.joining(&quot;, &quot;)));</span>
+<span class="nc" id="L52">            sb.append(&quot;)&quot;);</span>
+<span class="nc" id="L53">            sb.append(&quot; VALUES&quot;);</span>
+<span class="nc bnc" id="L54" title="All 2 branches missed.">            for (int j = 0; j &lt; Randomly.smallNumber() + 1; j++) {</span>
+<span class="nc bnc" id="L55" title="All 2 branches missed.">                if (j != 0) {</span>
+<span class="nc" id="L56">                    sb.append(&quot;, &quot;);</span>
+                }
+<span class="nc" id="L58">                sb.append(&quot;(&quot;);</span>
+<span class="nc" id="L59">                int i = 0;</span>
+<span class="nc bnc" id="L60" title="All 2 branches missed.">                for (CockroachDBColumn c : columns) {</span>
+<span class="nc bnc" id="L61" title="All 2 branches missed.">                    if (i++ != 0) {</span>
+<span class="nc" id="L62">                        sb.append(&quot;, &quot;);</span>
+                    }
+<span class="nc" id="L64">                    sb.append(CockroachDBVisitor.asString(gen.generateConstant(c.getType())));</span>
+                }
+<span class="nc" id="L66">                sb.append(&quot;)&quot;);</span>
+            }
+        }
+<span class="nc bnc" id="L69" title="All 4 branches missed.">        if (Randomly.getBoolean() &amp;&amp; !isUpsert) {</span>
+<span class="nc" id="L70">            sb.append(&quot; ON CONFLICT (&quot;);</span>
+<span class="nc" id="L71">            sb.append(table.getRandomNonEmptyColumnSubset().stream().map(c -&gt; c.getName())</span>
+<span class="nc" id="L72">                    .collect(Collectors.joining(&quot;, &quot;)));</span>
+<span class="nc" id="L73">            sb.append(&quot;)&quot;);</span>
+            // WHERE clause not yet implemented, see
+            // https://github.com/cockroachdb/cockroach/issues/32557
+<span class="nc" id="L76">            sb.append(&quot; DO &quot;);</span>
+<span class="nc bnc" id="L77" title="All 2 branches missed.">            if (Randomly.getBoolean()) {</span>
+<span class="nc" id="L78">                sb.append(&quot; NOTHING &quot;);</span>
+<span class="nc" id="L79">            } else {</span>
+                // TODO: also support excluded. (see
+                // https://www.cockroachlabs.com/docs/stable/insert.html)
+<span class="nc" id="L82">                sb.append(&quot; UPDATE SET &quot;);</span>
+<span class="nc" id="L83">                List&lt;CockroachDBColumn&gt; columns = table.getRandomNonEmptyColumnSubset();</span>
+<span class="nc" id="L84">                int i = 0;</span>
+<span class="nc bnc" id="L85" title="All 2 branches missed.">                for (CockroachDBColumn c : columns) {</span>
+<span class="nc bnc" id="L86" title="All 2 branches missed.">                    if (i++ != 0) {</span>
+<span class="nc" id="L87">                        sb.append(&quot;, &quot;);</span>
+                    }
+<span class="nc" id="L89">                    sb.append(c.getName());</span>
+<span class="nc" id="L90">                    sb.append(&quot; = &quot;);</span>
+<span class="nc" id="L91">                    sb.append(CockroachDBVisitor.asString(gen.generateConstant(c.getType())));</span>
+                }
+<span class="nc" id="L93">                errors.add(&quot;UPSERT or INSERT...ON CONFLICT command cannot affect row a second time&quot;);</span>
+            }
+<span class="nc" id="L95">            errors.add(&quot;there is no unique or exclusion constraint matching the ON CONFLICT specification&quot;);</span>
+        }
+<span class="nc" id="L97">        CockroachDBErrors.addTransactionErrors(errors);</span>
+<span class="nc" id="L98">        return new SQLQueryAdapter(sb.toString(), errors);</span>
+    }
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.8.202204050719</span></div></body></html>
