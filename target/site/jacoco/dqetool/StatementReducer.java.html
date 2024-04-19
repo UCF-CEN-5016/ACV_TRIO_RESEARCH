@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>StatementReducer.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">dqetool</a> &gt; <a href="index.source.html" class="el_package">dqetool</a> &gt; <span class="el_source">StatementReducer.java</span></div><h1>StatementReducer.java</h1><pre class="source lang-java linenums">package dqetool;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.function.BiFunction;
+import java.util.stream.Collectors;
+
+import dqetool.common.query.Query;
+
+public class StatementReducer&lt;G extends GlobalState&lt;O, ?, C&gt;, O extends DBMSSpecificOptions&lt;?&gt;, C extends SQLancerDBConnection&gt;
+        implements Reducer&lt;G&gt; {
+    private final DatabaseProvider&lt;G, O, C&gt; provider;
+    private boolean observedChange;
+
+<span class="nc" id="L15">    public StatementReducer(DatabaseProvider&lt;G, O, C&gt; provider) {</span>
+<span class="nc" id="L16">        this.provider = provider;</span>
+<span class="nc" id="L17">    }</span>
+
+    @SuppressWarnings(&quot;unchecked&quot;)
+    @Override
+    public void reduce(G state, Reproducer&lt;G&gt; reproducer, G newGlobalState) throws Exception {
+
+<span class="nc" id="L23">        List&lt;Query&lt;C&gt;&gt; knownToReproduceBugStatements = new ArrayList&lt;&gt;();</span>
+<span class="nc bnc" id="L24" title="All 2 branches missed.">        for (Query&lt;?&gt; stat : state.getState().getStatements()) {</span>
+<span class="nc" id="L25">            knownToReproduceBugStatements.add((Query&lt;C&gt;) stat);</span>
+        }
+<span class="nc" id="L27">        System.out.println(&quot;Starting query:&quot;);</span>
+<span class="nc" id="L28">        printQueries(knownToReproduceBugStatements);</span>
+<span class="nc" id="L29">        System.out.println();</span>
+
+        do {
+<span class="nc" id="L32">            observedChange = false;</span>
+<span class="nc" id="L33">            knownToReproduceBugStatements = tryReduction(state, reproducer, newGlobalState,</span>
+<span class="nc" id="L34">                    knownToReproduceBugStatements, (candidateStatements, i) -&gt; {</span>
+<span class="nc" id="L35">                        candidateStatements.remove((int) i);</span>
+<span class="nc" id="L36">                        return true;</span>
+                    });
+<span class="nc bnc" id="L38" title="All 2 branches missed.">        } while (observedChange);</span>
+
+<span class="nc" id="L40">        System.out.println(&quot;Reduced query:&quot;);</span>
+<span class="nc" id="L41">        printQueries(knownToReproduceBugStatements);</span>
+<span class="nc" id="L42">    }</span>
+
+    private List&lt;Query&lt;C&gt;&gt; tryReduction(G state, // NOPMD
+            Reproducer&lt;G&gt; reproducer, G newGlobalState, List&lt;Query&lt;C&gt;&gt; knownToReproduceBugStatements,
+            BiFunction&lt;List&lt;Query&lt;C&gt;&gt;, Integer, Boolean&gt; reductionOperation) throws Exception {
+
+<span class="nc" id="L48">        List&lt;Query&lt;C&gt;&gt; statements = knownToReproduceBugStatements;</span>
+<span class="nc bnc" id="L49" title="All 2 branches missed.">        for (int i = 0; i &lt; statements.size(); i++) {</span>
+<span class="nc" id="L50">            try (C con2 = provider.createDatabase(newGlobalState)) {</span>
+<span class="nc" id="L51">                newGlobalState.setConnection(con2);</span>
+<span class="nc" id="L52">                List&lt;Query&lt;C&gt;&gt; candidateStatements = new ArrayList&lt;&gt;(statements);</span>
+<span class="nc bnc" id="L53" title="All 2 branches missed.">                if (!reductionOperation.apply(candidateStatements, i)) {</span>
+                    continue;
+                }
+<span class="nc" id="L56">                newGlobalState.getState().setStatements(candidateStatements.stream().collect(Collectors.toList()));</span>
+<span class="nc bnc" id="L57" title="All 2 branches missed.">                for (Query&lt;C&gt; s : candidateStatements) {</span>
+                    try {
+<span class="nc" id="L59">                        s.execute(newGlobalState);</span>
+<span class="nc" id="L60">                    } catch (Throwable ignoredException) {</span>
+                        // ignore
+                    }
+                }
+                try {
+<span class="nc bnc" id="L65" title="All 2 branches missed.">                    if (reproducer.bugStillTriggers(newGlobalState)) {</span>
+<span class="nc" id="L66">                        observedChange = true;</span>
+<span class="nc" id="L67">                        statements = candidateStatements;</span>
+                        // reproducer.outputHook((SQLite3GlobalState) newGlobalState);
+                        // state.getLogger().logReduced(newGlobalState.getState());
+                    }
+<span class="nc" id="L71">                } catch (Throwable ignoredException) {</span>
+
+                }
+            }
+        }
+<span class="nc" id="L76">        return statements;</span>
+    }
+
+    private void printQueries(List&lt;Query&lt;C&gt;&gt; statements) {
+<span class="nc" id="L80">        System.out.println(&quot;===============================&quot;);</span>
+<span class="nc bnc" id="L81" title="All 2 branches missed.">        for (Query&lt;?&gt; q : statements) {</span>
+<span class="nc" id="L82">            System.out.println(q.getLogString());</span>
+        }
+<span class="nc" id="L84">        System.out.println(&quot;===============================&quot;);</span>
+<span class="nc" id="L85">    }</span>
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.8.202204050719</span></div></body></html>

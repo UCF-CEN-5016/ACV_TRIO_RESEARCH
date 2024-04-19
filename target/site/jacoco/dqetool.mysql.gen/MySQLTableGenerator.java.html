@@ -1,0 +1,384 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>MySQLTableGenerator.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">dqetool</a> &gt; <a href="index.source.html" class="el_package">dqetool.mysql.gen</a> &gt; <span class="el_source">MySQLTableGenerator.java</span></div><h1>MySQLTableGenerator.java</h1><pre class="source lang-java linenums">package dqetool.mysql.gen;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+import java.util.stream.Collectors;
+
+import dqetool.IgnoreMeException;
+import dqetool.Randomly;
+import dqetool.common.DBMSCommon;
+import dqetool.common.query.ExpectedErrors;
+import dqetool.common.query.SQLQueryAdapter;
+import dqetool.mysql.MySQLBugs;
+import dqetool.mysql.MySQLGlobalState;
+import dqetool.mysql.MySQLSchema;
+import dqetool.mysql.MySQLSchema.MySQLDataType;
+import dqetool.mysql.MySQLSchema.MySQLTable.MySQLEngine;
+
+public class MySQLTableGenerator {
+
+<span class="nc" id="L22">    private final StringBuilder sb = new StringBuilder();</span>
+    private final boolean allowPrimaryKey;
+    private boolean setPrimaryKey;
+    private final String tableName;
+    private final Randomly r;
+    private int columnId;
+    private boolean tableHasNullableColumn;
+    private MySQLEngine engine;
+    private int keysSpecified;
+<span class="nc" id="L31">    private final List&lt;String&gt; columns = new ArrayList&lt;&gt;();</span>
+    private final MySQLSchema schema;
+    private final MySQLGlobalState globalState;
+
+<span class="nc" id="L35">    public MySQLTableGenerator(MySQLGlobalState globalState, String tableName) {</span>
+<span class="nc" id="L36">        this.tableName = tableName;</span>
+<span class="nc" id="L37">        this.r = globalState.getRandomly();</span>
+<span class="nc" id="L38">        this.schema = globalState.getSchema();</span>
+<span class="nc" id="L39">        allowPrimaryKey = Randomly.getBoolean();</span>
+<span class="nc" id="L40">        this.globalState = globalState;</span>
+<span class="nc" id="L41">    }</span>
+
+    public static SQLQueryAdapter generate(MySQLGlobalState globalState, String tableName) {
+<span class="nc" id="L44">        return new MySQLTableGenerator(globalState, tableName).create();</span>
+    }
+
+    private SQLQueryAdapter create() {
+<span class="nc" id="L48">        ExpectedErrors errors = new ExpectedErrors();</span>
+
+<span class="nc" id="L50">        sb.append(&quot;CREATE&quot;);</span>
+        // TODO support temporary tables in the schema
+<span class="nc" id="L52">        sb.append(&quot; TABLE&quot;);</span>
+<span class="nc bnc" id="L53" title="All 2 branches missed.">        if (Randomly.getBoolean()) {</span>
+<span class="nc" id="L54">            sb.append(&quot; IF NOT EXISTS&quot;);</span>
+        }
+<span class="nc" id="L56">        sb.append(&quot; &quot;);</span>
+<span class="nc" id="L57">        sb.append(tableName);</span>
+<span class="nc bnc" id="L58" title="All 4 branches missed.">        if (Randomly.getBoolean() &amp;&amp; !schema.getDatabaseTables().isEmpty()) {</span>
+<span class="nc" id="L59">            sb.append(&quot; LIKE &quot;);</span>
+<span class="nc" id="L60">            sb.append(schema.getRandomTable().getName());</span>
+<span class="nc" id="L61">            return new SQLQueryAdapter(sb.toString(), true);</span>
+        } else {
+<span class="nc" id="L63">            sb.append(&quot;(&quot;);</span>
+<span class="nc bnc" id="L64" title="All 2 branches missed.">            for (int i = 0; i &lt; 1 + Randomly.smallNumber(); i++) {</span>
+<span class="nc bnc" id="L65" title="All 2 branches missed.">                if (i != 0) {</span>
+<span class="nc" id="L66">                    sb.append(&quot;, &quot;);</span>
+                }
+<span class="nc" id="L68">                appendColumn();</span>
+            }
+<span class="nc" id="L70">            sb.append(&quot;)&quot;);</span>
+<span class="nc" id="L71">            sb.append(&quot; &quot;);</span>
+<span class="nc" id="L72">            appendTableOptions();</span>
+<span class="nc" id="L73">            appendPartitionOptions();</span>
+<span class="nc bnc" id="L74" title="All 6 branches missed.">            if ((tableHasNullableColumn || setPrimaryKey) &amp;&amp; engine == MySQLEngine.CSV) {</span>
+                if (true) { // TODO
+                    // results in an error
+<span class="nc" id="L77">                    throw new IgnoreMeException();</span>
+                }
+<span class="nc bnc" id="L79" title="All 6 branches missed.">            } else if ((tableHasNullableColumn || keysSpecified &gt; 1) &amp;&amp; engine == MySQLEngine.ARCHIVE) {</span>
+<span class="nc" id="L80">                errors.add(&quot;Too many keys specified; max 1 keys allowed&quot;);</span>
+<span class="nc" id="L81">                errors.add(&quot;Table handler doesn't support NULL in given index&quot;);</span>
+<span class="nc" id="L82">                addCommonErrors(errors);</span>
+<span class="nc" id="L83">                return new SQLQueryAdapter(sb.toString(), errors, true);</span>
+            }
+<span class="nc" id="L85">            addCommonErrors(errors);</span>
+<span class="nc" id="L86">            return new SQLQueryAdapter(sb.toString(), errors, true);</span>
+        }
+
+    }
+
+    private void addCommonErrors(ExpectedErrors list) {
+<span class="nc" id="L92">        list.add(&quot;The storage engine for the table doesn't support&quot;);</span>
+<span class="nc" id="L93">        list.add(&quot;doesn't have this option&quot;);</span>
+<span class="nc" id="L94">        list.add(&quot;must include all columns&quot;);</span>
+<span class="nc" id="L95">        list.add(&quot;not allowed type for this type of partitioning&quot;);</span>
+<span class="nc" id="L96">        list.add(&quot;doesn't support BLOB/TEXT columns&quot;);</span>
+<span class="nc" id="L97">        list.add(&quot;A BLOB field is not allowed in partition function&quot;);</span>
+<span class="nc" id="L98">        list.add(&quot;Too many keys specified; max 1 keys allowed&quot;);</span>
+<span class="nc" id="L99">        list.add(&quot;The total length of the partitioning fields is too large&quot;);</span>
+<span class="nc" id="L100">        list.add(&quot;Got error -1 - 'Unknown error -1' from storage engine&quot;);</span>
+<span class="nc" id="L101">    }</span>
+
+<span class="nc" id="L103">    private enum PartitionOptions {</span>
+<span class="nc" id="L104">        HASH, KEY</span>
+    }
+
+    private void appendPartitionOptions() {
+<span class="nc bnc" id="L108" title="All 2 branches missed.">        if (engine != MySQLEngine.INNO_DB) {</span>
+<span class="nc" id="L109">            return;</span>
+        }
+<span class="nc bnc" id="L111" title="All 2 branches missed.">        if (Randomly.getBoolean()) {</span>
+<span class="nc" id="L112">            return;</span>
+        }
+<span class="nc" id="L114">        sb.append(&quot; PARTITION BY&quot;);</span>
+<span class="nc bnc" id="L115" title="All 3 branches missed.">        switch (Randomly.fromOptions(PartitionOptions.values())) {</span>
+        case HASH:
+<span class="nc bnc" id="L117" title="All 2 branches missed.">            if (Randomly.getBoolean()) {</span>
+<span class="nc" id="L118">                sb.append(&quot; LINEAR&quot;);</span>
+            }
+<span class="nc" id="L120">            sb.append(&quot; HASH(&quot;);</span>
+            // TODO: consider arbitrary expressions
+            // MySQLExpression expr =
+            // MySQLRandomExpressionGenerator.generateRandomExpression(Collections.emptyList(),
+            // null, r);
+            // sb.append(MySQLVisitor.asString(expr));
+<span class="nc" id="L126">            sb.append(Randomly.fromList(columns));</span>
+<span class="nc" id="L127">            sb.append(&quot;)&quot;);</span>
+<span class="nc" id="L128">            break;</span>
+        case KEY:
+<span class="nc bnc" id="L130" title="All 2 branches missed.">            if (Randomly.getBoolean()) {</span>
+<span class="nc" id="L131">                sb.append(&quot; LINEAR&quot;);</span>
+            }
+<span class="nc" id="L133">            sb.append(&quot; KEY&quot;);</span>
+<span class="nc bnc" id="L134" title="All 2 branches missed.">            if (Randomly.getBoolean()) {</span>
+<span class="nc" id="L135">                sb.append(&quot; ALGORITHM=&quot;);</span>
+<span class="nc" id="L136">                sb.append(Randomly.fromOptions(1, 2));</span>
+            }
+<span class="nc" id="L138">            sb.append(&quot; (&quot;);</span>
+<span class="nc" id="L139">            sb.append(Randomly.nonEmptySubset(columns).stream().collect(Collectors.joining(&quot;, &quot;)));</span>
+<span class="nc" id="L140">            sb.append(&quot;)&quot;);</span>
+<span class="nc" id="L141">            break;</span>
+        default:
+<span class="nc" id="L143">            throw new AssertionError();</span>
+        }
+<span class="nc" id="L145">    }</span>
+
+<span class="nc" id="L147">    private enum TableOptions {</span>
+<span class="nc" id="L148">        AUTO_INCREMENT, AVG_ROW_LENGTH, CHECKSUM, COMPRESSION, DELAY_KEY_WRITE, /* ENCRYPTION, */ ENGINE, INSERT_METHOD,</span>
+<span class="nc" id="L149">        KEY_BLOCK_SIZE, MAX_ROWS, MIN_ROWS, PACK_KEYS, STATS_AUTO_RECALC, STATS_PERSISTENT, STATS_SAMPLE_PAGES;</span>
+
+        public static List&lt;TableOptions&gt; getRandomTableOptions() {
+            List&lt;TableOptions&gt; options;
+            // try to ensure that usually, only a few of these options are generated
+<span class="nc bnc" id="L154" title="All 2 branches missed.">            if (Randomly.getBooleanWithSmallProbability()) {</span>
+<span class="nc" id="L155">                options = Randomly.subset(TableOptions.values());</span>
+<span class="nc" id="L156">            } else {</span>
+<span class="nc bnc" id="L157" title="All 2 branches missed.">                if (Randomly.getBoolean()) {</span>
+<span class="nc" id="L158">                    options = Collections.emptyList();</span>
+<span class="nc" id="L159">                } else {</span>
+<span class="nc" id="L160">                    options = Randomly.nonEmptySubset(Arrays.asList(TableOptions.values()), Randomly.smallNumber());</span>
+                }
+            }
+<span class="nc" id="L163">            return options;</span>
+        }
+    }
+
+    private void appendTableOptions() {
+<span class="nc" id="L168">        List&lt;TableOptions&gt; tableOptions = TableOptions.getRandomTableOptions();</span>
+<span class="nc" id="L169">        int i = 0;</span>
+<span class="nc bnc" id="L170" title="All 2 branches missed.">        for (TableOptions o : tableOptions) {</span>
+<span class="nc bnc" id="L171" title="All 2 branches missed.">            if (i++ != 0) {</span>
+<span class="nc" id="L172">                sb.append(&quot;, &quot;);</span>
+            }
+<span class="nc bnc" id="L174" title="All 15 branches missed.">            switch (o) {</span>
+            case AUTO_INCREMENT:
+<span class="nc" id="L176">                sb.append(&quot;AUTO_INCREMENT = &quot;);</span>
+<span class="nc" id="L177">                sb.append(r.getPositiveInteger());</span>
+<span class="nc" id="L178">                break;</span>
+            case AVG_ROW_LENGTH:
+<span class="nc" id="L180">                sb.append(&quot;AVG_ROW_LENGTH = &quot;);</span>
+<span class="nc" id="L181">                sb.append(r.getLong(0, 4294967296L));</span>
+<span class="nc" id="L182">                break;</span>
+            case CHECKSUM:
+<span class="nc" id="L184">                sb.append(&quot;CHECKSUM = 1&quot;);</span>
+<span class="nc" id="L185">                break;</span>
+            case COMPRESSION:
+<span class="nc" id="L187">                sb.append(&quot;COMPRESSION = '&quot;);</span>
+<span class="nc" id="L188">                sb.append(Randomly.fromOptions(&quot;ZLIB&quot;, &quot;LZ4&quot;, &quot;NONE&quot;));</span>
+<span class="nc" id="L189">                sb.append(&quot;'&quot;);</span>
+<span class="nc" id="L190">                break;</span>
+            case DELAY_KEY_WRITE:
+<span class="nc" id="L192">                sb.append(&quot;DELAY_KEY_WRITE = &quot;);</span>
+<span class="nc" id="L193">                sb.append(Randomly.fromOptions(0, 1));</span>
+<span class="nc" id="L194">                break;</span>
+            case ENGINE:
+                // FEDERATED: java.sql.SQLSyntaxErrorException: Unknown storage engine
+                // 'FEDERATED'
+                // &quot;NDB&quot;: java.sql.SQLSyntaxErrorException: Unknown storage engine 'NDB'
+                // &quot;EXAMPLE&quot;: java.sql.SQLSyntaxErrorException: Unknown storage engine 'EXAMPLE'
+                // &quot;MERGE&quot;: java.sql.SQLException: Table 't0' is read only
+<span class="nc" id="L201">                String fromOptions = Randomly.fromOptions(&quot;InnoDB&quot;, &quot;MyISAM&quot;, &quot;MEMORY&quot;, &quot;HEAP&quot;, &quot;CSV&quot;, &quot;ARCHIVE&quot;);</span>
+<span class="nc" id="L202">                this.engine = MySQLEngine.get(fromOptions);</span>
+<span class="nc" id="L203">                sb.append(&quot;ENGINE = &quot;);</span>
+<span class="nc" id="L204">                sb.append(fromOptions);</span>
+<span class="nc" id="L205">                break;</span>
+            // case ENCRYPTION:
+            // sb.append(&quot;ENCRYPTION = '&quot;);
+            // sb.append(Randomly.fromOptions(&quot;Y&quot;, &quot;N&quot;));
+            // sb.append(&quot;'&quot;);
+            // break;
+            case INSERT_METHOD:
+<span class="nc" id="L212">                sb.append(&quot;INSERT_METHOD = &quot;);</span>
+<span class="nc" id="L213">                sb.append(Randomly.fromOptions(&quot;NO&quot;, &quot;FIRST&quot;, &quot;LAST&quot;));</span>
+<span class="nc" id="L214">                break;</span>
+            case KEY_BLOCK_SIZE:
+<span class="nc" id="L216">                sb.append(&quot;KEY_BLOCK_SIZE = &quot;);</span>
+<span class="nc" id="L217">                sb.append(r.getLong(0, 65536));</span>
+<span class="nc" id="L218">                break;</span>
+            case MAX_ROWS:
+<span class="nc" id="L220">                sb.append(&quot;MAX_ROWS = &quot;);</span>
+<span class="nc" id="L221">                sb.append(r.getLong(0, Long.MAX_VALUE));</span>
+<span class="nc" id="L222">                break;</span>
+            case MIN_ROWS:
+<span class="nc" id="L224">                sb.append(&quot;MIN_ROWS = &quot;);</span>
+<span class="nc" id="L225">                sb.append(r.getLong(1, Long.MAX_VALUE));</span>
+<span class="nc" id="L226">                break;</span>
+            case PACK_KEYS:
+<span class="nc" id="L228">                sb.append(&quot;PACK_KEYS = &quot;);</span>
+<span class="nc" id="L229">                sb.append(Randomly.fromOptions(&quot;1&quot;, &quot;0&quot;, &quot;DEFAULT&quot;));</span>
+<span class="nc" id="L230">                break;</span>
+            case STATS_AUTO_RECALC:
+<span class="nc" id="L232">                sb.append(&quot;STATS_AUTO_RECALC = &quot;);</span>
+<span class="nc" id="L233">                sb.append(Randomly.fromOptions(&quot;1&quot;, &quot;0&quot;, &quot;DEFAULT&quot;));</span>
+<span class="nc" id="L234">                break;</span>
+            case STATS_PERSISTENT:
+<span class="nc" id="L236">                sb.append(&quot;STATS_PERSISTENT = &quot;);</span>
+<span class="nc" id="L237">                sb.append(Randomly.fromOptions(&quot;1&quot;, &quot;0&quot;, &quot;DEFAULT&quot;));</span>
+<span class="nc" id="L238">                break;</span>
+            case STATS_SAMPLE_PAGES:
+<span class="nc" id="L240">                sb.append(&quot;STATS_SAMPLE_PAGES = &quot;);</span>
+<span class="nc" id="L241">                sb.append(r.getInteger(1, Short.MAX_VALUE));</span>
+<span class="nc" id="L242">                break;</span>
+            default:
+<span class="nc" id="L244">                throw new AssertionError(o);</span>
+            }
+        }
+<span class="nc" id="L247">    }</span>
+
+    private void appendColumn() {
+<span class="nc" id="L250">        String columnName = DBMSCommon.createColumnName(columnId);</span>
+<span class="nc" id="L251">        columns.add(columnName);</span>
+<span class="nc" id="L252">        sb.append(columnName);</span>
+<span class="nc" id="L253">        appendColumnDefinition();</span>
+<span class="nc" id="L254">        columnId++;</span>
+<span class="nc" id="L255">    }</span>
+
+<span class="nc" id="L257">    private enum ColumnOptions {</span>
+<span class="nc" id="L258">        NULL_OR_NOT_NULL, UNIQUE, COMMENT, COLUMN_FORMAT, STORAGE, PRIMARY_KEY</span>
+    }
+
+    private void appendColumnDefinition() {
+<span class="nc" id="L262">        sb.append(&quot; &quot;);</span>
+<span class="nc" id="L263">        MySQLDataType randomType = MySQLDataType.getRandom(globalState);</span>
+<span class="nc bnc" id="L264" title="All 2 branches missed.">        boolean isTextType = randomType == MySQLDataType.VARCHAR;</span>
+<span class="nc" id="L265">        appendTypeString(randomType);</span>
+<span class="nc" id="L266">        sb.append(&quot; &quot;);</span>
+<span class="nc" id="L267">        boolean isNull = false;</span>
+<span class="nc" id="L268">        boolean columnHasPrimaryKey = false;</span>
+
+<span class="nc" id="L270">        List&lt;ColumnOptions&gt; columnOptions = Randomly.subset(ColumnOptions.values());</span>
+<span class="nc bnc" id="L271" title="All 2 branches missed.">        if (!columnOptions.contains(ColumnOptions.NULL_OR_NOT_NULL)) {</span>
+<span class="nc" id="L272">            tableHasNullableColumn = true;</span>
+        }
+<span class="nc bnc" id="L274" title="All 2 branches missed.">        if (isTextType) {</span>
+            // TODO: restriction due to the limited key length
+<span class="nc" id="L276">            columnOptions.remove(ColumnOptions.PRIMARY_KEY);</span>
+<span class="nc" id="L277">            columnOptions.remove(ColumnOptions.UNIQUE);</span>
+        }
+<span class="nc bnc" id="L279" title="All 2 branches missed.">        for (ColumnOptions o : columnOptions) {</span>
+<span class="nc" id="L280">            sb.append(&quot; &quot;);</span>
+<span class="nc bnc" id="L281" title="All 7 branches missed.">            switch (o) {</span>
+            case NULL_OR_NOT_NULL:
+                // PRIMARY KEYs cannot be NULL
+<span class="nc bnc" id="L284" title="All 2 branches missed.">                if (!columnHasPrimaryKey) {</span>
+<span class="nc bnc" id="L285" title="All 2 branches missed.">                    if (Randomly.getBoolean()) {</span>
+<span class="nc" id="L286">                        sb.append(&quot;NULL&quot;);</span>
+                    }
+<span class="nc" id="L288">                    tableHasNullableColumn = true;</span>
+<span class="nc" id="L289">                    isNull = true;</span>
+<span class="nc" id="L290">                } else {</span>
+<span class="nc" id="L291">                    sb.append(&quot;NOT NULL&quot;);</span>
+                }
+<span class="nc" id="L293">                break;</span>
+            case UNIQUE:
+<span class="nc" id="L295">                sb.append(&quot;UNIQUE&quot;);</span>
+<span class="nc" id="L296">                keysSpecified++;</span>
+<span class="nc bnc" id="L297" title="All 2 branches missed.">                if (Randomly.getBoolean()) {</span>
+<span class="nc" id="L298">                    sb.append(&quot; KEY&quot;);</span>
+                }
+<span class="nc" id="L300">                break;</span>
+            case COMMENT:
+                // TODO: generate randomly
+<span class="nc" id="L303">                sb.append(String.format(&quot;COMMENT '%s' &quot;, &quot;asdf&quot;));</span>
+<span class="nc" id="L304">                break;</span>
+            case COLUMN_FORMAT:
+<span class="nc" id="L306">                sb.append(&quot;COLUMN_FORMAT &quot;);</span>
+<span class="nc" id="L307">                sb.append(Randomly.fromOptions(&quot;FIXED&quot;, &quot;DYNAMIC&quot;, &quot;DEFAULT&quot;));</span>
+<span class="nc" id="L308">                break;</span>
+            case STORAGE:
+<span class="nc" id="L310">                sb.append(&quot;STORAGE &quot;);</span>
+<span class="nc" id="L311">                sb.append(Randomly.fromOptions(&quot;DISK&quot;, &quot;MEMORY&quot;));</span>
+<span class="nc" id="L312">                break;</span>
+            case PRIMARY_KEY:
+                // PRIMARY KEYs cannot be NULL
+<span class="nc bnc" id="L315" title="All 6 branches missed.">                if (allowPrimaryKey &amp;&amp; !setPrimaryKey &amp;&amp; !isNull) {</span>
+<span class="nc" id="L316">                    sb.append(&quot;PRIMARY KEY&quot;);</span>
+<span class="nc" id="L317">                    setPrimaryKey = true;</span>
+<span class="nc" id="L318">                    columnHasPrimaryKey = true;</span>
+                }
+<span class="nc" id="L320">                break;</span>
+            default:
+<span class="nc" id="L322">                throw new AssertionError();</span>
+            }
+        }
+
+<span class="nc" id="L326">    }</span>
+
+    private void appendTypeString(MySQLDataType randomType) {
+<span class="nc bnc" id="L329" title="All 6 branches missed.">        switch (randomType) {</span>
+        case DECIMAL:
+<span class="nc" id="L331">            sb.append(&quot;DECIMAL&quot;);</span>
+<span class="nc" id="L332">            optionallyAddPrecisionAndScale(sb);</span>
+<span class="nc" id="L333">            break;</span>
+        case INT:
+<span class="nc" id="L335">            sb.append(Randomly.fromOptions(&quot;TINYINT&quot;, &quot;SMALLINT&quot;, &quot;MEDIUMINT&quot;, &quot;INT&quot;, &quot;BIGINT&quot;));</span>
+<span class="nc bnc" id="L336" title="All 2 branches missed.">            if (Randomly.getBoolean()) {</span>
+<span class="nc" id="L337">                sb.append(&quot;(&quot;);</span>
+<span class="nc" id="L338">                sb.append(Randomly.getNotCachedInteger(0, 255)); // Display width out of range for column 'c0' (max =</span>
+                                                                 // 255)
+<span class="nc" id="L340">                sb.append(&quot;)&quot;);</span>
+            }
+<span class="nc" id="L342">            break;</span>
+        case VARCHAR:
+<span class="nc" id="L344">            sb.append(Randomly.fromOptions(&quot;VARCHAR(500)&quot;, &quot;TINYTEXT&quot;, &quot;TEXT&quot;, &quot;MEDIUMTEXT&quot;, &quot;LONGTEXT&quot;));</span>
+<span class="nc" id="L345">            break;</span>
+        case FLOAT:
+<span class="nc" id="L347">            sb.append(&quot;FLOAT&quot;);</span>
+<span class="nc" id="L348">            optionallyAddPrecisionAndScale(sb);</span>
+<span class="nc" id="L349">            break;</span>
+        case DOUBLE:
+<span class="nc" id="L351">            sb.append(Randomly.fromOptions(&quot;DOUBLE&quot;, &quot;FLOAT&quot;));</span>
+<span class="nc" id="L352">            optionallyAddPrecisionAndScale(sb);</span>
+<span class="nc" id="L353">            break;</span>
+        default:
+<span class="nc" id="L355">            throw new AssertionError();</span>
+        }
+<span class="nc bnc" id="L357" title="All 2 branches missed.">        if (randomType.isNumeric()) {</span>
+<span class="nc bnc" id="L358" title="All 6 branches missed.">            if (Randomly.getBoolean() &amp;&amp; randomType != MySQLDataType.INT &amp;&amp; !MySQLBugs.bug99127) {</span>
+<span class="nc" id="L359">                sb.append(&quot; UNSIGNED&quot;);</span>
+            }
+<span class="nc bnc" id="L361" title="All 4 branches missed.">            if (!globalState.usesPQS() &amp;&amp; Randomly.getBoolean()) {</span>
+<span class="nc" id="L362">                sb.append(&quot; ZEROFILL&quot;);</span>
+            }
+        }
+<span class="nc" id="L365">    }</span>
+
+    public static void optionallyAddPrecisionAndScale(StringBuilder sb) {
+<span class="nc bnc" id="L368" title="All 4 branches missed.">        if (Randomly.getBoolean() &amp;&amp; !MySQLBugs.bug99183) {</span>
+<span class="nc" id="L369">            sb.append(&quot;(&quot;);</span>
+            // The maximum number of digits (M) for DECIMAL is 65
+<span class="nc" id="L371">            long m = Randomly.getNotCachedInteger(1, 65);</span>
+<span class="nc" id="L372">            sb.append(m);</span>
+<span class="nc" id="L373">            sb.append(&quot;, &quot;);</span>
+            // The maximum number of supported decimals (D) is 30
+<span class="nc" id="L375">            long nCandidate = Randomly.getNotCachedInteger(1, 30);</span>
+            // For float(M,D), double(M,D) or decimal(M,D), M must be &gt;= D (column 'c0').
+<span class="nc" id="L377">            long n = Math.min(nCandidate, m);</span>
+<span class="nc" id="L378">            sb.append(n);</span>
+<span class="nc" id="L379">            sb.append(&quot;)&quot;);</span>
+        }
+<span class="nc" id="L381">    }</span>
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.8.202204050719</span></div></body></html>

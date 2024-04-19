@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>MySQLOptions.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">dqetool</a> &gt; <a href="index.source.html" class="el_package">dqetool.mysql</a> &gt; <span class="el_source">MySQLOptions.java</span></div><h1>MySQLOptions.java</h1><pre class="source lang-java linenums">package dqetool.mysql;
+
+import java.sql.SQLException;
+import java.util.Arrays;
+import java.util.List;
+
+import com.beust.jcommander.Parameter;
+import com.beust.jcommander.Parameters;
+
+import dqetool.DBMSSpecificOptions;
+import dqetool.OracleFactory;
+import dqetool.common.oracle.TestOracle;
+import dqetool.mysql.MySQLOptions.MySQLOracleFactory;
+import dqetool.mysql.oracle.MySQLDQEOracle;
+import dqetool.mysql.oracle.MySQLPivotedQuerySynthesisOracle;
+import dqetool.mysql.oracle.MySQLTLPWhereOracle;
+
+@Parameters(separators = &quot;=&quot;, commandDescription = &quot;MySQL (default port: &quot; + MySQLOptions.DEFAULT_PORT
+        + &quot;, default host: &quot; + MySQLOptions.DEFAULT_HOST + &quot;)&quot;)
+<span class="nc" id="L20">public class MySQLOptions implements DBMSSpecificOptions&lt;MySQLOracleFactory&gt; {</span>
+    public static final String DEFAULT_HOST = &quot;localhost&quot;;
+    public static final int DEFAULT_PORT = 3306;
+
+    @Parameter(names = &quot;--oracle&quot;)
+<span class="nc" id="L25">    public List&lt;MySQLOracleFactory&gt; oracles = Arrays.asList(MySQLOracleFactory.TLP);</span>
+
+<span class="nc" id="L27">    public enum MySQLOracleFactory implements OracleFactory&lt;MySQLGlobalState&gt; {</span>
+
+<span class="nc" id="L29">        TLP {</span>
+
+            @Override
+            public TestOracle&lt;MySQLGlobalState&gt; create(MySQLGlobalState globalState) throws SQLException {
+<span class="nc" id="L33">                return new MySQLTLPWhereOracle(globalState);</span>
+            }
+
+        },
+<span class="nc" id="L37">        PQS {</span>
+
+            @Override
+            public TestOracle&lt;MySQLGlobalState&gt; create(MySQLGlobalState globalState) throws SQLException {
+<span class="nc" id="L41">                return new MySQLPivotedQuerySynthesisOracle(globalState);</span>
+            }
+
+            @Override
+            public boolean requiresAllTablesToContainRows() {
+<span class="nc" id="L46">                return true;</span>
+            }
+
+        },
+<span class="nc" id="L50">        DQE {</span>
+
+            @Override
+            public TestOracle&lt;MySQLGlobalState&gt; create(MySQLGlobalState globalState) throws SQLException {
+<span class="nc" id="L54">                return new MySQLDQEOracle(globalState);</span>
+            }
+
+        }
+    }
+
+    @Override
+    public List&lt;MySQLOracleFactory&gt; getTestOracleFactory() {
+<span class="nc" id="L62">        return oracles;</span>
+    }
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.8.202204050719</span></div></body></html>

@@ -1,0 +1,224 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>CockroachDBToStringVisitor.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">dqetool</a> &gt; <a href="index.source.html" class="el_package">dqetool.cockroachdb</a> &gt; <span class="el_source">CockroachDBToStringVisitor.java</span></div><h1>CockroachDBToStringVisitor.java</h1><pre class="source lang-java linenums">package dqetool.cockroachdb;
+
+import java.util.stream.Collectors;
+
+import dqetool.Randomly;
+import dqetool.cockroachdb.ast.CockroachDBAggregate;
+import dqetool.cockroachdb.ast.CockroachDBBetweenOperation;
+import dqetool.cockroachdb.ast.CockroachDBCaseOperation;
+import dqetool.cockroachdb.ast.CockroachDBColumnReference;
+import dqetool.cockroachdb.ast.CockroachDBConstant;
+import dqetool.cockroachdb.ast.CockroachDBExpression;
+import dqetool.cockroachdb.ast.CockroachDBFunctionCall;
+import dqetool.cockroachdb.ast.CockroachDBInOperation;
+import dqetool.cockroachdb.ast.CockroachDBJoin;
+import dqetool.cockroachdb.ast.CockroachDBMultiValuedComparison;
+import dqetool.cockroachdb.ast.CockroachDBSelect;
+import dqetool.cockroachdb.ast.CockroachDBTableReference;
+import dqetool.common.visitor.ToStringVisitor;
+
+<span class="nc" id="L20">public class CockroachDBToStringVisitor extends ToStringVisitor&lt;CockroachDBExpression&gt; implements CockroachDBVisitor {</span>
+
+    @Override
+    public void visitSpecific(CockroachDBExpression expr) {
+<span class="nc" id="L24">        CockroachDBVisitor.super.visit(expr);</span>
+<span class="nc" id="L25">    }</span>
+
+    @Override
+    public void visit(CockroachDBConstant c) {
+<span class="nc" id="L29">        sb.append(c.toString());</span>
+<span class="nc" id="L30">    }</span>
+
+    public String getString() {
+<span class="nc" id="L33">        return sb.toString();</span>
+    }
+
+    @Override
+    public void visit(CockroachDBColumnReference c) {
+<span class="nc bnc" id="L38" title="All 2 branches missed.">        if (c.getColumn().getTable() == null) {</span>
+<span class="nc" id="L39">            sb.append(c.getColumn().getName());</span>
+<span class="nc" id="L40">        } else {</span>
+<span class="nc" id="L41">            sb.append(c.getColumn().getFullQualifiedName());</span>
+        }
+<span class="nc" id="L43">    }</span>
+
+    @Override
+    public void visit(CockroachDBFunctionCall call) {
+<span class="nc" id="L47">        sb.append(call.getName());</span>
+<span class="nc" id="L48">        sb.append(&quot;(&quot;);</span>
+<span class="nc" id="L49">        visit(call.getArguments());</span>
+<span class="nc" id="L50">        sb.append(&quot;)&quot;);</span>
+<span class="nc" id="L51">    }</span>
+
+    @Override
+    public void visit(CockroachDBInOperation inOp) {
+<span class="nc" id="L55">        sb.append(&quot;(&quot;);</span>
+<span class="nc" id="L56">        visit(inOp.getLeft());</span>
+<span class="nc" id="L57">        sb.append(&quot;) IN (&quot;);</span>
+<span class="nc" id="L58">        visit(inOp.getRight());</span>
+<span class="nc" id="L59">        sb.append(&quot;)&quot;);</span>
+<span class="nc" id="L60">    }</span>
+
+    @Override
+    public void visit(CockroachDBBetweenOperation op) {
+<span class="nc" id="L64">        sb.append(&quot;(&quot;);</span>
+<span class="nc" id="L65">        visit(op.getExpr());</span>
+<span class="nc" id="L66">        sb.append(&quot;)&quot;);</span>
+<span class="nc" id="L67">        sb.append(&quot; &quot;);</span>
+<span class="nc" id="L68">        sb.append(op.getType().getStringRepresentation());</span>
+<span class="nc" id="L69">        sb.append(&quot; (&quot;);</span>
+<span class="nc" id="L70">        visit(op.getLeft());</span>
+<span class="nc" id="L71">        sb.append(&quot;) AND (&quot;);</span>
+<span class="nc" id="L72">        visit(op.getRight());</span>
+<span class="nc" id="L73">        sb.append(&quot;)&quot;);</span>
+<span class="nc" id="L74">    }</span>
+
+    @Override
+    public void visit(CockroachDBSelect select) {
+<span class="nc" id="L78">        sb.append(&quot;SELECT &quot;);</span>
+<span class="nc bnc" id="L79" title="All 2 branches missed.">        if (select.isDistinct()) {</span>
+<span class="nc" id="L80">            sb.append(&quot;DISTINCT &quot;);</span>
+<span class="nc bnc" id="L81" title="All 2 branches missed.">        } else if (Randomly.getBoolean()) {</span>
+<span class="nc" id="L82">            sb.append(&quot;ALL &quot;);</span>
+        }
+<span class="nc" id="L84">        visit(select.getFetchColumns());</span>
+<span class="nc" id="L85">        sb.append(&quot; FROM &quot;);</span>
+<span class="nc bnc" id="L86" title="All 2 branches missed.">        if (!select.getFromList().isEmpty()) {</span>
+<span class="nc" id="L87">            visit(select.getFromList().stream().map(t -&gt; t).collect(Collectors.toList()));</span>
+        }
+<span class="nc bnc" id="L89" title="All 4 branches missed.">        if (!select.getFromList().isEmpty() &amp;&amp; !select.getJoinList().isEmpty()) {</span>
+<span class="nc" id="L90">            sb.append(&quot;, &quot;);</span>
+        }
+<span class="nc" id="L92">        visit(select.getJoinList().stream().map(j -&gt; j).collect(Collectors.toList()));</span>
+<span class="nc bnc" id="L93" title="All 2 branches missed.">        if (select.getWhereClause() != null) {</span>
+<span class="nc" id="L94">            sb.append(&quot; WHERE &quot;);</span>
+<span class="nc" id="L95">            visit(select.getWhereClause());</span>
+        }
+<span class="nc bnc" id="L97" title="All 4 branches missed.">        if (select.getGroupByExpressions() != null &amp;&amp; !select.getGroupByExpressions().isEmpty()) {</span>
+<span class="nc" id="L98">            sb.append(&quot; GROUP BY &quot;);</span>
+<span class="nc" id="L99">            visit(select.getGroupByExpressions());</span>
+        }
+<span class="nc bnc" id="L101" title="All 2 branches missed.">        if (select.getHavingClause() != null) {</span>
+<span class="nc" id="L102">            sb.append(&quot; HAVING &quot;);</span>
+<span class="nc" id="L103">            visit(select.getHavingClause());</span>
+        }
+<span class="nc bnc" id="L105" title="All 2 branches missed.">        if (!select.getOrderByExpressions().isEmpty()) {</span>
+<span class="nc" id="L106">            sb.append(&quot; ORDER BY &quot;);</span>
+<span class="nc" id="L107">            visit(select.getOrderByExpressions());</span>
+        }
+<span class="nc bnc" id="L109" title="All 2 branches missed.">        if (select.getLimitClause() != null) {</span>
+<span class="nc" id="L110">            sb.append(&quot; LIMIT &quot;);</span>
+<span class="nc" id="L111">            visit(select.getLimitClause());</span>
+        }
+<span class="nc bnc" id="L113" title="All 2 branches missed.">        if (select.getOffsetClause() != null) {</span>
+<span class="nc" id="L114">            sb.append(&quot; OFFSET &quot;);</span>
+<span class="nc" id="L115">            visit(select.getOffsetClause());</span>
+        }
+<span class="nc" id="L117">    }</span>
+
+    @Override
+    public void visit(CockroachDBCaseOperation cases) {
+<span class="nc" id="L121">        sb.append(&quot;CASE &quot;);</span>
+<span class="nc bnc" id="L122" title="All 2 branches missed.">        for (int i = 0; i &lt; cases.getConditions().size(); i++) {</span>
+<span class="nc" id="L123">            CockroachDBExpression predicate = cases.getConditions().get(i);</span>
+<span class="nc" id="L124">            CockroachDBExpression then = cases.getThenClauses().get(i);</span>
+<span class="nc" id="L125">            sb.append(&quot; WHEN &quot;);</span>
+<span class="nc" id="L126">            visit(predicate);</span>
+<span class="nc" id="L127">            sb.append(&quot; THEN &quot;);</span>
+<span class="nc" id="L128">            visit(then);</span>
+<span class="nc" id="L129">            sb.append(&quot; &quot;);</span>
+        }
+<span class="nc bnc" id="L131" title="All 2 branches missed.">        if (cases.getElseClause() != null) {</span>
+<span class="nc" id="L132">            sb.append(&quot;ELSE &quot;);</span>
+<span class="nc" id="L133">            visit(cases.getElseClause());</span>
+<span class="nc" id="L134">            sb.append(&quot; &quot;);</span>
+        }
+<span class="nc" id="L136">        sb.append(&quot;END&quot;);</span>
+<span class="nc" id="L137">    }</span>
+
+    @Override
+    public void visit(CockroachDBJoin join) {
+<span class="nc" id="L141">        visit(join.getLeftTable());</span>
+<span class="nc bnc" id="L142" title="All 5 branches missed.">        switch (join.getJoinType()) {</span>
+        case INNER:
+<span class="nc" id="L144">            sb.append(&quot; INNER &quot;);</span>
+<span class="nc" id="L145">            potentiallyAddHint();</span>
+<span class="nc" id="L146">            sb.append(&quot;JOIN &quot;);</span>
+<span class="nc" id="L147">            visit(join.getRightTable());</span>
+<span class="nc" id="L148">            sb.append(&quot; ON &quot;);</span>
+<span class="nc" id="L149">            visit(join.getOnCondition());</span>
+<span class="nc" id="L150">            break;</span>
+        case NATURAL:
+<span class="nc" id="L152">            sb.append(&quot; NATURAL &quot;);</span>
+            // potentiallyAddHint();
+<span class="nc" id="L154">            sb.append(&quot;JOIN &quot;);</span>
+<span class="nc" id="L155">            visit(join.getRightTable());</span>
+<span class="nc" id="L156">            break;</span>
+        case CROSS:
+<span class="nc" id="L158">            sb.append(&quot; CROSS &quot;);</span>
+<span class="nc" id="L159">            potentiallyAddHint();</span>
+<span class="nc" id="L160">            sb.append(&quot;JOIN &quot;);</span>
+<span class="nc" id="L161">            visit(join.getRightTable());</span>
+<span class="nc" id="L162">            break;</span>
+        case OUTER:
+<span class="nc" id="L164">            sb.append(&quot; &quot;);</span>
+<span class="nc bnc" id="L165" title="All 4 branches missed.">            switch (join.getOuterType()) {</span>
+            case FULL:
+<span class="nc" id="L167">                sb.append(&quot;FULL&quot;);</span>
+<span class="nc" id="L168">                break;</span>
+            case LEFT:
+<span class="nc" id="L170">                sb.append(&quot;LEFT&quot;);</span>
+<span class="nc" id="L171">                break;</span>
+            case RIGHT:
+<span class="nc" id="L173">                sb.append(&quot;RIGHT&quot;);</span>
+<span class="nc" id="L174">                break;</span>
+            default:
+<span class="nc" id="L176">                throw new AssertionError();</span>
+            }
+<span class="nc" id="L178">            sb.append(&quot; OUTER &quot;);</span>
+<span class="nc" id="L179">            potentiallyAddHint();</span>
+<span class="nc" id="L180">            sb.append(&quot;JOIN &quot;);</span>
+<span class="nc" id="L181">            visit(join.getRightTable());</span>
+<span class="nc" id="L182">            sb.append(&quot; ON &quot;);</span>
+<span class="nc" id="L183">            visit(join.getOnCondition());</span>
+<span class="nc" id="L184">            break;</span>
+        default:
+<span class="nc" id="L186">            throw new AssertionError();</span>
+        }
+<span class="nc" id="L188">    }</span>
+
+    private void potentiallyAddHint() {
+<span class="nc bnc" id="L191" title="All 2 branches missed.">        if (Randomly.getBoolean()) {</span>
+<span class="nc" id="L192">            sb.append(Randomly.fromOptions(&quot;HASH&quot;, &quot;MERGE&quot;, &quot;LOOKUP&quot;));</span>
+<span class="nc" id="L193">            sb.append(&quot; &quot;);</span>
+        }
+<span class="nc" id="L195">    }</span>
+
+    @Override
+    public void visit(CockroachDBTableReference tableRef) {
+<span class="nc" id="L199">        sb.append(tableRef.getTable().getName());</span>
+<span class="nc" id="L200">    }</span>
+
+    @Override
+    public void visit(CockroachDBAggregate aggr) {
+<span class="nc" id="L204">        sb.append(aggr.getFunc().name());</span>
+<span class="nc" id="L205">        sb.append(&quot;(&quot;);</span>
+<span class="nc" id="L206">        visit(aggr.getExpr());</span>
+<span class="nc" id="L207">        sb.append(&quot;)&quot;);</span>
+<span class="nc" id="L208">    }</span>
+
+    @Override
+    public void visit(CockroachDBMultiValuedComparison comp) {
+<span class="nc" id="L212">        sb.append(&quot;(&quot;);</span>
+<span class="nc" id="L213">        visit(comp.getLeft());</span>
+<span class="nc" id="L214">        sb.append(&quot; &quot;);</span>
+<span class="nc" id="L215">        sb.append(comp.getOp().getStringRepr());</span>
+<span class="nc" id="L216">        sb.append(&quot; &quot;);</span>
+<span class="nc" id="L217">        sb.append(comp.getType());</span>
+<span class="nc" id="L218">        sb.append(&quot; (&quot;);</span>
+<span class="nc" id="L219">        visit(comp.getRight());</span>
+<span class="nc" id="L220">        sb.append(&quot;)&quot;);</span>
+<span class="nc" id="L221">        sb.append(&quot;)&quot;);</span>
+<span class="nc" id="L222">    }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.8.202204050719</span></div></body></html>

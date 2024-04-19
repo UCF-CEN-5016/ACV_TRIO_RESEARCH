@@ -1,0 +1,198 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>MariaDBSetGenerator.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">dqetool</a> &gt; <a href="index.source.html" class="el_package">dqetool.mariadb.gen</a> &gt; <span class="el_source">MariaDBSetGenerator.java</span></div><h1>MariaDBSetGenerator.java</h1><pre class="source lang-java linenums">package dqetool.mariadb.gen;
+
+import java.util.Arrays;
+import java.util.List;
+import java.util.function.Function;
+import java.util.stream.Collectors;
+
+import dqetool.MainOptions;
+import dqetool.Randomly;
+import dqetool.common.query.ExpectedErrors;
+import dqetool.common.query.SQLQueryAdapter;
+
+public class MariaDBSetGenerator {
+
+    private final Randomly r;
+<span class="nc" id="L16">    private final StringBuilder sb = new StringBuilder();</span>
+
+    // currently, global options are only generated when a single thread is executed
+    private boolean isSingleThreaded;
+
+<span class="nc" id="L21">    public MariaDBSetGenerator(Randomly r, MainOptions options) {</span>
+<span class="nc" id="L22">        this.r = r;</span>
+<span class="nc bnc" id="L23" title="All 2 branches missed.">        this.isSingleThreaded = options.getNumberConcurrentThreads() == 1;</span>
+<span class="nc" id="L24">    }</span>
+
+    public static SQLQueryAdapter set(Randomly r, MainOptions options) {
+<span class="nc" id="L27">        return new MariaDBSetGenerator(r, options).get();</span>
+    }
+
+<span class="nc" id="L30">    private enum Scope {</span>
+<span class="nc" id="L31">        GLOBAL, SESSION</span>
+    }
+
+<span class="nc" id="L34">    private enum Action {</span>
+
+<span class="nc" id="L36">        AUTOCOMMIT(&quot;autocommit&quot;, (r) -&gt; 1, Scope.GLOBAL, Scope.SESSION), //</span>
+<span class="nc" id="L37">        BIG_TABLES(&quot;big_tables&quot;, (r) -&gt; Randomly.fromOptions(&quot;OFF&quot;, &quot;ON&quot;), Scope.GLOBAL, Scope.SESSION), //</span>
+<span class="nc" id="L38">        COMPLETION_TYPE(&quot;completion_type&quot;, (r) -&gt; Randomly.fromOptions(&quot;'NO_CHAIN'&quot;, &quot;'CHAIN'&quot;, &quot;'RELEASE'&quot;, 0, 1, 2),</span>
+<span class="nc" id="L39">                Scope.GLOBAL), //</span>
+        // BULK_INSERT_CACHE_SIZE(&quot;bulk_insert_buffer_size&quot;, (r) -&gt; r.getLong(0, Long.MAX_VALUE), Scope.GLOBAL,
+        // Scope.SESSION),
+<span class="nc" id="L42">        CONCURRENT_INSERT(&quot;concurrent_insert&quot;, (r) -&gt; Randomly.fromOptions(&quot;NEVER&quot;, &quot;AUTO&quot;, &quot;ALWAYS&quot;, 0, 1, 2),</span>
+<span class="nc" id="L43">                Scope.GLOBAL),</span>
+<span class="nc" id="L44">        CTE_MAX_RECURSION_DEPTH(&quot;cte_max_recursion_depth&quot;, (r) -&gt; r.getLong(0, 4294967295L), Scope.GLOBAL),</span>
+<span class="nc" id="L45">        DELAY_KEY_WRITE(&quot;delay_key_write&quot;, (r) -&gt; Randomly.fromOptions(&quot;ON&quot;, &quot;OFF&quot;, &quot;ALL&quot;), Scope.GLOBAL),</span>
+<span class="nc" id="L46">        EQ_RANGE_INDEX_DIVE_LIMIT(&quot;eq_range_index_dive_limit&quot;, (r) -&gt; r.getLong(0, 4294967295L), Scope.GLOBAL),</span>
+<span class="nc" id="L47">        FLUSH(&quot;flush&quot;, (r) -&gt; Randomly.fromOptions(&quot;OFF&quot;, &quot;ON&quot;), Scope.GLOBAL),</span>
+<span class="nc" id="L48">        FOREIGN_KEY_CHECKS(&quot;foreign_key_checks&quot;, (r) -&gt; Randomly.fromOptions(1, 0), Scope.GLOBAL, Scope.SESSION),</span>
+<span class="nc" id="L49">        HOST_CACHE_SIZE(&quot;host_cache_size&quot;, (r) -&gt; r.getLong(0, 65536), Scope.GLOBAL),</span>
+<span class="nc" id="L50">        JOIN_BUFFER_SIZE(&quot;join_buffer_size&quot;, (r) -&gt; r.getLong(128, Long.MAX_VALUE), Scope.GLOBAL, Scope.SESSION),</span>
+<span class="nc" id="L51">        /* disabled as a workaround for https://bugs.mysql.com/bug.php?id=95987 */</span>
+        // KEY_BUFFER_SIZE(&quot;key_buffer_size&quot;, (r) -&gt; r.getLong(8, Long.MAX_VALUE), Scope.GLOBAL),
+        // KEY_CACHE_AGE_THRESHOLD(&quot;key_cache_age_threshold&quot;, (r) -&gt; r.getLong(100, Long.MAX_VALUE), Scope.GLOBAL),
+        // KEY_CACHE_BLOCK_SIZE(&quot;key_cache_block_size&quot;, (r) -&gt; r.getLong(512, 16384), Scope.GLOBAL),
+        // KEY_CACHE_DIVISION_LIMIT(&quot;key_cache_division_limit&quot;, (r) -&gt; r.getLong(1, 100), Scope.GLOBAL),
+        // MAX_HEAP_TABLE_SIZE(&quot;max_heap_table_size&quot;, (r) -&gt; r.getLong(16384, Long.MAX_VALUE), Scope.GLOBAL,
+        // Scope.SESSION),
+<span class="nc" id="L58">        MAX_LENGTH_FOR_SORT_DATA(&quot;max_length_for_sort_data&quot;, (r) -&gt; r.getLong(4, 8388608), Scope.GLOBAL, Scope.SESSION),</span>
+<span class="nc" id="L59">        MAX_SEEKS_FOR_KEY(&quot;max_seeks_for_key&quot;, (r) -&gt; r.getLong(1, Long.MAX_VALUE), Scope.GLOBAL, Scope.SESSION),</span>
+<span class="nc" id="L60">        MAX_SORT_LENGTH(&quot;max_sort_length&quot;, (r) -&gt; r.getLong(4, 8388608), Scope.GLOBAL, Scope.SESSION),</span>
+<span class="nc" id="L61">        MAX_SP_RECURSION_DEPTH(&quot;max_sp_recursion_depth&quot;, (r) -&gt; r.getLong(0, 255), Scope.GLOBAL, Scope.SESSION),</span>
+<span class="nc" id="L62">        MYISAM_DATA_POINTER_SIZE(&quot;myisam_data_pointer_size&quot;, (r) -&gt; r.getLong(2, 7), Scope.GLOBAL),</span>
+<span class="nc" id="L63">        MYISAM_MAX_SORT_FILE_SIZE(&quot;myisam_max_sort_file_size&quot;, (r) -&gt; r.getLong(0, 9223372036854775807L), Scope.GLOBAL),</span>
+<span class="nc" id="L64">        MYISAM_REPAIR_THREADS(&quot;myisam_repair_threads&quot;, (r) -&gt; r.getLong(1, Long.MAX_VALUE), Scope.GLOBAL,</span>
+<span class="nc" id="L65">                Scope.SESSION),</span>
+<span class="nc" id="L66">        // MYISAM_SORT_BUFFER_SIZE(&quot;myisam_sort_buffer_size&quot;, (r) -&gt; r.getLong(4096, Long.MAX_VALUE), Scope.GLOBAL,</span>
+        // Scope.SESSION),
+<span class="nc" id="L68">        MYISAM_STATS_METHOD(&quot;myisam_stats_method&quot;,</span>
+<span class="nc" id="L69">                (r) -&gt; Randomly.fromOptions(&quot;nulls_equal&quot;, &quot;nulls_unequal&quot;, &quot;nulls_ignored&quot;), Scope.GLOBAL,</span>
+<span class="nc" id="L70">                Scope.SESSION),</span>
+<span class="nc" id="L71">        MYISAM_USE_MMAP(&quot;myisam_use_mmap&quot;, (r) -&gt; Randomly.fromOptions(&quot;OFF&quot;, &quot;ON&quot;), Scope.GLOBAL),</span>
+<span class="nc" id="L72">        OPTIMIZER_PRUNE_LEVEL(&quot;optimizer_prune_level&quot;, (r) -&gt; Randomly.fromOptions(0, 1), Scope.GLOBAL, Scope.SESSION),</span>
+<span class="nc" id="L73">        OPTIMIZER_SEARCH_DEPTH(&quot;optimizer_search_depth&quot;, (r) -&gt; r.getLong(0, 62), Scope.GLOBAL, Scope.SESSION),</span>
+<span class="nc" id="L74">        OPTIMIZER_SWITCH(&quot;optimizer_switch&quot;, (r) -&gt; getOptimizerSwitchConfiguration(r), Scope.GLOBAL, Scope.SESSION),</span>
+<span class="nc" id="L75">        // PRELOAD_BUFFER_SIZE(&quot;preload_buffer_size&quot;, (r) -&gt; r.getLong(1024, 1073741824), Scope.GLOBAL, Scope.SESSION),</span>
+        // QUERY_ALLOC_BLOCK_SIZE(&quot;query_alloc_block_size&quot;, (r) -&gt; r.getLong(1024, 4294967295L), Scope.GLOBAL,
+        // Scope.SESSION),
+
+        // causes out of memory errors
+        // QUERY_PREALLOC_SIZE(&quot;query_prealloc_size&quot;, (r) -&gt; r.getLong(8192,
+        // Long.MAX_VALUE), Scope.GLOBAL, Scope.SESSION),
+        // RANGE_ALLOC_BLOCK_SIZE(&quot;range_alloc_block_size&quot;, (r) -&gt; r.getLong(4096, Long.MAX_VALUE), Scope.GLOBAL,
+        // Scope.SESSION),
+        /*
+         * Removed Scope.GLOBAL as a workaround for https://bugs.mysql.com/bug.php?id=95985
+         */
+        // READ_BUFFER_SIZE(&quot;read_buffer_size&quot;, (r) -&gt; r.getLong(8200, 2147479552), Scope.GLOBAL, Scope.SESSION),
+        // READ_RND_BUFFER_SIZE(&quot;read_rnd_buffer_size&quot;, (r) -&gt; r.getLong(1, 2147483647), Scope.GLOBAL, Scope.SESSION),
+<span class="nc" id="L89">        SCHEMA_DEFINITION_CACHE(&quot;schema_definition_cache&quot;, (r) -&gt; r.getLong(256, 524288), Scope.GLOBAL),</span>
+<span class="nc" id="L90">        /*</span>
+         * sort_buffer_size is commented out as a workaround for https://bugs.mysql.com/bug.php?id=95969
+         */
+        // SORT_BUFFER_SIZE(&quot;sort_buffer_size&quot;, (r) -&gt; r.getLong(32768, Long.MAX_VALUE)),
+<span class="nc" id="L94">        SQL_AUTO_IS_NULL(&quot;sql_auto_is_null&quot;, (r) -&gt; Randomly.fromOptions(&quot;OFF&quot;, &quot;ON&quot;), Scope.GLOBAL, Scope.SESSION),</span>
+<span class="nc" id="L95">        SQL_BUFFER_RESULT(&quot;sql_buffer_result&quot;, (r) -&gt; Randomly.fromOptions(&quot;OFF&quot;, &quot;ON&quot;), Scope.GLOBAL, Scope.SESSION),</span>
+<span class="nc" id="L96">        SQL_LOG_OFF(&quot;sql_log_off&quot;, (r) -&gt; Randomly.fromOptions(&quot;OFF&quot;, &quot;ON&quot;), Scope.GLOBAL, Scope.SESSION),</span>
+<span class="nc" id="L97">        SQL_QUOTE_SHOW_CREATE(&quot;sql_quote_show_create&quot;, (r) -&gt; Randomly.fromOptions(&quot;OFF&quot;, &quot;ON&quot;), Scope.GLOBAL,</span>
+<span class="nc" id="L98">                Scope.SESSION),</span>
+<span class="nc" id="L99">        // SQL_REQUIRE_PRIMARY_KEY(&quot;sql_require_primary_key&quot;, (r) -&gt; Randomly.fromOptions(&quot;OFF&quot;, &quot;ON&quot;), Scope.GLOBAL),</span>
+        // TMP_TABLE_SIZE(&quot;tmp_table_size&quot;, (r) -&gt; r.getLong(1024, Long.MAX_VALUE), Scope.GLOBAL, Scope.SESSION),
+<span class="nc" id="L101">        UNIQUE_CHECKS(&quot;unique_checks&quot;, (r) -&gt; Randomly.fromOptions(&quot;OFF&quot;, &quot;ON&quot;), Scope.GLOBAL, Scope.SESSION),</span>
+<span class="nc" id="L102">        // TODO: https://dev.mysql.com/doc/refman/8.0/en/switchable-optimizations.html</span>
+
+        // MariaDB-specific
+<span class="nc" id="L105">        JOIN_CACHE_LEVEL(&quot;join_cache_level&quot;, (r) -&gt; r.getInteger(1, 8), Scope.GLOBAL, Scope.SESSION);</span>
+
+        private String name;
+        private Function&lt;Randomly, Object&gt; prod;
+        private final Scope[] scopes;
+
+<span class="nc" id="L111">        Action(String name, Function&lt;Randomly, Object&gt; prod, Scope... scopes) {</span>
+<span class="nc bnc" id="L112" title="All 2 branches missed.">            if (scopes.length == 0) {</span>
+<span class="nc" id="L113">                throw new AssertionError(name);</span>
+            }
+<span class="nc" id="L115">            this.name = name;</span>
+<span class="nc" id="L116">            this.prod = prod;</span>
+<span class="nc" id="L117">            this.scopes = scopes.clone();</span>
+<span class="nc" id="L118">        }</span>
+
+        private static String getOptimizerSwitchConfiguration(Randomly r) {
+<span class="nc" id="L121">            StringBuilder sb = new StringBuilder();</span>
+<span class="nc" id="L122">            sb.append(&quot;'&quot;);</span>
+<span class="nc" id="L123">            String[] options = { /*</span>
+                                  * (&quot;batched_key_access&quot;, /*&quot;block_nested_loop&quot;, &quot;condition_fanout_filter&quot;,
+                                  */
+<span class="nc" id="L126">                    &quot;condition_pushdown_for_derived&quot;, // MariaDB</span>
+<span class="nc" id="L127">                    &quot;derived_merge&quot;, //</span>
+<span class="nc" id="L128">                    &quot;derived_with_keys&quot;, // MariaDB</span>
+<span class="nc" id="L129">                    &quot;engine_condition_pushdown&quot;, //</span>
+<span class="nc" id="L130">                    &quot;exists_to_in&quot;, // MariaDB</span>
+<span class="nc" id="L131">                    &quot;extended_keys&quot;, // MariaDB</span>
+<span class="nc" id="L132">                    &quot;firstmatch&quot;, // MariaDB</span>
+<span class="nc" id="L133">                    &quot;index_condition_pushdown&quot;, //</span>
+                    /* &quot;use_index_extensions&quot;, */
+<span class="nc" id="L135">                    &quot;index_merge&quot;, //</span>
+<span class="nc" id="L136">                    &quot;index_merge_intersection&quot;, //</span>
+<span class="nc" id="L137">                    &quot;index_merge_sort_intersection&quot;, //</span>
+<span class="nc" id="L138">                    &quot;index_merge_sort_union&quot;, //</span>
+<span class="nc" id="L139">                    &quot;index_merge_union&quot;, &quot;in_to_exists&quot;, // MariaDB</span>
+<span class="nc" id="L140">                    /* &quot;use_invisible_indexes&quot;, */ &quot;mrr&quot;, &quot;mrr_cost_based&quot;, /* &quot;skip_scan&quot;, */ &quot;semijoin&quot;, /*</span>
+                                                                                                            * &quot;duplicateweedout&quot;,
+                                                                                                            */
+<span class="nc" id="L143">                    &quot;firstmatch&quot;, &quot;loosescan&quot;, &quot;materialization&quot;, /* &quot;subquery_materialization_cost_based&quot; */ };</span>
+<span class="nc" id="L144">            List&lt;String&gt; optionSubset = Arrays.asList(Randomly.fromOptions(options));</span>
+<span class="nc" id="L145">            sb.append(optionSubset.stream().map(s -&gt; s + &quot;=&quot; + Randomly.fromOptions(&quot;on&quot;, &quot;off&quot;))</span>
+<span class="nc" id="L146">                    .collect(Collectors.joining(&quot;,&quot;)));</span>
+<span class="nc" id="L147">            sb.append(&quot;'&quot;);</span>
+<span class="nc" id="L148">            return sb.toString();</span>
+        }
+
+        public boolean canBeUsedInScope(Scope session) {
+<span class="nc bnc" id="L152" title="All 2 branches missed.">            for (Scope scope : scopes) {</span>
+<span class="nc bnc" id="L153" title="All 2 branches missed.">                if (scope == session) {</span>
+<span class="nc" id="L154">                    return true;</span>
+                }
+            }
+<span class="nc" id="L157">            return false;</span>
+        }
+
+        public Scope[] getScopes() {
+<span class="nc" id="L161">            return scopes.clone();</span>
+        }
+    }
+
+    private SQLQueryAdapter get() {
+<span class="nc" id="L166">        sb.append(&quot;SET &quot;);</span>
+        Action a;
+<span class="nc bnc" id="L168" title="All 2 branches missed.">        if (isSingleThreaded) {</span>
+<span class="nc" id="L169">            a = Randomly.fromOptions(Action.values());</span>
+<span class="nc" id="L170">            Scope[] scopes = a.getScopes();</span>
+<span class="nc" id="L171">            Scope randomScope = Randomly.fromOptions(scopes);</span>
+<span class="nc bnc" id="L172" title="All 3 branches missed.">            switch (randomScope) {</span>
+            case GLOBAL:
+<span class="nc" id="L174">                sb.append(&quot;GLOBAL&quot;);</span>
+<span class="nc" id="L175">                break;</span>
+            case SESSION:
+<span class="nc" id="L177">                sb.append(&quot;SESSION&quot;);</span>
+<span class="nc" id="L178">                break;</span>
+            default:
+<span class="nc" id="L180">                throw new AssertionError(randomScope);</span>
+            }
+
+<span class="nc" id="L183">        } else {</span>
+            do {
+<span class="nc" id="L185">                a = Randomly.fromOptions(Action.values());</span>
+<span class="nc bnc" id="L186" title="All 2 branches missed.">            } while (!a.canBeUsedInScope(Scope.SESSION));</span>
+<span class="nc" id="L187">            sb.append(&quot;SESSION&quot;);</span>
+        }
+<span class="nc" id="L189">        sb.append(&quot; &quot;);</span>
+<span class="nc" id="L190">        sb.append(a.name);</span>
+<span class="nc" id="L191">        sb.append(&quot; = &quot;);</span>
+<span class="nc" id="L192">        sb.append(a.prod.apply(r));</span>
+<span class="nc" id="L193">        return new SQLQueryAdapter(sb.toString(), ExpectedErrors</span>
+<span class="nc" id="L194">                .from(&quot;At least one of the 'in_to_exists' or 'materialization' optimizer_switch flags must be 'on'&quot;));</span>
+    }
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.8.202204050719</span></div></body></html>

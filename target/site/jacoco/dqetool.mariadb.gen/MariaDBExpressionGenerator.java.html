@@ -1,0 +1,150 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>MariaDBExpressionGenerator.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">dqetool</a> &gt; <a href="index.source.html" class="el_package">dqetool.mariadb.gen</a> &gt; <span class="el_source">MariaDBExpressionGenerator.java</span></div><h1>MariaDBExpressionGenerator.java</h1><pre class="source lang-java linenums">package dqetool.mariadb.gen;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+
+import dqetool.Randomly;
+import dqetool.SQLConnection;
+import dqetool.StateToReproduce;
+import dqetool.mariadb.MariaDBProvider;
+import dqetool.mariadb.MariaDBSchema.MariaDBColumn;
+import dqetool.mariadb.MariaDBSchema.MariaDBDataType;
+import dqetool.mariadb.ast.MariaDBBinaryOperator;
+import dqetool.mariadb.ast.MariaDBBinaryOperator.MariaDBBinaryComparisonOperator;
+import dqetool.mariadb.ast.MariaDBColumnName;
+import dqetool.mariadb.ast.MariaDBConstant;
+import dqetool.mariadb.ast.MariaDBExpression;
+import dqetool.mariadb.ast.MariaDBFunction;
+import dqetool.mariadb.ast.MariaDBFunctionName;
+import dqetool.mariadb.ast.MariaDBInOperation;
+import dqetool.mariadb.ast.MariaDBPostfixUnaryOperation;
+import dqetool.mariadb.ast.MariaDBPostfixUnaryOperation.MariaDBPostfixUnaryOperator;
+import dqetool.mariadb.ast.MariaDBUnaryPrefixOperation;
+import dqetool.mariadb.ast.MariaDBUnaryPrefixOperation.MariaDBUnaryPrefixOperator;
+
+public class MariaDBExpressionGenerator {
+
+    private final Randomly r;
+<span class="nc" id="L29">    private List&lt;MariaDBColumn&gt; columns = new ArrayList&lt;&gt;();</span>
+
+<span class="nc" id="L31">    public MariaDBExpressionGenerator(Randomly r) {</span>
+<span class="nc" id="L32">        this.r = r;</span>
+<span class="nc" id="L33">    }</span>
+
+    public static MariaDBConstant getRandomConstant(Randomly r) {
+<span class="nc" id="L36">        MariaDBDataType option = Randomly.fromOptions(MariaDBDataType.values());</span>
+<span class="nc" id="L37">        return getRandomConstant(r, option);</span>
+    }
+
+    public static MariaDBConstant getRandomConstant(Randomly r, MariaDBDataType option) throws AssertionError {
+<span class="nc bnc" id="L41" title="All 2 branches missed.">        if (Randomly.getBooleanWithSmallProbability()) {</span>
+<span class="nc" id="L42">            return MariaDBConstant.createNullConstant();</span>
+        }
+<span class="nc bnc" id="L44" title="All 5 branches missed.">        switch (option) {</span>
+        case REAL:
+            // FIXME: bug workaround for MDEV-21032
+<span class="nc" id="L47">            return MariaDBConstant.createIntConstant(r.getInteger());</span>
+        // double val;
+        // do {
+        // val = r.getDouble();
+        // } while (Double.isInfinite(val));
+        // return MariaDBConstant.createDoubleConstant(val);
+        case INT:
+<span class="nc" id="L54">            return MariaDBConstant.createIntConstant(r.getInteger());</span>
+        case VARCHAR:
+<span class="nc" id="L56">            return MariaDBConstant.createTextConstant(r.getString());</span>
+        case BOOLEAN:
+<span class="nc" id="L58">            return MariaDBConstant.createBooleanConstant(Randomly.getBoolean());</span>
+        default:
+<span class="nc" id="L60">            throw new AssertionError(option);</span>
+        }
+    }
+
+    public MariaDBExpressionGenerator setColumns(List&lt;MariaDBColumn&gt; columns) {
+<span class="nc" id="L65">        this.columns = columns;</span>
+<span class="nc" id="L66">        return this;</span>
+    }
+
+    public MariaDBExpressionGenerator setCon(SQLConnection con) {
+<span class="nc" id="L70">        return this;</span>
+    }
+
+    public MariaDBExpressionGenerator setState(StateToReproduce state) {
+<span class="nc" id="L74">        return this;</span>
+    }
+
+<span class="nc" id="L77">    private enum ExpressionType {</span>
+<span class="nc" id="L78">        LITERAL, COLUMN, BINARY_COMPARISON, UNARY_POSTFIX_OPERATOR, UNARY_PREFIX_OPERATOR, FUNCTION, IN</span>
+    }
+
+    public MariaDBExpression getRandomExpression(int depth) {
+<span class="nc bnc" id="L82" title="All 4 branches missed.">        if (depth &gt;= MariaDBProvider.MAX_EXPRESSION_DEPTH || Randomly.getBoolean()) {</span>
+<span class="nc bnc" id="L83" title="All 4 branches missed.">            if (Randomly.getBoolean() || columns.isEmpty()) {</span>
+<span class="nc" id="L84">                return getRandomConstant(r);</span>
+            } else {
+<span class="nc" id="L86">                return getRandomColumn();</span>
+            }
+        }
+<span class="nc" id="L89">        List&lt;ExpressionType&gt; expressionTypes = new ArrayList&lt;&gt;(Arrays.asList(ExpressionType.values()));</span>
+<span class="nc bnc" id="L90" title="All 2 branches missed.">        if (columns.isEmpty()) {</span>
+<span class="nc" id="L91">            expressionTypes.remove(ExpressionType.COLUMN);</span>
+        }
+<span class="nc" id="L93">        ExpressionType expressionType = Randomly.fromList(expressionTypes);</span>
+<span class="nc bnc" id="L94" title="All 8 branches missed.">        switch (expressionType) {</span>
+        case COLUMN:
+<span class="nc" id="L96">            getRandomColumn();</span>
+        case LITERAL:
+<span class="nc" id="L98">            return getRandomConstant(r);</span>
+        case BINARY_COMPARISON:
+<span class="nc" id="L100">            return new MariaDBBinaryOperator(getRandomExpression(depth + 1), getRandomExpression(depth + 1),</span>
+<span class="nc" id="L101">                    MariaDBBinaryComparisonOperator.getRandom());</span>
+        case UNARY_PREFIX_OPERATOR:
+<span class="nc" id="L103">            return new MariaDBUnaryPrefixOperation(getRandomExpression(depth + 1),</span>
+<span class="nc" id="L104">                    MariaDBUnaryPrefixOperator.getRandom());</span>
+        case UNARY_POSTFIX_OPERATOR:
+<span class="nc" id="L106">            return new MariaDBPostfixUnaryOperation(MariaDBPostfixUnaryOperator.getRandom(),</span>
+<span class="nc" id="L107">                    getRandomExpression(depth + 1));</span>
+        case FUNCTION:
+<span class="nc" id="L109">            MariaDBFunctionName func = MariaDBFunctionName.getRandom();</span>
+<span class="nc" id="L110">            return new MariaDBFunction(func, getArgs(func, depth + 1));</span>
+        case IN:
+<span class="nc" id="L112">            return new MariaDBInOperation(getRandomExpression(depth + 1), getSmallNumberRandomExpressions(depth + 1),</span>
+<span class="nc" id="L113">                    Randomly.getBoolean());</span>
+        default:
+<span class="nc" id="L115">            throw new AssertionError(expressionType);</span>
+        }
+    }
+
+    private List&lt;MariaDBExpression&gt; getSmallNumberRandomExpressions(int depth) {
+<span class="nc" id="L120">        List&lt;MariaDBExpression&gt; expressions = new ArrayList&lt;&gt;();</span>
+<span class="nc bnc" id="L121" title="All 2 branches missed.">        for (int i = 0; i &lt; Randomly.smallNumber() + 1; i++) {</span>
+<span class="nc" id="L122">            expressions.add(getRandomExpression(depth + 1));</span>
+        }
+<span class="nc" id="L124">        return expressions;</span>
+    }
+
+    private List&lt;MariaDBExpression&gt; getArgs(MariaDBFunctionName func, int depth) {
+<span class="nc" id="L128">        List&lt;MariaDBExpression&gt; expressions = new ArrayList&lt;&gt;();</span>
+<span class="nc bnc" id="L129" title="All 2 branches missed.">        for (int i = 0; i &lt; func.getNrArgs(); i++) {</span>
+<span class="nc" id="L130">            expressions.add(getRandomExpression(depth + 1));</span>
+        }
+<span class="nc bnc" id="L132" title="All 2 branches missed.">        if (func.isVariadic()) {</span>
+<span class="nc bnc" id="L133" title="All 2 branches missed.">            for (int i = 0; i &lt; Randomly.smallNumber(); i++) {</span>
+<span class="nc" id="L134">                expressions.add(getRandomExpression(depth + 1));</span>
+            }
+        }
+<span class="nc" id="L137">        return expressions;</span>
+    }
+
+    private MariaDBExpression getRandomColumn() {
+<span class="nc" id="L141">        MariaDBColumn randomColumn = Randomly.fromList(columns);</span>
+<span class="nc" id="L142">        return new MariaDBColumnName(randomColumn);</span>
+    }
+
+    public MariaDBExpression getRandomExpression() {
+<span class="nc" id="L146">        return getRandomExpression(0);</span>
+    }
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.8.202204050719</span></div></body></html>

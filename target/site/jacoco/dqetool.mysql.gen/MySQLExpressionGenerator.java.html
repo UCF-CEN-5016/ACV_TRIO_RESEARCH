@@ -1,0 +1,231 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>MySQLExpressionGenerator.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">dqetool</a> &gt; <a href="index.source.html" class="el_package">dqetool.mysql.gen</a> &gt; <span class="el_source">MySQLExpressionGenerator.java</span></div><h1>MySQLExpressionGenerator.java</h1><pre class="source lang-java linenums">package dqetool.mysql.gen;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import dqetool.IgnoreMeException;
+import dqetool.Randomly;
+import dqetool.common.gen.UntypedExpressionGenerator;
+import dqetool.mysql.MySQLBugs;
+import dqetool.mysql.MySQLGlobalState;
+import dqetool.mysql.MySQLSchema.MySQLColumn;
+import dqetool.mysql.MySQLSchema.MySQLRowValue;
+import dqetool.mysql.ast.MySQLBetweenOperation;
+import dqetool.mysql.ast.MySQLBinaryComparisonOperation;
+import dqetool.mysql.ast.MySQLBinaryComparisonOperation.BinaryComparisonOperator;
+import dqetool.mysql.ast.MySQLBinaryLogicalOperation;
+import dqetool.mysql.ast.MySQLBinaryLogicalOperation.MySQLBinaryLogicalOperator;
+import dqetool.mysql.ast.MySQLBinaryOperation;
+import dqetool.mysql.ast.MySQLBinaryOperation.MySQLBinaryOperator;
+import dqetool.mysql.ast.MySQLCastOperation;
+import dqetool.mysql.ast.MySQLColumnReference;
+import dqetool.mysql.ast.MySQLComputableFunction;
+import dqetool.mysql.ast.MySQLComputableFunction.MySQLFunction;
+import dqetool.mysql.ast.MySQLConstant;
+import dqetool.mysql.ast.MySQLConstant.MySQLDoubleConstant;
+import dqetool.mysql.ast.MySQLExists;
+import dqetool.mysql.ast.MySQLExpression;
+import dqetool.mysql.ast.MySQLInOperation;
+import dqetool.mysql.ast.MySQLOrderByTerm;
+import dqetool.mysql.ast.MySQLOrderByTerm.MySQLOrder;
+import dqetool.mysql.ast.MySQLStringExpression;
+import dqetool.mysql.ast.MySQLUnaryPostfixOperation;
+import dqetool.mysql.ast.MySQLUnaryPrefixOperation;
+import dqetool.mysql.ast.MySQLUnaryPrefixOperation.MySQLUnaryPrefixOperator;
+
+public class MySQLExpressionGenerator extends UntypedExpressionGenerator&lt;MySQLExpression, MySQLColumn&gt; {
+
+    private final MySQLGlobalState state;
+    private MySQLRowValue rowVal;
+
+<span class="nc" id="L41">    public MySQLExpressionGenerator(MySQLGlobalState state) {</span>
+<span class="nc" id="L42">        this.state = state;</span>
+<span class="nc" id="L43">    }</span>
+
+    public MySQLExpressionGenerator setRowVal(MySQLRowValue rowVal) {
+<span class="nc" id="L46">        this.rowVal = rowVal;</span>
+<span class="nc" id="L47">        return this;</span>
+    }
+
+<span class="nc" id="L50">    private enum Actions {</span>
+<span class="nc" id="L51">        COLUMN, LITERAL, UNARY_PREFIX_OPERATION, UNARY_POSTFIX, COMPUTABLE_FUNCTION, BINARY_LOGICAL_OPERATOR,</span>
+<span class="nc" id="L52">        BINARY_COMPARISON_OPERATION, CAST, IN_OPERATION, BINARY_OPERATION, EXISTS, BETWEEN_OPERATOR;</span>
+    }
+
+    @Override
+    public MySQLExpression generateExpression(int depth) {
+<span class="nc bnc" id="L57" title="All 2 branches missed.">        if (depth &gt;= state.getOptions().getMaxExpressionDepth()) {</span>
+<span class="nc" id="L58">            return generateLeafNode();</span>
+        }
+<span class="nc bnc" id="L60" title="All 13 branches missed.">        switch (Randomly.fromOptions(Actions.values())) {</span>
+        case COLUMN:
+<span class="nc" id="L62">            return generateColumn();</span>
+        case LITERAL:
+<span class="nc" id="L64">            return generateConstant();</span>
+        case UNARY_PREFIX_OPERATION:
+<span class="nc" id="L66">            MySQLExpression subExpr = generateExpression(depth + 1);</span>
+<span class="nc" id="L67">            MySQLUnaryPrefixOperator random = MySQLUnaryPrefixOperator.getRandom();</span>
+<span class="nc bnc" id="L68" title="All 2 branches missed.">            if (random == MySQLUnaryPrefixOperator.MINUS) {</span>
+                // workaround for https://bugs.mysql.com/bug.php?id=99122
+<span class="nc" id="L70">                throw new IgnoreMeException();</span>
+            }
+<span class="nc" id="L72">            return new MySQLUnaryPrefixOperation(subExpr, random);</span>
+        case UNARY_POSTFIX:
+<span class="nc" id="L74">            return new MySQLUnaryPostfixOperation(generateExpression(depth + 1),</span>
+<span class="nc" id="L75">                    Randomly.fromOptions(MySQLUnaryPostfixOperation.UnaryPostfixOperator.values()),</span>
+<span class="nc" id="L76">                    Randomly.getBoolean());</span>
+        case COMPUTABLE_FUNCTION:
+<span class="nc" id="L78">            return getComputableFunction(depth + 1);</span>
+        case BINARY_LOGICAL_OPERATOR:
+<span class="nc" id="L80">            return new MySQLBinaryLogicalOperation(generateExpression(depth + 1), generateExpression(depth + 1),</span>
+<span class="nc" id="L81">                    MySQLBinaryLogicalOperator.getRandom());</span>
+        case BINARY_COMPARISON_OPERATION:
+<span class="nc" id="L83">            return new MySQLBinaryComparisonOperation(generateExpression(depth + 1), generateExpression(depth + 1),</span>
+<span class="nc" id="L84">                    BinaryComparisonOperator.getRandom());</span>
+        case CAST:
+<span class="nc" id="L86">            return new MySQLCastOperation(generateExpression(depth + 1), MySQLCastOperation.CastType.getRandom());</span>
+        case IN_OPERATION:
+<span class="nc" id="L88">            MySQLExpression expr = generateExpression(depth + 1);</span>
+<span class="nc" id="L89">            List&lt;MySQLExpression&gt; rightList = new ArrayList&lt;&gt;();</span>
+<span class="nc bnc" id="L90" title="All 2 branches missed.">            for (int i = 0; i &lt; 1 + Randomly.smallNumber(); i++) {</span>
+<span class="nc" id="L91">                rightList.add(generateExpression(depth + 1));</span>
+            }
+<span class="nc" id="L93">            return new MySQLInOperation(expr, rightList, Randomly.getBoolean());</span>
+        case BINARY_OPERATION:
+<span class="nc bnc" id="L95" title="All 2 branches missed.">            if (MySQLBugs.bug99135) {</span>
+<span class="nc" id="L96">                throw new IgnoreMeException();</span>
+            }
+<span class="nc" id="L98">            return new MySQLBinaryOperation(generateExpression(depth + 1), generateExpression(depth + 1),</span>
+<span class="nc" id="L99">                    MySQLBinaryOperator.getRandom());</span>
+        case EXISTS:
+<span class="nc" id="L101">            return getExists();</span>
+        case BETWEEN_OPERATOR:
+<span class="nc bnc" id="L103" title="All 2 branches missed.">            if (MySQLBugs.bug99181) {</span>
+                // TODO: there are a number of bugs that are triggered by the BETWEEN operator
+<span class="nc" id="L105">                throw new IgnoreMeException();</span>
+            }
+<span class="nc" id="L107">            return new MySQLBetweenOperation(generateExpression(depth + 1), generateExpression(depth + 1),</span>
+<span class="nc" id="L108">                    generateExpression(depth + 1));</span>
+        default:
+<span class="nc" id="L110">            throw new AssertionError();</span>
+        }
+    }
+
+    private MySQLExpression getExists() {
+<span class="nc bnc" id="L115" title="All 2 branches missed.">        if (Randomly.getBoolean()) {</span>
+<span class="nc" id="L116">            return new MySQLExists(new MySQLStringExpression(&quot;SELECT 1&quot;, MySQLConstant.createTrue()));</span>
+        } else {
+<span class="nc" id="L118">            return new MySQLExists(new MySQLStringExpression(&quot;SELECT 1 wHERE FALSE&quot;, MySQLConstant.createFalse()));</span>
+        }
+    }
+
+    private MySQLExpression getComputableFunction(int depth) {
+<span class="nc" id="L123">        MySQLFunction func = MySQLFunction.getRandomFunction();</span>
+<span class="nc" id="L124">        int nrArgs = func.getNrArgs();</span>
+<span class="nc bnc" id="L125" title="All 2 branches missed.">        if (func.isVariadic()) {</span>
+<span class="nc" id="L126">            nrArgs += Randomly.smallNumber();</span>
+        }
+<span class="nc" id="L128">        MySQLExpression[] args = new MySQLExpression[nrArgs];</span>
+<span class="nc bnc" id="L129" title="All 2 branches missed.">        for (int i = 0; i &lt; args.length; i++) {</span>
+<span class="nc" id="L130">            args[i] = generateExpression(depth + 1);</span>
+        }
+<span class="nc" id="L132">        return new MySQLComputableFunction(func, args);</span>
+    }
+
+<span class="nc" id="L135">    private enum ConstantType {</span>
+<span class="nc" id="L136">        INT, NULL, STRING, DOUBLE;</span>
+
+        public static ConstantType[] valuesPQS() {
+<span class="nc" id="L139">            return new ConstantType[] { INT, NULL, STRING };</span>
+        }
+    }
+
+    @Override
+    public MySQLExpression generateConstant() {
+        ConstantType[] values;
+<span class="nc bnc" id="L146" title="All 2 branches missed.">        if (state.usesPQS()) {</span>
+<span class="nc" id="L147">            values = ConstantType.valuesPQS();</span>
+<span class="nc" id="L148">        } else {</span>
+<span class="nc" id="L149">            values = ConstantType.values();</span>
+        }
+<span class="nc bnc" id="L151" title="All 5 branches missed.">        switch (Randomly.fromOptions(values)) {</span>
+        case INT:
+<span class="nc" id="L153">            return MySQLConstant.createIntConstant((int) state.getRandomly().getInteger());</span>
+        case NULL:
+<span class="nc" id="L155">            return MySQLConstant.createNullConstant();</span>
+        case STRING:
+            /* Replace characters that still trigger open bugs in MySQL */
+<span class="nc" id="L158">            String string = state.getRandomly().getString().replace(&quot;\\&quot;, &quot;&quot;).replace(&quot;\n&quot;, &quot;&quot;);</span>
+<span class="nc bnc" id="L159" title="All 2 branches missed.">            if (string.startsWith(&quot;\n&quot;)) {</span>
+                // workaround for https://bugs.mysql.com/bug.php?id=99130
+<span class="nc" id="L161">                throw new IgnoreMeException();</span>
+            }
+<span class="nc bnc" id="L163" title="All 6 branches missed.">            if (string.startsWith(&quot;-0&quot;) || string.startsWith(&quot;0.&quot;) || string.startsWith(&quot;.&quot;)) {</span>
+                // https://bugs.mysql.com/bug.php?id=99145
+<span class="nc" id="L165">                throw new IgnoreMeException();</span>
+            }
+<span class="nc" id="L167">            MySQLConstant createStringConstant = MySQLConstant.createStringConstant(string);</span>
+            // if (Randomly.getBoolean()) {
+            // return new MySQLCollate(createStringConstant,
+            // Randomly.fromOptions(&quot;ascii_bin&quot;, &quot;binary&quot;));
+            // }
+<span class="nc bnc" id="L172" title="All 2 branches missed.">            if (string.startsWith(&quot;1e&quot;)) {</span>
+                // https://bugs.mysql.com/bug.php?id=99146
+<span class="nc" id="L174">                throw new IgnoreMeException();</span>
+            }
+<span class="nc" id="L176">            return createStringConstant;</span>
+        case DOUBLE:
+<span class="nc" id="L178">            double val = state.getRandomly().getDouble();</span>
+<span class="nc bnc" id="L179" title="All 4 branches missed.">            if (Math.abs(val) &lt;= 1 &amp;&amp; val != 0) {</span>
+                // https://bugs.mysql.com/bug.php?id=99145
+<span class="nc" id="L181">                throw new IgnoreMeException();</span>
+            }
+<span class="nc bnc" id="L183" title="All 2 branches missed.">            if (Math.abs(val) &gt; 1.0E30) {</span>
+                // https://bugs.mysql.com/bug.php?id=99146
+<span class="nc" id="L185">                throw new IgnoreMeException();</span>
+            }
+<span class="nc" id="L187">            return new MySQLDoubleConstant(val);</span>
+        default:
+<span class="nc" id="L189">            throw new AssertionError();</span>
+        }
+    }
+
+    @Override
+    protected MySQLExpression generateColumn() {
+<span class="nc" id="L195">        MySQLColumn c = Randomly.fromList(columns);</span>
+        MySQLConstant val;
+<span class="nc bnc" id="L197" title="All 2 branches missed.">        if (rowVal == null) {</span>
+<span class="nc" id="L198">            val = null;</span>
+<span class="nc" id="L199">        } else {</span>
+<span class="nc" id="L200">            val = rowVal.getValues().get(c);</span>
+        }
+<span class="nc" id="L202">        return MySQLColumnReference.create(c, val);</span>
+    }
+
+    @Override
+    public MySQLExpression negatePredicate(MySQLExpression predicate) {
+<span class="nc" id="L207">        return new MySQLUnaryPrefixOperation(predicate, MySQLUnaryPrefixOperator.NOT);</span>
+    }
+
+    @Override
+    public MySQLExpression isNull(MySQLExpression expr) {
+<span class="nc" id="L212">        return new MySQLUnaryPostfixOperation(expr, MySQLUnaryPostfixOperation.UnaryPostfixOperator.IS_NULL, false);</span>
+    }
+
+    @Override
+    public List&lt;MySQLExpression&gt; generateOrderBys() {
+<span class="nc" id="L217">        List&lt;MySQLExpression&gt; expressions = super.generateOrderBys();</span>
+<span class="nc" id="L218">        List&lt;MySQLExpression&gt; newOrderBys = new ArrayList&lt;&gt;();</span>
+<span class="nc bnc" id="L219" title="All 2 branches missed.">        for (MySQLExpression expr : expressions) {</span>
+<span class="nc bnc" id="L220" title="All 2 branches missed.">            if (Randomly.getBoolean()) {</span>
+<span class="nc" id="L221">                MySQLOrderByTerm newExpr = new MySQLOrderByTerm(expr, MySQLOrder.getRandomOrder());</span>
+<span class="nc" id="L222">                newOrderBys.add(newExpr);</span>
+<span class="nc" id="L223">            } else {</span>
+<span class="nc" id="L224">                newOrderBys.add(expr);</span>
+            }
+        }
+<span class="nc" id="L227">        return newOrderBys;</span>
+    }
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.8.202204050719</span></div></body></html>

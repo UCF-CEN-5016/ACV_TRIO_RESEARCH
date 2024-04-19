@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>CockroachDBVisitor.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">dqetool</a> &gt; <a href="index.source.html" class="el_package">dqetool.cockroachdb</a> &gt; <span class="el_source">CockroachDBVisitor.java</span></div><h1>CockroachDBVisitor.java</h1><pre class="source lang-java linenums">package dqetool.cockroachdb;
+
+import dqetool.cockroachdb.ast.CockroachDBAggregate;
+import dqetool.cockroachdb.ast.CockroachDBBetweenOperation;
+import dqetool.cockroachdb.ast.CockroachDBCaseOperation;
+import dqetool.cockroachdb.ast.CockroachDBColumnReference;
+import dqetool.cockroachdb.ast.CockroachDBConstant;
+import dqetool.cockroachdb.ast.CockroachDBExpression;
+import dqetool.cockroachdb.ast.CockroachDBFunctionCall;
+import dqetool.cockroachdb.ast.CockroachDBInOperation;
+import dqetool.cockroachdb.ast.CockroachDBJoin;
+import dqetool.cockroachdb.ast.CockroachDBMultiValuedComparison;
+import dqetool.cockroachdb.ast.CockroachDBSelect;
+import dqetool.cockroachdb.ast.CockroachDBTableReference;
+
+public interface CockroachDBVisitor {
+
+    void visit(CockroachDBConstant c);
+
+    void visit(CockroachDBColumnReference c);
+
+    void visit(CockroachDBFunctionCall call);
+
+    void visit(CockroachDBInOperation inOp);
+
+    void visit(CockroachDBBetweenOperation op);
+
+    void visit(CockroachDBSelect select);
+
+    void visit(CockroachDBCaseOperation cases);
+
+    void visit(CockroachDBJoin join);
+
+    void visit(CockroachDBTableReference tableRef);
+
+    void visit(CockroachDBAggregate aggr);
+
+    void visit(CockroachDBMultiValuedComparison comp);
+
+    default void visit(CockroachDBExpression expr) {
+<span class="nc bnc" id="L41" title="All 2 branches missed.">        if (expr instanceof CockroachDBConstant) {</span>
+<span class="nc" id="L42">            visit((CockroachDBConstant) expr);</span>
+<span class="nc bnc" id="L43" title="All 2 branches missed.">        } else if (expr instanceof CockroachDBColumnReference) {</span>
+<span class="nc" id="L44">            visit((CockroachDBColumnReference) expr);</span>
+<span class="nc bnc" id="L45" title="All 2 branches missed.">        } else if (expr instanceof CockroachDBFunctionCall) {</span>
+<span class="nc" id="L46">            visit((CockroachDBFunctionCall) expr);</span>
+<span class="nc bnc" id="L47" title="All 2 branches missed.">        } else if (expr instanceof CockroachDBInOperation) {</span>
+<span class="nc" id="L48">            visit((CockroachDBInOperation) expr);</span>
+<span class="nc bnc" id="L49" title="All 2 branches missed.">        } else if (expr instanceof CockroachDBBetweenOperation) {</span>
+<span class="nc" id="L50">            visit((CockroachDBBetweenOperation) expr);</span>
+<span class="nc bnc" id="L51" title="All 2 branches missed.">        } else if (expr instanceof CockroachDBSelect) {</span>
+<span class="nc" id="L52">            visit((CockroachDBSelect) expr);</span>
+<span class="nc bnc" id="L53" title="All 2 branches missed.">        } else if (expr instanceof CockroachDBCaseOperation) {</span>
+<span class="nc" id="L54">            visit((CockroachDBCaseOperation) expr);</span>
+<span class="nc bnc" id="L55" title="All 2 branches missed.">        } else if (expr instanceof CockroachDBJoin) {</span>
+<span class="nc" id="L56">            visit((CockroachDBJoin) expr);</span>
+<span class="nc bnc" id="L57" title="All 2 branches missed.">        } else if (expr instanceof CockroachDBTableReference) {</span>
+<span class="nc" id="L58">            visit((CockroachDBTableReference) expr);</span>
+<span class="nc bnc" id="L59" title="All 2 branches missed.">        } else if (expr instanceof CockroachDBAggregate) {</span>
+<span class="nc" id="L60">            visit((CockroachDBAggregate) expr);</span>
+<span class="nc bnc" id="L61" title="All 2 branches missed.">        } else if (expr instanceof CockroachDBMultiValuedComparison) {</span>
+<span class="nc" id="L62">            visit((CockroachDBMultiValuedComparison) expr);</span>
+<span class="nc" id="L63">        } else {</span>
+<span class="nc" id="L64">            throw new AssertionError(expr.getClass());</span>
+        }
+<span class="nc" id="L66">    }</span>
+
+    static String asString(CockroachDBExpression expr) {
+<span class="nc" id="L69">        CockroachDBToStringVisitor v = new CockroachDBToStringVisitor();</span>
+<span class="nc" id="L70">        v.visit(expr);</span>
+<span class="nc" id="L71">        return v.getString();</span>
+    }
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.8.202204050719</span></div></body></html>

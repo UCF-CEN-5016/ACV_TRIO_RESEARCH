@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>NewBetweenOperatorNode.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">dqetool</a> &gt; <a href="index.source.html" class="el_package">dqetool.common.ast.newast</a> &gt; <span class="el_source">NewBetweenOperatorNode.java</span></div><h1>NewBetweenOperatorNode.java</h1><pre class="source lang-java linenums">package dqetool.common.ast.newast;
+
+public class NewBetweenOperatorNode&lt;T&gt; implements Node&lt;T&gt; {
+
+    protected Node&lt;T&gt; left;
+    protected Node&lt;T&gt; middle;
+    protected Node&lt;T&gt; right;
+    protected boolean isTrue;
+
+<span class="nc" id="L10">    public NewBetweenOperatorNode(Node&lt;T&gt; left, Node&lt;T&gt; middle, Node&lt;T&gt; right, boolean isTrue) {</span>
+<span class="nc" id="L11">        this.left = left;</span>
+<span class="nc" id="L12">        this.middle = middle;</span>
+<span class="nc" id="L13">        this.right = right;</span>
+<span class="nc" id="L14">        this.isTrue = isTrue;</span>
+<span class="nc" id="L15">    }</span>
+
+    public Node&lt;T&gt; getLeft() {
+<span class="nc" id="L18">        return left;</span>
+    }
+
+    public Node&lt;T&gt; getMiddle() {
+<span class="nc" id="L22">        return middle;</span>
+    }
+
+    public Node&lt;T&gt; getRight() {
+<span class="nc" id="L26">        return right;</span>
+    }
+
+    public boolean isTrue() {
+<span class="nc" id="L30">        return isTrue;</span>
+    }
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.8.202204050719</span></div></body></html>

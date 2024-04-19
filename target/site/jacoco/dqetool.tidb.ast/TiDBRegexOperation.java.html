@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>TiDBRegexOperation.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">dqetool</a> &gt; <a href="index.source.html" class="el_package">dqetool.tidb.ast</a> &gt; <span class="el_source">TiDBRegexOperation.java</span></div><h1>TiDBRegexOperation.java</h1><pre class="source lang-java linenums">package dqetool.tidb.ast;
+
+import dqetool.Randomly;
+import dqetool.common.ast.BinaryOperatorNode;
+import dqetool.common.ast.Operator;
+import dqetool.tidb.ast.TiDBRegexOperation.TiDBRegexOperator;
+
+public class TiDBRegexOperation extends BinaryOperatorNode&lt;TiDBExpression, TiDBRegexOperator&gt;
+        implements TiDBExpression {
+
+<span class="nc" id="L11">    public enum TiDBRegexOperator implements Operator {</span>
+<span class="nc" id="L12">        LIKE(&quot;LIKE&quot;), //</span>
+<span class="nc" id="L13">        NOT_LIKE(&quot;NOT LIKE&quot;), //</span>
+<span class="nc" id="L14">        ILIKE(&quot;REGEXP&quot;), //</span>
+<span class="nc" id="L15">        NOT_REGEXP(&quot;NOT REGEXP&quot;);</span>
+
+        private String textRepr;
+
+<span class="nc" id="L19">        TiDBRegexOperator(String textRepr) {</span>
+<span class="nc" id="L20">            this.textRepr = textRepr;</span>
+<span class="nc" id="L21">        }</span>
+
+        public static TiDBRegexOperator getRandom() {
+<span class="nc" id="L24">            return Randomly.fromOptions(values());</span>
+        }
+
+        @Override
+        public String getTextRepresentation() {
+<span class="nc" id="L29">            return textRepr;</span>
+        }
+
+    }
+
+    public TiDBRegexOperation(TiDBExpression left, TiDBExpression right, TiDBRegexOperator op) {
+<span class="nc" id="L35">        super(left, right, op);</span>
+<span class="nc" id="L36">    }</span>
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.8.202204050719</span></div></body></html>

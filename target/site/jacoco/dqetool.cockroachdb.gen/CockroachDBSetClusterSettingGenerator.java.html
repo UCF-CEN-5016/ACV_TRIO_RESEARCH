@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>CockroachDBSetClusterSettingGenerator.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">dqetool</a> &gt; <a href="index.source.html" class="el_package">dqetool.cockroachdb.gen</a> &gt; <span class="el_source">CockroachDBSetClusterSettingGenerator.java</span></div><h1>CockroachDBSetClusterSettingGenerator.java</h1><pre class="source lang-java linenums">package dqetool.cockroachdb.gen;
+
+import java.util.function.Function;
+
+import dqetool.Randomly;
+import dqetool.cockroachdb.CockroachDBErrors;
+import dqetool.cockroachdb.CockroachDBProvider.CockroachDBGlobalState;
+import dqetool.common.query.ExpectedErrors;
+import dqetool.common.query.SQLQueryAdapter;
+
+public final class CockroachDBSetClusterSettingGenerator {
+
+    private CockroachDBSetClusterSettingGenerator() {
+    }
+
+    // https://www.cockroachlabs.com/docs/stable/set-vars.html
+<span class="nc" id="L17">    private enum CockroachDBClusterSetting {</span>
+<span class="nc" id="L18">        BACKPRESSURE_RANGE_SIZE_MULTIPLIER(&quot; kv.range.backpressure_range_size_multiplier&quot;,</span>
+<span class="nc" id="L19">                (g) -&gt; Randomly.getNotCachedInteger(0, Integer.MAX_VALUE)),</span>
+<span class="nc" id="L20">        RANGE_DESCRIPTOR_CACHE_SIZE(&quot;kv.range_descriptor_cache.size&quot;, (g) -&gt; Randomly.getNonCachedInteger()),</span>
+<span class="nc" id="L21">        SQL_QUERY_CACHE_ENABLED(&quot;sql.query_cache.enabled&quot;, CockroachDBSetSessionGenerator::onOff),</span>
+<span class="nc" id="L22">        SQL_STATS_HISTOGRAM_COLLECTION_ENABLED(&quot;sql.stats.histogram_collection.enabled&quot;,</span>
+<span class="nc" id="L23">                CockroachDBSetSessionGenerator::onOff);</span>
+
+        private Function&lt;CockroachDBGlobalState, Object&gt; f;
+        private String name;
+
+<span class="nc" id="L28">        CockroachDBClusterSetting(String name, Function&lt;CockroachDBGlobalState, Object&gt; f) {</span>
+<span class="nc" id="L29">            this.name = name;</span>
+<span class="nc" id="L30">            this.f = f;</span>
+<span class="nc" id="L31">        }</span>
+    }
+
+    public static SQLQueryAdapter create(CockroachDBGlobalState globalState) {
+<span class="nc" id="L35">        CockroachDBClusterSetting s = Randomly.fromOptions(CockroachDBClusterSetting.values());</span>
+<span class="nc" id="L36">        StringBuilder sb = new StringBuilder(&quot;SET CLUSTER SETTING &quot;);</span>
+<span class="nc" id="L37">        sb.append(s.name);</span>
+<span class="nc" id="L38">        sb.append(&quot;=&quot;);</span>
+<span class="nc bnc" id="L39" title="All 2 branches missed.">        if (Randomly.getBooleanWithRatherLowProbability()) {</span>
+<span class="nc" id="L40">            sb.append(&quot;DEFAULT&quot;);</span>
+<span class="nc" id="L41">        } else {</span>
+<span class="nc" id="L42">            sb.append(s.f.apply(globalState));</span>
+        }
+<span class="nc" id="L44">        ExpectedErrors errors = new ExpectedErrors();</span>
+<span class="nc" id="L45">        CockroachDBErrors.addTransactionErrors(errors);</span>
+<span class="nc" id="L46">        errors.add(&quot;setting updated but timed out waiting to read new value&quot;);</span>
+
+<span class="nc" id="L48">        CockroachDBErrors.addTransactionErrors(errors);</span>
+<span class="nc" id="L49">        return new SQLQueryAdapter(sb.toString(), errors);</span>
+    }
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.8.202204050719</span></div></body></html>

@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>CockroachDBUpdateGenerator.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">dqetool</a> &gt; <a href="index.source.html" class="el_package">dqetool.cockroachdb.gen</a> &gt; <span class="el_source">CockroachDBUpdateGenerator.java</span></div><h1>CockroachDBUpdateGenerator.java</h1><pre class="source lang-java linenums">package dqetool.cockroachdb.gen;
+
+import java.util.List;
+
+import dqetool.Randomly;
+import dqetool.cockroachdb.CockroachDBErrors;
+import dqetool.cockroachdb.CockroachDBProvider.CockroachDBGlobalState;
+import dqetool.cockroachdb.CockroachDBSchema.CockroachDBColumn;
+import dqetool.cockroachdb.CockroachDBSchema.CockroachDBDataType;
+import dqetool.cockroachdb.CockroachDBSchema.CockroachDBTable;
+import dqetool.cockroachdb.CockroachDBVisitor;
+import dqetool.common.gen.AbstractUpdateGenerator;
+import dqetool.common.query.SQLQueryAdapter;
+
+public final class CockroachDBUpdateGenerator extends AbstractUpdateGenerator&lt;CockroachDBColumn&gt; {
+
+    private final CockroachDBGlobalState globalState;
+    private CockroachDBExpressionGenerator gen;
+
+<span class="nc" id="L20">    private CockroachDBUpdateGenerator(CockroachDBGlobalState globalState) {</span>
+<span class="nc" id="L21">        this.globalState = globalState;</span>
+<span class="nc" id="L22">    }</span>
+
+    public static SQLQueryAdapter gen(CockroachDBGlobalState globalState) {
+<span class="nc" id="L25">        return new CockroachDBUpdateGenerator(globalState).generate();</span>
+    }
+
+    private SQLQueryAdapter generate() {
+<span class="nc bnc" id="L29" title="All 2 branches missed.">        CockroachDBTable table = globalState.getSchema().getRandomTable(t -&gt; !t.isView());</span>
+<span class="nc" id="L30">        List&lt;CockroachDBColumn&gt; columns = table.getRandomNonEmptyColumnSubset();</span>
+<span class="nc" id="L31">        gen = new CockroachDBExpressionGenerator(globalState).setColumns(columns);</span>
+<span class="nc" id="L32">        sb.append(&quot;UPDATE &quot;);</span>
+<span class="nc" id="L33">        sb.append(table.getName());</span>
+<span class="nc bnc" id="L34" title="All 2 branches missed.">        if (Randomly.getBoolean()) {</span>
+<span class="nc" id="L35">            sb.append(&quot;@{FORCE_INDEX=&quot;);</span>
+<span class="nc" id="L36">            sb.append(Randomly.fromList(table.getIndexes()).getIndexName());</span>
+<span class="nc" id="L37">            sb.append(&quot;}&quot;);</span>
+        }
+<span class="nc" id="L39">        sb.append(&quot; SET &quot;);</span>
+<span class="nc" id="L40">        updateColumns(columns);</span>
+<span class="nc bnc" id="L41" title="All 2 branches missed.">        if (Randomly.getBoolean()) {</span>
+<span class="nc" id="L42">            sb.append(&quot; WHERE &quot;);</span>
+<span class="nc" id="L43">            sb.append(CockroachDBVisitor.asString(gen.generateExpression(CockroachDBDataType.BOOL.get())));</span>
+        }
+<span class="nc" id="L45">        errors.add(&quot;violates unique constraint&quot;);</span>
+<span class="nc" id="L46">        errors.add(&quot;violates not-null constraint&quot;);</span>
+<span class="nc" id="L47">        errors.add(&quot;violates foreign key constraint&quot;);</span>
+<span class="nc" id="L48">        errors.add(&quot;UPDATE without WHERE clause (sql_safe_updates = true)&quot;);</span>
+<span class="nc" id="L49">        errors.add(&quot;numeric constant out of int64 range&quot;);</span>
+<span class="nc" id="L50">        errors.add(&quot;failed to satisfy CHECK constraint&quot;);</span>
+<span class="nc" id="L51">        errors.add(&quot;cannot write directly to computed column&quot;);</span>
+<span class="nc" id="L52">        CockroachDBErrors.addExpressionErrors(errors);</span>
+<span class="nc" id="L53">        CockroachDBErrors.addTransactionErrors(errors);</span>
+<span class="nc" id="L54">        return new SQLQueryAdapter(sb.toString(), errors);</span>
+    }
+
+    @Override
+    protected void updateValue(CockroachDBColumn column) {
+<span class="nc" id="L59">        sb.append(CockroachDBVisitor.asString(gen.generateExpression(column.getType())));</span>
+<span class="nc" id="L60">    }</span>
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.8.202204050719</span></div></body></html>

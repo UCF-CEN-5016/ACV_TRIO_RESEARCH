@@ -1,0 +1,146 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>SQLite3CreateTriggerGenerator.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">dqetool</a> &gt; <a href="index.source.html" class="el_package">dqetool.sqlite3.gen.ddl</a> &gt; <span class="el_source">SQLite3CreateTriggerGenerator.java</span></div><h1>SQLite3CreateTriggerGenerator.java</h1><pre class="source lang-java linenums">package dqetool.sqlite3.gen.ddl;
+
+import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.List;
+
+import dqetool.IgnoreMeException;
+import dqetool.Randomly;
+import dqetool.common.query.ExpectedErrors;
+import dqetool.common.query.SQLQueryAdapter;
+import dqetool.sqlite3.SQLite3GlobalState;
+import dqetool.sqlite3.SQLite3Visitor;
+import dqetool.sqlite3.gen.SQLite3ExpressionGenerator;
+import dqetool.sqlite3.gen.dml.SQLite3DeleteGenerator;
+import dqetool.sqlite3.gen.dml.SQLite3InsertGenerator;
+import dqetool.sqlite3.gen.dml.SQLite3UpdateGenerator;
+import dqetool.sqlite3.schema.SQLite3Schema;
+import dqetool.sqlite3.schema.SQLite3Schema.SQLite3Table;
+
+public final class SQLite3CreateTriggerGenerator {
+
+    private SQLite3CreateTriggerGenerator() {
+    }
+
+<span class="nc" id="L25">    private enum OnAction {</span>
+<span class="nc" id="L26">        INSERT, DELETE, UPDATE</span>
+    }
+
+<span class="nc" id="L29">    private enum TriggerAction {</span>
+<span class="nc" id="L30">        INSERT, DELETE, UPDATE, RAISE</span>
+    }
+
+    public static SQLQueryAdapter create(SQLite3GlobalState globalState) throws SQLException {
+<span class="nc" id="L34">        SQLite3Schema s = globalState.getSchema();</span>
+<span class="nc" id="L35">        StringBuilder sb = new StringBuilder();</span>
+<span class="nc bnc" id="L36" title="All 2 branches missed.">        SQLite3Table table = s.getRandomTableOrBailout(t -&gt; !t.isVirtual());</span>
+<span class="nc" id="L37">        sb.append(&quot;CREATE&quot;);</span>
+<span class="nc bnc" id="L38" title="All 2 branches missed.">        if (table.isTemp()) {</span>
+<span class="nc" id="L39">            sb.append(&quot; &quot;);</span>
+<span class="nc" id="L40">            sb.append(Randomly.fromOptions(&quot;TEMP&quot;, &quot;TEMPORARY&quot;));</span>
+        }
+<span class="nc" id="L42">        sb.append(&quot; TRIGGER&quot;);</span>
+<span class="nc" id="L43">        sb.append(&quot; IF NOT EXISTS &quot;);</span>
+<span class="nc" id="L44">        sb.append(&quot;tr&quot;);</span>
+<span class="nc" id="L45">        sb.append(Randomly.smallNumber());</span>
+<span class="nc" id="L46">        sb.append(&quot; &quot;);</span>
+<span class="nc bnc" id="L47" title="All 2 branches missed.">        if (table.isView()) {</span>
+<span class="nc" id="L48">            sb.append(&quot;INSTEAD OF&quot;);</span>
+<span class="nc" id="L49">        } else {</span>
+<span class="nc" id="L50">            sb.append(Randomly.fromOptions(&quot;BEFORE&quot;, &quot;AFTER&quot;));</span>
+        }
+<span class="nc" id="L52">        sb.append(&quot; &quot;);</span>
+
+<span class="nc" id="L54">        OnAction randomAction = Randomly.fromOptions(OnAction.values());</span>
+<span class="nc bnc" id="L55" title="All 4 branches missed.">        switch (randomAction) {</span>
+        case INSERT:
+<span class="nc" id="L57">            sb.append(&quot;INSERT ON &quot;);</span>
+<span class="nc" id="L58">            break;</span>
+        case DELETE:
+<span class="nc" id="L60">            sb.append(&quot;DELETE ON &quot;);</span>
+<span class="nc" id="L61">            break;</span>
+        case UPDATE:
+<span class="nc" id="L63">            sb.append(&quot;UPDATE &quot;);</span>
+<span class="nc bnc" id="L64" title="All 2 branches missed.">            if (Randomly.getBoolean()) {</span>
+<span class="nc" id="L65">                sb.append(&quot;OF &quot;);</span>
+<span class="nc bnc" id="L66" title="All 2 branches missed.">                for (int i = 0; i &lt; Randomly.smallNumber() + 1; i++) {</span>
+<span class="nc bnc" id="L67" title="All 2 branches missed.">                    if (i != 0) {</span>
+<span class="nc" id="L68">                        sb.append(&quot;, &quot;);</span>
+                    }
+<span class="nc" id="L70">                    sb.append(table.getRandomColumn().getName());</span>
+                }
+<span class="nc" id="L72">                sb.append(&quot; &quot;);</span>
+            }
+<span class="nc" id="L74">            sb.append(&quot;ON &quot;);</span>
+<span class="nc" id="L75">            break;</span>
+        default:
+<span class="nc" id="L77">            throw new AssertionError();</span>
+        }
+<span class="nc" id="L79">        appendTableNameAndWhen(globalState, sb, table);</span>
+
+<span class="nc" id="L81">        SQLite3Table randomActionTable = s.getRandomTableNoViewOrBailout();</span>
+<span class="nc" id="L82">        sb.append(&quot; BEGIN &quot;);</span>
+<span class="nc bnc" id="L83" title="All 2 branches missed.">        for (int i = 0; i &lt; Randomly.smallNumber() + 1; i++) {</span>
+<span class="nc bnc" id="L84" title="All 5 branches missed.">            switch (Randomly.fromOptions(TriggerAction.values())) {</span>
+            case DELETE:
+<span class="nc" id="L86">                sb.append(SQLite3DeleteGenerator.deleteContent(globalState, randomActionTable));</span>
+<span class="nc" id="L87">                break;</span>
+            case INSERT:
+<span class="nc" id="L89">                sb.append(getQueryString(s, globalState));</span>
+<span class="nc" id="L90">                break;</span>
+            case UPDATE:
+<span class="nc" id="L92">                sb.append(SQLite3UpdateGenerator.updateRow(globalState, randomActionTable));</span>
+<span class="nc" id="L93">                break;</span>
+            case RAISE:
+<span class="nc" id="L95">                sb.append(&quot;SELECT RAISE(&quot;);</span>
+<span class="nc bnc" id="L96" title="All 2 branches missed.">                if (Randomly.getBoolean()) {</span>
+<span class="nc" id="L97">                    sb.append(&quot;IGNORE&quot;);</span>
+<span class="nc" id="L98">                } else {</span>
+<span class="nc" id="L99">                    sb.append(Randomly.fromOptions(&quot;ROLLBACK&quot;, &quot;ABORT&quot;, &quot;FAIL&quot;));</span>
+<span class="nc" id="L100">                    sb.append(&quot;, 'asdf'&quot;);</span>
+                }
+<span class="nc" id="L102">                sb.append(&quot;)&quot;);</span>
+<span class="nc" id="L103">                sb.append(&quot;;&quot;);</span>
+<span class="nc" id="L104">                break;</span>
+            default:
+<span class="nc" id="L106">                throw new AssertionError();</span>
+            }
+        }
+<span class="nc" id="L109">        sb.append(&quot;END&quot;);</span>
+
+<span class="nc" id="L111">        return new SQLQueryAdapter(sb.toString(),</span>
+<span class="nc" id="L112">                ExpectedErrors.from(&quot;parser stack overflow&quot;, &quot;unsupported frame specification&quot;));</span>
+    }
+
+    private static void appendTableNameAndWhen(SQLite3GlobalState globalState, StringBuilder sb, SQLite3Table table) {
+<span class="nc" id="L116">        sb.append(table.getName());</span>
+<span class="nc bnc" id="L117" title="All 2 branches missed.">        if (Randomly.getBoolean()) {</span>
+<span class="nc" id="L118">            sb.append(&quot; FOR EACH ROW &quot;);</span>
+        }
+<span class="nc bnc" id="L120" title="All 2 branches missed.">        if (Randomly.getBoolean()) {</span>
+<span class="nc" id="L121">            sb.append(&quot; WHEN &quot;);</span>
+<span class="nc" id="L122">            sb.append(SQLite3Visitor.asString(</span>
+<span class="nc" id="L123">                    new SQLite3ExpressionGenerator(globalState).setColumns(table.getColumns()).generateExpression()));</span>
+        }
+<span class="nc" id="L125">    }</span>
+
+    private static String getQueryString(SQLite3Schema s, SQLite3GlobalState globalState) throws SQLException {
+        String q;
+        do {
+<span class="nc" id="L130">            q = SQLite3InsertGenerator.insertRow(globalState, getTableNotEqualsTo(s, s.getRandomTableNoViewOrBailout()))</span>
+<span class="nc" id="L131">                    .getQueryString();</span>
+<span class="nc bnc" id="L132" title="All 2 branches missed.">        } while (q.contains(&quot;DEFAULT VALUES&quot;));</span>
+<span class="nc" id="L133">        return q;</span>
+    }
+
+    private static SQLite3Table getTableNotEqualsTo(SQLite3Schema s, SQLite3Table table) {
+<span class="nc" id="L137">        List&lt;SQLite3Table&gt; tables = new ArrayList&lt;&gt;(s.getDatabaseTablesWithoutViews());</span>
+<span class="nc" id="L138">        tables.remove(table);</span>
+<span class="nc bnc" id="L139" title="All 2 branches missed.">        if (tables.isEmpty()) {</span>
+<span class="nc" id="L140">            throw new IgnoreMeException();</span>
+        }
+<span class="nc" id="L142">        return Randomly.fromList(tables);</span>
+    }
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.8.202204050719</span></div></body></html>

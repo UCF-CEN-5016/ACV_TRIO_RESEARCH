@@ -1,0 +1,166 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>TiDBTableGenerator.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">dqetool</a> &gt; <a href="index.source.html" class="el_package">dqetool.tidb.gen</a> &gt; <span class="el_source">TiDBTableGenerator.java</span></div><h1>TiDBTableGenerator.java</h1><pre class="source lang-java linenums">package dqetool.tidb.gen;
+
+import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.stream.Collectors;
+
+import dqetool.IgnoreMeException;
+import dqetool.Randomly;
+import dqetool.common.query.ExpectedErrors;
+import dqetool.common.query.SQLQueryAdapter;
+import dqetool.tidb.TiDBExpressionGenerator;
+import dqetool.tidb.TiDBProvider.TiDBGlobalState;
+import dqetool.tidb.TiDBSchema.TiDBColumn;
+import dqetool.tidb.TiDBSchema.TiDBCompositeDataType;
+import dqetool.tidb.TiDBSchema.TiDBDataType;
+import dqetool.tidb.TiDBSchema.TiDBTable;
+import dqetool.tidb.visitor.TiDBVisitor;
+
+<span class="nc" id="L20">public class TiDBTableGenerator {</span>
+
+    private boolean allowPrimaryKey;
+<span class="nc" id="L23">    private final List&lt;TiDBColumn&gt; columns = new ArrayList&lt;&gt;();</span>
+    private boolean primaryKeyAsTableConstraints;
+<span class="nc" id="L25">    private final ExpectedErrors errors = new ExpectedErrors();</span>
+
+    public static SQLQueryAdapter createRandomTableStatement(TiDBGlobalState globalState) throws SQLException {
+<span class="nc bnc" id="L28" title="All 2 branches missed.">        if (globalState.getSchema().getDatabaseTables().size() &gt; globalState.getDbmsSpecificOptions().maxNumTables) {</span>
+<span class="nc" id="L29">            throw new IgnoreMeException();</span>
+        }
+<span class="nc" id="L31">        return new TiDBTableGenerator().getQuery(globalState);</span>
+    }
+
+    public SQLQueryAdapter getQuery(TiDBGlobalState globalState) throws SQLException {
+<span class="nc" id="L35">        errors.add(&quot;Information schema is changed during the execution of the statement&quot;);</span>
+<span class="nc" id="L36">        String tableName = globalState.getSchema().getFreeTableName();</span>
+<span class="nc" id="L37">        int nrColumns = Randomly.smallNumber() + 1;</span>
+<span class="nc" id="L38">        allowPrimaryKey = Randomly.getBoolean();</span>
+<span class="nc bnc" id="L39" title="All 4 branches missed.">        primaryKeyAsTableConstraints = allowPrimaryKey &amp;&amp; Randomly.getBoolean();</span>
+<span class="nc bnc" id="L40" title="All 2 branches missed.">        for (int i = 0; i &lt; nrColumns; i++) {</span>
+<span class="nc" id="L41">            TiDBColumn fakeColumn = new TiDBColumn(&quot;c&quot; + i, null, false, false);</span>
+<span class="nc" id="L42">            columns.add(fakeColumn);</span>
+        }
+<span class="nc" id="L44">        TiDBExpressionGenerator gen = new TiDBExpressionGenerator(globalState).setColumns(columns);</span>
+
+<span class="nc" id="L46">        StringBuilder sb = new StringBuilder(&quot;CREATE TABLE &quot;);</span>
+<span class="nc" id="L47">        sb.append(tableName);</span>
+
+<span class="nc bnc" id="L49" title="All 4 branches missed.">        if (Randomly.getBoolean() &amp;&amp; globalState.getSchema().getDatabaseTables().size() &gt; 0) {</span>
+<span class="nc" id="L50">            sb.append(&quot; LIKE &quot;);</span>
+<span class="nc" id="L51">            TiDBTable otherTable = globalState.getSchema().getRandomTable();</span>
+<span class="nc" id="L52">            sb.append(otherTable.getName());</span>
+<span class="nc" id="L53">        } else {</span>
+<span class="nc" id="L54">            createNewTable(gen, sb);</span>
+        }
+<span class="nc" id="L56">        return new SQLQueryAdapter(sb.toString(), errors, true);</span>
+    }
+
+    private void createNewTable(TiDBExpressionGenerator gen, StringBuilder sb) {
+<span class="nc" id="L60">        sb.append(&quot;(&quot;);</span>
+<span class="nc bnc" id="L61" title="All 2 branches missed.">        for (int i = 0; i &lt; columns.size(); i++) {</span>
+<span class="nc bnc" id="L62" title="All 2 branches missed.">            if (i != 0) {</span>
+<span class="nc" id="L63">                sb.append(&quot;, &quot;);</span>
+            }
+<span class="nc" id="L65">            sb.append(columns.get(i).getName());</span>
+<span class="nc" id="L66">            sb.append(&quot; &quot;);</span>
+            TiDBCompositeDataType type;
+<span class="nc" id="L68">            type = TiDBCompositeDataType.getRandom();</span>
+<span class="nc" id="L69">            appendType(sb, type);</span>
+<span class="nc" id="L70">            sb.append(&quot; &quot;);</span>
+<span class="nc" id="L71">            boolean isGeneratedColumn = Randomly.getBooleanWithRatherLowProbability();</span>
+<span class="nc bnc" id="L72" title="All 2 branches missed.">            if (isGeneratedColumn) {</span>
+<span class="nc" id="L73">                sb.append(&quot; AS (&quot;);</span>
+<span class="nc" id="L74">                sb.append(TiDBVisitor.asString(gen.generateExpression()));</span>
+<span class="nc" id="L75">                sb.append(&quot;) &quot;);</span>
+<span class="nc" id="L76">                sb.append(Randomly.fromOptions(&quot;STORED&quot;, &quot;VIRTUAL&quot;));</span>
+<span class="nc" id="L77">                sb.append(&quot; &quot;);</span>
+<span class="nc" id="L78">                errors.add(&quot;Generated column can refer only to generated columns defined prior to it&quot;);</span>
+<span class="nc" id="L79">                errors.add(</span>
+<span class="nc" id="L80">                        &quot;'Defining a virtual generated column as primary key' is not supported for generated columns.&quot;);</span>
+<span class="nc" id="L81">                errors.add(&quot;contains a disallowed function.&quot;);</span>
+<span class="nc" id="L82">                errors.add(&quot;cannot refer to auto-increment column&quot;);</span>
+            }
+<span class="nc bnc" id="L84" title="All 2 branches missed.">            if (Randomly.getBooleanWithRatherLowProbability()) {</span>
+<span class="nc" id="L85">                sb.append(&quot;CHECK (&quot;);</span>
+<span class="nc" id="L86">                sb.append(TiDBVisitor.asString(gen.generateExpression()));</span>
+<span class="nc" id="L87">                sb.append(&quot;) &quot;);</span>
+            }
+<span class="nc bnc" id="L89" title="All 2 branches missed.">            if (Randomly.getBooleanWithRatherLowProbability()) {</span>
+<span class="nc" id="L90">                sb.append(&quot;NOT NULL &quot;);</span>
+            }
+<span class="nc bnc" id="L92" title="All 6 branches missed.">            if (Randomly.getBoolean() &amp;&amp; type.getPrimitiveDataType().canHaveDefault() &amp;&amp; !isGeneratedColumn) {</span>
+<span class="nc" id="L93">                sb.append(&quot;DEFAULT &quot;);</span>
+<span class="nc" id="L94">                sb.append(TiDBVisitor.asString(gen.generateConstant(type.getPrimitiveDataType())));</span>
+<span class="nc" id="L95">                sb.append(&quot; &quot;);</span>
+<span class="nc" id="L96">                errors.add(&quot;Invalid default value&quot;);</span>
+<span class="nc" id="L97">                errors.add(</span>
+<span class="nc" id="L98">                        &quot;All parts of a PRIMARY KEY must be NOT NULL; if you need NULL in a key, use UNIQUE instead&quot;);</span>
+            }
+<span class="nc bnc" id="L100" title="All 4 branches missed.">            if (type.getPrimitiveDataType() == TiDBDataType.INT &amp;&amp; Randomly.getBooleanWithRatherLowProbability()</span>
+<span class="nc bnc" id="L101" title="All 2 branches missed.">                    &amp;&amp; !isGeneratedColumn) {</span>
+<span class="nc" id="L102">                sb.append(&quot; AUTO_INCREMENT &quot;);</span>
+<span class="nc" id="L103">                errors.add(&quot;there can be only one auto column and it must be defined as a key&quot;);</span>
+            }
+<span class="nc bnc" id="L105" title="All 4 branches missed.">            if (Randomly.getBooleanWithRatherLowProbability() &amp;&amp; canUseAsUnique(type)) {</span>
+<span class="nc" id="L106">                sb.append(&quot;UNIQUE &quot;);</span>
+            }
+<span class="nc bnc" id="L108" title="All 6 branches missed.">            if (Randomly.getBooleanWithRatherLowProbability() &amp;&amp; allowPrimaryKey &amp;&amp; !primaryKeyAsTableConstraints</span>
+<span class="nc bnc" id="L109" title="All 4 branches missed.">                    &amp;&amp; canUseAsUnique(type) &amp;&amp; !isGeneratedColumn) {</span>
+<span class="nc" id="L110">                sb.append(&quot;PRIMARY KEY &quot;);</span>
+<span class="nc" id="L111">                allowPrimaryKey = false;</span>
+            }
+        }
+<span class="nc bnc" id="L114" title="All 2 branches missed.">        if (primaryKeyAsTableConstraints) {</span>
+<span class="nc" id="L115">            sb.append(&quot;, PRIMARY KEY(&quot;);</span>
+<span class="nc" id="L116">            sb.append(</span>
+<span class="nc" id="L117">                    Randomly.nonEmptySubset(columns).stream().map(c -&gt; c.getName()).collect(Collectors.joining(&quot;, &quot;)));</span>
+<span class="nc" id="L118">            sb.append(&quot;)&quot;);</span>
+            // TODO: do nto include blob/text columns here
+<span class="nc" id="L120">            errors.add(&quot; used in key specification without a key length&quot;);</span>
+        }
+<span class="nc" id="L122">        sb.append(&quot;)&quot;);</span>
+<span class="nc bnc" id="L123" title="All 2 branches missed.">        if (Randomly.getBooleanWithRatherLowProbability()) {</span>
+<span class="nc" id="L124">            sb.append(&quot;PARTITION BY HASH(&quot;);</span>
+<span class="nc" id="L125">            sb.append(TiDBVisitor.asString(gen.generateExpression()));</span>
+<span class="nc" id="L126">            sb.append(&quot;) &quot;);</span>
+<span class="nc" id="L127">            sb.append(&quot;PARTITIONS &quot;);</span>
+<span class="nc" id="L128">            sb.append(Randomly.getNotCachedInteger(1, 100));</span>
+<span class="nc" id="L129">            errors.add(</span>
+<span class="nc" id="L130">                    &quot;Constant, random or timezone-dependent expressions in (sub)partitioning function are not allowed&quot;);</span>
+<span class="nc" id="L131">            errors.add(&quot;This partition function is not allowed&quot;);</span>
+<span class="nc" id="L132">            errors.add(&quot;A PRIMARY KEY must include all columns in the table's partitioning function&quot;);</span>
+<span class="nc" id="L133">            errors.add(&quot;A UNIQUE INDEX must include all columns in the table's partitioning function&quot;);</span>
+<span class="nc" id="L134">            errors.add(&quot;is of a not allowed type for this type of partitioning&quot;);</span>
+<span class="nc" id="L135">            errors.add(&quot;The PARTITION function returns the wrong type&quot;);</span>
+        }
+<span class="nc" id="L137">    }</span>
+
+    private boolean canUseAsUnique(TiDBCompositeDataType type) {
+<span class="nc bnc" id="L140" title="All 4 branches missed.">        return type.getPrimitiveDataType() != TiDBDataType.TEXT &amp;&amp; type.getPrimitiveDataType() != TiDBDataType.BLOB;</span>
+    }
+
+    private void appendType(StringBuilder sb, TiDBCompositeDataType type) {
+<span class="nc" id="L144">        sb.append(type.toString());</span>
+<span class="nc" id="L145">        appendSpecifiers(sb, type.getPrimitiveDataType());</span>
+<span class="nc" id="L146">        appendSizeSpecifiers(sb, type.getPrimitiveDataType());</span>
+<span class="nc" id="L147">    }</span>
+
+    private void appendSizeSpecifiers(StringBuilder sb, TiDBDataType type) {
+<span class="nc bnc" id="L150" title="All 4 branches missed.">        if (type.isNumeric() &amp;&amp; Randomly.getBoolean()) {</span>
+<span class="nc" id="L151">            sb.append(&quot; UNSIGNED&quot;);</span>
+        }
+<span class="nc bnc" id="L153" title="All 4 branches missed.">        if (type.isNumeric() &amp;&amp; Randomly.getBoolean()) {</span>
+<span class="nc" id="L154">            sb.append(&quot; ZEROFILL&quot;);</span>
+        }
+<span class="nc" id="L156">    }</span>
+
+    static void appendSpecifiers(StringBuilder sb, TiDBDataType type) {
+<span class="nc bnc" id="L159" title="All 4 branches missed.">        if (type == TiDBDataType.TEXT || type == TiDBDataType.BLOB) {</span>
+<span class="nc" id="L160">            sb.append(&quot;(&quot;);</span>
+<span class="nc" id="L161">            sb.append(Randomly.getNotCachedInteger(1, 500));</span>
+<span class="nc" id="L162">            sb.append(&quot;)&quot;);</span>
+        }
+<span class="nc" id="L164">    }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.8.202204050719</span></div></body></html>

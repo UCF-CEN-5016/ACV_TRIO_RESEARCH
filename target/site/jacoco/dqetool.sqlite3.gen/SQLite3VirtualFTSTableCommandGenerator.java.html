@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>SQLite3VirtualFTSTableCommandGenerator.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">dqetool</a> &gt; <a href="index.source.html" class="el_package">dqetool.sqlite3.gen</a> &gt; <span class="el_source">SQLite3VirtualFTSTableCommandGenerator.java</span></div><h1>SQLite3VirtualFTSTableCommandGenerator.java</h1><pre class="source lang-java linenums">package dqetool.sqlite3.gen;
+
+import dqetool.Randomly;
+import dqetool.common.query.ExpectedErrors;
+import dqetool.common.query.SQLQueryAdapter;
+import dqetool.sqlite3.SQLite3GlobalState;
+import dqetool.sqlite3.schema.SQLite3Schema;
+import dqetool.sqlite3.schema.SQLite3Schema.SQLite3Table;
+
+public class SQLite3VirtualFTSTableCommandGenerator {
+
+<span class="nc" id="L12">    private final StringBuilder sb = new StringBuilder();</span>
+    private final SQLite3Schema s;
+    private final Randomly r;
+<span class="nc" id="L15">    private final ExpectedErrors errors = new ExpectedErrors();</span>
+
+    public static SQLQueryAdapter create(SQLite3GlobalState globalState) {
+<span class="nc" id="L18">        return new SQLite3VirtualFTSTableCommandGenerator(globalState.getSchema(), globalState.getRandomly())</span>
+<span class="nc" id="L19">                .generate();</span>
+    }
+
+<span class="nc" id="L22">    public SQLite3VirtualFTSTableCommandGenerator(SQLite3Schema s, Randomly r) {</span>
+<span class="nc" id="L23">        this.s = s;</span>
+<span class="nc" id="L24">        this.r = r;</span>
+<span class="nc" id="L25">    }</span>
+
+<span class="nc" id="L27">    private enum Action {</span>
+<span class="nc" id="L28">        AUTOMERGE, CRISISMERGE, INTEGRITYCHECK, MERGE, OPTIMIZE, REBUILD, USER_MERGE, PGSZ, RANK; // TODO: delete all</span>
+    }
+
+    private SQLQueryAdapter generate() {
+<span class="nc" id="L32">        errors.add(&quot;has no column named rank&quot;);</span>
+<span class="nc bnc" id="L33" title="All 4 branches missed.">        SQLite3Table vTable = s.getRandomTableOrBailout(t -&gt; t.isVirtual() &amp;&amp; t.getName().startsWith(&quot;vt&quot;));</span>
+<span class="nc" id="L34">        Action a = Randomly.fromOptions(Action.values());</span>
+<span class="nc bnc" id="L35" title="All 8 branches missed.">        switch (a) {</span>
+        case AUTOMERGE:
+        case CRISISMERGE:
+        case USER_MERGE:
+<span class="nc" id="L39">            sb.append(&quot;INSERT INTO &quot;);</span>
+<span class="nc" id="L40">            sb.append(vTable.getName());</span>
+<span class="nc bnc" id="L41" title="All 2 branches missed.">            if (a == Action.AUTOMERGE) {</span>
+<span class="nc bnc" id="L42" title="All 2 branches missed.">                if (Randomly.getBoolean()) {</span>
+                    // FTS5 syntax
+<span class="nc" id="L44">                    sb.append(String.format(&quot;(%s, rank)&quot;, vTable.getName()));</span>
+<span class="nc" id="L45">                    sb.append(String.format(&quot; VALUES('automerge', %d)&quot;, r.getInteger(0, 16)));</span>
+<span class="nc" id="L46">                } else {</span>
+                    // FTS3/FTS4 syntax
+<span class="nc" id="L48">                    sb.append(String.format(&quot;(%s)&quot;, vTable.getName()));</span>
+<span class="nc" id="L49">                    sb.append(String.format(&quot; VALUES('automerge=%d')&quot;, r.getInteger(0, 16)));</span>
+<span class="nc" id="L50">                    errors.add(&quot;SQL logic error&quot;); // when using the FTS3 syntax on an FTS5 table</span>
+                }
+<span class="nc bnc" id="L52" title="All 2 branches missed.">            } else if (a == Action.CRISISMERGE) {</span>
+<span class="nc" id="L53">                sb.append(String.format(&quot;(%s, rank)&quot;, vTable.getName()));</span>
+<span class="nc" id="L54">                sb.append(String.format(&quot; VALUES('crisismerge', %d)&quot;, r.getLong(0, Integer.MAX_VALUE)));</span>
+<span class="nc" id="L55">            } else {</span>
+<span class="nc" id="L56">                sb.append(String.format(&quot;(%s, rank)&quot;, vTable.getName()));</span>
+<span class="nc" id="L57">                sb.append(String.format(&quot; VALUES('usermerge', %d)&quot;, r.getLong(2, 16)));</span>
+            }
+<span class="nc" id="L59">            break;</span>
+        case INTEGRITYCHECK:
+<span class="nc" id="L61">            sb.append(</span>
+<span class="nc" id="L62">                    String.format(&quot;INSERT INTO %s(%s) VALUES('integrity-check');&quot;, vTable.getName(), vTable.getName()));</span>
+<span class="nc" id="L63">            break;</span>
+        case MERGE:
+<span class="nc bnc" id="L65" title="All 2 branches missed.">            if (Randomly.getBoolean()) {</span>
+                // FTS5 syntax
+<span class="nc" id="L67">                sb.append(String.format(&quot;INSERT INTO %s(%s, rank) VALUES('merge', %d);\n&quot;, vTable.getName(),</span>
+<span class="nc" id="L68">                        vTable.getName(), r.getInteger()));</span>
+<span class="nc" id="L69">            } else {</span>
+<span class="nc" id="L70">                sb.append(String.format(&quot;INSERT INTO %s(%s) VALUES('merge=%d,%d');\n&quot;, vTable.getName(),</span>
+<span class="nc" id="L71">                        vTable.getName(), r.getInteger(), r.getInteger(2, 16)));</span>
+<span class="nc" id="L72">                errors.add(&quot;SQL logic error&quot;); // when using the FTS3 syntax on an FTS5 table</span>
+            }
+<span class="nc" id="L74">            break;</span>
+        case OPTIMIZE:
+<span class="nc" id="L76">            sb.append(String.format(&quot;INSERT INTO %s(%s) VALUES('optimize');&quot;, vTable.getName(), vTable.getName()));</span>
+<span class="nc" id="L77">            break;</span>
+        case REBUILD:
+<span class="nc" id="L79">            errors.add(&quot;'rebuild' may not be used with a contentless fts5 table&quot;);</span>
+<span class="nc" id="L80">            sb.append(String.format(&quot;INSERT INTO %s(%s) VALUES('rebuild');&quot;, vTable.getName(), vTable.getName()));</span>
+<span class="nc" id="L81">            break;</span>
+        case PGSZ:
+<span class="nc" id="L83">            sb.append(String.format(&quot;INSERT INTO %s(%s, rank) VALUES('pgsz', '%d');&quot;, vTable.getName(),</span>
+<span class="nc" id="L84">                    vTable.getName(), r.getLong(32, 65536)));</span>
+<span class="nc" id="L85">            break;</span>
+        case RANK:
+<span class="nc" id="L87">            sb.append(String.format(&quot;INSERT INTO %s(%s, rank) VALUES('rank', 'bm25(10.0, 5.0)');&quot;, vTable.getName(),</span>
+<span class="nc" id="L88">                    vTable.getName()));</span>
+<span class="nc" id="L89">            break;</span>
+        default:
+<span class="nc" id="L91">            throw new AssertionError();</span>
+        }
+<span class="nc" id="L93">        errors.add(&quot;The database file is locked&quot;);</span>
+<span class="nc" id="L94">        return new SQLQueryAdapter(sb.toString(), errors);</span>
+    }
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.8.202204050719</span></div></body></html>

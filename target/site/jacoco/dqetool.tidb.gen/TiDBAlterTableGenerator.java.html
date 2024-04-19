@@ -1,0 +1,115 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>TiDBAlterTableGenerator.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">dqetool</a> &gt; <a href="index.source.html" class="el_package">dqetool.tidb.gen</a> &gt; <span class="el_source">TiDBAlterTableGenerator.java</span></div><h1>TiDBAlterTableGenerator.java</h1><pre class="source lang-java linenums">package dqetool.tidb.gen;
+
+import java.util.stream.Collectors;
+
+import dqetool.IgnoreMeException;
+import dqetool.Randomly;
+import dqetool.common.query.ExpectedErrors;
+import dqetool.common.query.SQLQueryAdapter;
+import dqetool.tidb.TiDBProvider.TiDBGlobalState;
+import dqetool.tidb.TiDBSchema.TiDBColumn;
+import dqetool.tidb.TiDBSchema.TiDBCompositeDataType;
+import dqetool.tidb.TiDBSchema.TiDBDataType;
+import dqetool.tidb.TiDBSchema.TiDBTable;
+
+public final class TiDBAlterTableGenerator {
+
+    private TiDBAlterTableGenerator() {
+    }
+
+<span class="nc" id="L20">    private enum Action {</span>
+<span class="nc" id="L21">        MODIFY_COLUMN, ENABLE_DISABLE_KEYS, DROP_PRIMARY_KEY, ADD_PRIMARY_KEY, CHANGE, DROP_COLUMN, ORDER_BY</span>
+    }
+
+    public static SQLQueryAdapter getQuery(TiDBGlobalState globalState) {
+<span class="nc" id="L25">        ExpectedErrors errors = new ExpectedErrors();</span>
+<span class="nc" id="L26">        errors.add(</span>
+<span class="nc" id="L27">                &quot;Information schema is changed during the execution of the statement(for example, table definition may be updated by other DDL ran in parallel)&quot;);</span>
+<span class="nc" id="L28">        errors.add(&quot;Data truncat&quot;);</span>
+<span class="nc" id="L29">        errors.add(&quot;without a key length&quot;);</span>
+<span class="nc" id="L30">        errors.add(&quot;supported&quot;);</span>
+<span class="nc" id="L31">        errors.add(&quot;SQL syntax&quot;);</span>
+<span class="nc" id="L32">        errors.add(&quot;can't drop&quot;);</span>
+<span class="nc" id="L33">        StringBuilder sb = new StringBuilder(&quot;ALTER TABLE &quot;);</span>
+<span class="nc bnc" id="L34" title="All 2 branches missed.">        TiDBTable table = globalState.getSchema().getRandomTable(t -&gt; !t.isView());</span>
+<span class="nc" id="L35">        TiDBColumn column = table.getRandomColumn();</span>
+<span class="nc" id="L36">        sb.append(table.getName());</span>
+<span class="nc" id="L37">        Action a = Randomly.fromOptions(Action.values());</span>
+<span class="nc" id="L38">        sb.append(&quot; &quot;);</span>
+<span class="nc bnc" id="L39" title="All 8 branches missed.">        switch (a) {</span>
+        case MODIFY_COLUMN:
+<span class="nc" id="L41">            sb.append(&quot;MODIFY &quot;);</span>
+<span class="nc" id="L42">            sb.append(column.getName());</span>
+<span class="nc" id="L43">            sb.append(&quot; &quot;);</span>
+<span class="nc" id="L44">            sb.append(TiDBCompositeDataType.getRandom().toString());</span>
+<span class="nc" id="L45">            break;</span>
+        case DROP_COLUMN:
+<span class="nc" id="L47">            sb.append(&quot; DROP &quot;);</span>
+<span class="nc bnc" id="L48" title="All 2 branches missed.">            if (table.getColumns().size() &lt;= 1) {</span>
+<span class="nc" id="L49">                throw new IgnoreMeException();</span>
+            }
+<span class="nc" id="L51">            sb.append(column.getName());</span>
+<span class="nc" id="L52">            errors.add(&quot;with composite index covered or Primary Key covered now&quot;);</span>
+<span class="nc" id="L53">            errors.add(&quot;Unsupported drop integer primary key&quot;);</span>
+<span class="nc" id="L54">            errors.add(&quot;has a generated column dependency&quot;);</span>
+<span class="nc" id="L55">            errors.add(</span>
+<span class="nc" id="L56">                    &quot;references invalid table(s) or column(s) or function(s) or definer/invoker of view lack rights to use them&quot;);</span>
+<span class="nc" id="L57">            break;</span>
+        case ENABLE_DISABLE_KEYS:
+<span class="nc" id="L59">            sb.append(Randomly.fromOptions(&quot;ENABLE&quot;, &quot;DISABLE&quot;));</span>
+<span class="nc" id="L60">            sb.append(&quot; KEYS&quot;);</span>
+<span class="nc" id="L61">            break;</span>
+        case DROP_PRIMARY_KEY:
+<span class="nc bnc" id="L63" title="All 2 branches missed.">            if (!column.isPrimaryKey()) {</span>
+<span class="nc" id="L64">                throw new IgnoreMeException();</span>
+            }
+<span class="nc" id="L66">            errors.add(&quot;Unsupported drop integer primary key&quot;);</span>
+<span class="nc" id="L67">            errors.add(&quot;Unsupported drop primary key when alter-primary-key is false&quot;);</span>
+<span class="nc" id="L68">            errors.add(&quot;Unsupported drop primary key when the table's pkIsHandle is true&quot;);</span>
+<span class="nc" id="L69">            errors.add(&quot;Incorrect table definition; there can be only one auto column and it must be defined as a key&quot;);</span>
+<span class="nc" id="L70">            sb.append(&quot; DROP PRIMARY KEY&quot;);</span>
+<span class="nc" id="L71">            break;</span>
+        case ADD_PRIMARY_KEY:
+<span class="nc" id="L73">            sb.append(&quot;ADD PRIMARY KEY(&quot;);</span>
+<span class="nc" id="L74">            sb.append(table.getRandomNonEmptyColumnSubset().stream().map(c -&gt; {</span>
+<span class="nc" id="L75">                StringBuilder colName = new StringBuilder(c.getName());</span>
+<span class="nc bnc" id="L76" title="All 2 branches missed.">                if (c.getType().getPrimitiveDataType() == TiDBDataType.TEXT</span>
+<span class="nc bnc" id="L77" title="All 2 branches missed.">                        || c.getType().getPrimitiveDataType() == TiDBDataType.BLOB) {</span>
+<span class="nc" id="L78">                    TiDBTableGenerator.appendSpecifiers(colName, c.getType().getPrimitiveDataType());</span>
+                }
+<span class="nc" id="L80">                return colName;</span>
+<span class="nc" id="L81">            }).collect(Collectors.joining(&quot;, &quot;)));</span>
+<span class="nc" id="L82">            sb.append(&quot;)&quot;);</span>
+<span class="nc" id="L83">            errors.add(&quot;Unsupported add primary key, alter-primary-key is false&quot;);</span>
+<span class="nc" id="L84">            errors.add(&quot;Information schema is changed during the execution of the statement&quot;);</span>
+<span class="nc" id="L85">            errors.add(&quot;Multiple primary key defined&quot;);</span>
+<span class="nc" id="L86">            errors.add(&quot;Invalid use of NULL value&quot;);</span>
+<span class="nc" id="L87">            errors.add(&quot;Duplicate entry&quot;);</span>
+<span class="nc" id="L88">            errors.add(&quot;'Defining a virtual generated column as primary key' is not supported for generated columns&quot;);</span>
+<span class="nc" id="L89">            break;</span>
+        case CHANGE:
+<span class="nc" id="L91">            sb.append(&quot; CHANGE &quot;);</span>
+<span class="nc" id="L92">            sb.append(column.getName());</span>
+<span class="nc" id="L93">            sb.append(&quot; &quot;);</span>
+<span class="nc" id="L94">            sb.append(column.getName());</span>
+<span class="nc" id="L95">            sb.append(&quot; &quot;);</span>
+<span class="nc" id="L96">            sb.append(column.getType().toString());</span>
+<span class="nc" id="L97">            sb.append(&quot; NOT NULL &quot;);</span>
+<span class="nc" id="L98">            errors.add(&quot;Invalid use of NULL value&quot;);</span>
+<span class="nc" id="L99">            errors.add(&quot;Unsupported modify column:&quot;);</span>
+<span class="nc" id="L100">            errors.add(&quot;Invalid integer format for value&quot;);</span>
+<span class="nc" id="L101">            break;</span>
+        case ORDER_BY:
+<span class="nc" id="L103">            sb.append(&quot; ORDER BY &quot;);</span>
+<span class="nc" id="L104">            sb.append(table.getRandomNonEmptyColumnSubset().stream()</span>
+<span class="nc" id="L105">                    .map(c -&gt; c.getName() + Randomly.fromOptions(&quot;&quot;, &quot; ASC&quot;, &quot; DESC&quot;))</span>
+<span class="nc" id="L106">                    .collect(Collectors.joining(&quot;, &quot;)));</span>
+<span class="nc" id="L107">            break;</span>
+        default:
+<span class="nc" id="L109">            throw new AssertionError(a);</span>
+        }
+<span class="nc" id="L111">        return new SQLQueryAdapter(sb.toString(), errors, true);</span>
+    }
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.8.202204050719</span></div></body></html>

@@ -1,0 +1,159 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>MySQLIndexGenerator.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">dqetool</a> &gt; <a href="index.source.html" class="el_package">dqetool.mysql.gen.datadef</a> &gt; <span class="el_source">MySQLIndexGenerator.java</span></div><h1>MySQLIndexGenerator.java</h1><pre class="source lang-java linenums">package dqetool.mysql.gen.datadef;
+
+import java.util.List;
+
+import dqetool.Randomly;
+import dqetool.common.query.ExpectedErrors;
+import dqetool.common.query.SQLQueryAdapter;
+import dqetool.mysql.MySQLErrors;
+import dqetool.mysql.MySQLGlobalState;
+import dqetool.mysql.MySQLSchema;
+import dqetool.mysql.MySQLSchema.MySQLColumn;
+import dqetool.mysql.MySQLSchema.MySQLDataType;
+import dqetool.mysql.MySQLSchema.MySQLTable;
+import dqetool.mysql.MySQLSchema.MySQLTable.MySQLEngine;
+import dqetool.mysql.MySQLVisitor;
+import dqetool.mysql.ast.MySQLExpression;
+import dqetool.mysql.gen.MySQLExpressionGenerator;
+
+public class MySQLIndexGenerator {
+
+    private final Randomly r;
+<span class="nc" id="L22">    private StringBuilder sb = new StringBuilder();</span>
+    private boolean columnIsPrimaryKey;
+    private boolean containsInPlace;
+    private MySQLSchema schema;
+    private final MySQLGlobalState globalState;
+
+<span class="nc" id="L28">    public MySQLIndexGenerator(MySQLSchema schema, Randomly r, MySQLGlobalState globalState) {</span>
+<span class="nc" id="L29">        this.schema = schema;</span>
+<span class="nc" id="L30">        this.r = r;</span>
+<span class="nc" id="L31">        this.globalState = globalState;</span>
+<span class="nc" id="L32">    }</span>
+
+    public static SQLQueryAdapter create(MySQLGlobalState globalState) {
+<span class="nc" id="L35">        return new MySQLIndexGenerator(globalState.getSchema(), globalState.getRandomly(), globalState).create();</span>
+    }
+
+    public SQLQueryAdapter create() {
+<span class="nc" id="L39">        ExpectedErrors errors = new ExpectedErrors();</span>
+<span class="nc" id="L40">        MySQLErrors.addExpressionErrors(errors);</span>
+<span class="nc" id="L41">        sb.append(&quot;CREATE &quot;);</span>
+<span class="nc bnc" id="L42" title="All 2 branches missed.">        if (Randomly.getBoolean()) {</span>
+            // &quot;FULLTEXT&quot; TODO Column 'c3' cannot be part of FULLTEXT index
+            // A SPATIAL index may only contain a geometrical type column
+<span class="nc" id="L45">            sb.append(&quot;UNIQUE &quot;);</span>
+<span class="nc" id="L46">            errors.add(&quot;Duplicate entry&quot;);</span>
+        }
+<span class="nc" id="L48">        sb.append(&quot;INDEX &quot;);</span>
+<span class="nc" id="L49">        sb.append(globalState.getSchema().getFreeIndexName());</span>
+<span class="nc" id="L50">        indexType();</span>
+<span class="nc" id="L51">        sb.append(&quot; ON &quot;);</span>
+<span class="nc" id="L52">        MySQLTable table = schema.getRandomTable();</span>
+<span class="nc" id="L53">        MySQLExpressionGenerator gen = new MySQLExpressionGenerator(globalState).setColumns(table.getColumns());</span>
+<span class="nc" id="L54">        sb.append(table.getName());</span>
+<span class="nc" id="L55">        sb.append(&quot;(&quot;);</span>
+<span class="nc bnc" id="L56" title="All 4 branches missed.">        if (table.getEngine() == MySQLEngine.INNO_DB &amp;&amp; Randomly.getBoolean()) {</span>
+<span class="nc bnc" id="L57" title="All 2 branches missed.">            for (int i = 0; i &lt; Randomly.smallNumber() + 1; i++) {</span>
+<span class="nc bnc" id="L58" title="All 2 branches missed.">                if (i != 0) {</span>
+<span class="nc" id="L59">                    sb.append(&quot;, &quot;);</span>
+                }
+<span class="nc" id="L61">                sb.append(&quot;(&quot;);</span>
+<span class="nc" id="L62">                MySQLExpression randExpr = gen.generateExpression();</span>
+<span class="nc" id="L63">                sb.append(MySQLVisitor.asString(randExpr));</span>
+<span class="nc" id="L64">                sb.append(&quot;)&quot;);</span>
+
+            }
+<span class="nc" id="L67">        } else {</span>
+<span class="nc" id="L68">            List&lt;MySQLColumn&gt; randomColumn = table.getRandomNonEmptyColumnSubset();</span>
+<span class="nc" id="L69">            int i = 0;</span>
+<span class="nc bnc" id="L70" title="All 2 branches missed.">            for (MySQLColumn c : randomColumn) {</span>
+<span class="nc bnc" id="L71" title="All 2 branches missed.">                if (i++ != 0) {</span>
+<span class="nc" id="L72">                    sb.append(&quot;, &quot;);</span>
+                }
+<span class="nc bnc" id="L74" title="All 2 branches missed.">                if (c.isPrimaryKey()) {</span>
+<span class="nc" id="L75">                    columnIsPrimaryKey = true;</span>
+                }
+<span class="nc" id="L77">                sb.append(c.getName());</span>
+<span class="nc bnc" id="L78" title="All 4 branches missed.">                if (Randomly.getBoolean() &amp;&amp; c.getType() == MySQLDataType.VARCHAR) {</span>
+<span class="nc" id="L79">                    sb.append(&quot;(&quot;);</span>
+                    // TODO for string
+<span class="nc" id="L81">                    sb.append(r.getInteger(1, 5));</span>
+<span class="nc" id="L82">                    sb.append(&quot;)&quot;);</span>
+                }
+<span class="nc bnc" id="L84" title="All 2 branches missed.">                if (Randomly.getBoolean()) {</span>
+<span class="nc" id="L85">                    sb.append(&quot; &quot;);</span>
+<span class="nc" id="L86">                    sb.append(Randomly.fromOptions(&quot;ASC&quot;, &quot;DESC&quot;));</span>
+                }
+            }
+        }
+<span class="nc" id="L90">        sb.append(&quot;)&quot;);</span>
+<span class="nc" id="L91">        indexOption();</span>
+<span class="nc" id="L92">        algorithmOption();</span>
+<span class="nc" id="L93">        String string = sb.toString();</span>
+<span class="nc" id="L94">        sb = new StringBuilder();</span>
+<span class="nc bnc" id="L95" title="All 2 branches missed.">        if (containsInPlace) {</span>
+<span class="nc" id="L96">            errors.add(&quot;ALGORITHM=INPLACE is not supported&quot;);</span>
+        }
+<span class="nc bnc" id="L98" title="All 2 branches missed.">        if (table.getEngine() == MySQLEngine.ARCHIVE) {</span>
+<span class="nc" id="L99">            errors.add(&quot;Table handler doesn't support NULL in given index.&quot;);</span>
+        }
+<span class="nc" id="L101">        errors.add(&quot;A primary key index cannot be invisible&quot;);</span>
+<span class="nc" id="L102">        errors.add(&quot;Functional index on a column is not supported. Consider using a regular index instead.&quot;);</span>
+<span class="nc" id="L103">        errors.add(&quot;Incorrect usage of spatial/fulltext/hash index and explicit index order&quot;);</span>
+<span class="nc" id="L104">        errors.add(&quot;The storage engine for the table doesn't support descending indexes&quot;);</span>
+<span class="nc" id="L105">        errors.add(&quot;must include all columns&quot;);</span>
+<span class="nc" id="L106">        errors.add(&quot;cannot index the expression&quot;);</span>
+<span class="nc" id="L107">        errors.add(&quot;Data truncation: Truncated incorrect&quot;);</span>
+<span class="nc" id="L108">        errors.add(&quot;a disallowed function.&quot;);</span>
+<span class="nc" id="L109">        errors.add(&quot;Data truncation&quot;);</span>
+<span class="nc" id="L110">        errors.add(&quot;Cannot create a functional index on an expression that returns a BLOB or TEXT.&quot;);</span>
+<span class="nc" id="L111">        errors.add(&quot;used in key specification without a key length&quot;);</span>
+<span class="nc" id="L112">        errors.add(&quot;can't be used in key specification with the used table type&quot;);</span>
+<span class="nc" id="L113">        errors.add(&quot;Specified key was too long&quot;);</span>
+<span class="nc" id="L114">        errors.add(&quot;out of range&quot;);</span>
+<span class="nc" id="L115">        errors.add(&quot;Data truncated for functional index&quot;);</span>
+<span class="nc" id="L116">        errors.add(&quot;used in key specification without a key length&quot;);</span>
+<span class="nc" id="L117">        errors.add(&quot;Row size too large&quot;); // seems to happen together with MIN_ROWS in the table declaration</span>
+<span class="nc" id="L118">        return new SQLQueryAdapter(string, errors, true);</span>
+    }
+
+    private void algorithmOption() {
+<span class="nc bnc" id="L122" title="All 2 branches missed.">        if (Randomly.getBoolean()) {</span>
+<span class="nc" id="L123">            sb.append(&quot; ALGORITHM&quot;);</span>
+<span class="nc bnc" id="L124" title="All 2 branches missed.">            if (Randomly.getBoolean()) {</span>
+<span class="nc" id="L125">                sb.append(&quot;=&quot;);</span>
+            }
+<span class="nc" id="L127">            sb.append(&quot; &quot;);</span>
+<span class="nc" id="L128">            String fromOptions = Randomly.fromOptions(&quot;DEFAULT&quot;, &quot;INPLACE&quot;, &quot;COPY&quot;);</span>
+<span class="nc bnc" id="L129" title="All 2 branches missed.">            if (fromOptions.contentEquals(&quot;INPLACE&quot;)) {</span>
+<span class="nc" id="L130">                containsInPlace = true;</span>
+            }
+<span class="nc" id="L132">            sb.append(fromOptions);</span>
+        }
+<span class="nc" id="L134">    }</span>
+
+    private void indexOption() {
+<span class="nc bnc" id="L137" title="All 2 branches missed.">        if (Randomly.getBoolean()) {</span>
+<span class="nc" id="L138">            sb.append(&quot; &quot;);</span>
+<span class="nc bnc" id="L139" title="All 2 branches missed.">            if (columnIsPrimaryKey) {</span>
+                // The explicit primary key cannot be made invisible.
+<span class="nc" id="L141">                sb.append(&quot;VISIBLE&quot;);</span>
+<span class="nc" id="L142">            } else {</span>
+<span class="nc" id="L143">                sb.append(Randomly.fromOptions(&quot;VISIBLE&quot;, &quot;INVISIBLE&quot;));</span>
+            }
+        }
+<span class="nc" id="L146">    }</span>
+
+    private void indexType() {
+<span class="nc bnc" id="L149" title="All 2 branches missed.">        if (Randomly.getBoolean()) {</span>
+<span class="nc" id="L150">            sb.append(&quot; USING &quot;);</span>
+<span class="nc" id="L151">            sb.append(Randomly.fromOptions(&quot;BTREE&quot;, &quot;HASH&quot;));</span>
+        }
+<span class="nc" id="L153">    }</span>
+
+    public void setNewSchema(MySQLSchema schema) {
+<span class="nc" id="L156">        this.schema = schema;</span>
+<span class="nc" id="L157">    }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.8.202204050719</span></div></body></html>
