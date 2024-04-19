@@ -1,7 +1,7 @@
 
 # DQETool
 
-DQETool is the implementation of differential query execution in paper "Testing Database Systems via Differential Query Execution", accepted at ICSE 2023.
+DQETool is the implementation of differential query execution in paper.
 
 # Getting Started
 
@@ -12,12 +12,13 @@ Requirements:
 * SQLite is an embedded database, which does not need extra setup and does not require connection parameters
 * Other databases like MySQL, which requires connection parameters and needs to create a database named test
 ```
+cd dqetool
 mvn package -DskipTests
 cd target
-java -jar dqetool-2.0.0.jar sqlite3
-java -jar dqetool-2.0.0.jar --host hostString --port portNumber --username usernameString --password passwordString databaseName
-java -jar dqetool-2.0.0.jar --host 127.0.0.1 --port 4000 --username root --password '' tidb
-java -jar dqetool-2.0.0.jar --host 127.0.0.1 --port 26257 --username cockroach --password cockroach cockroachdb
+java -jar dqetool-*.jar sqlite3
+java -jar dqetool-*.jar --host hostString --port portNumber --username usernameString --password passwordString databaseName
+java -jar dqetool-*.jar --host 127.0.0.1 --port 4000 --username root --password '' tidb
+java -jar dqetool-*.jar --host 127.0.0.1 --port 26257 --username cockroach --password cockroach cockroachdb
 ```
 
 # Bug List

@@ -2,7 +2,7 @@
 <project name="maven-antrun-" default="main">
   <target name="main">
     <delete>
-      <fileset includes="original-dqetool-*.jar" dir="/Users/aishwaryasripati/Desktop/RP/Artifact/dqetool/target/" />
+      <fileset includes="original-dqetool-*.jar" dir="/Users/aishwaryasripati/Desktop/dqetool/target/" />
     </delete>
   </target>
 </project>
