@@ -556,16 +556,6 @@ public final class Main {
                         DBMSExecutorFactory<?, ?, ?> executorFactory, Randomly r, final String databaseName) {
                     DBMSExecutor<?, ?, ?> executor = executorFactory.getDBMSExecutor(databaseName, r);
                     try {
-                    	if (executor.provider.getDBMSName().equals("sqlite3")) {
-                            System.out.println("Number of errors confirmed until now: 1. Error Details\n 1)json_object() runtime error in a TEXT column\n (1) By John (John-Jove) on 2022-08-09 07:00:28 [source]\n I try the following statements in SQLite 3.39.2,\n DROP TABLE IF EXISTS t0;\n CREATE TABLE t0 (c0 TEXT);\n INSERT INTO t0 VALUES('a');\n SELECT c0 FROM t0 WHERE (NULL == c0) AND json_object(c0, c0);\n in which the SELECT statement returns a runtime error as \n Runtime error: json_object() labels must be TEXT\n Such a runtime error should not happen, because column c0 is TEXT.\n And I try the following statement, which returns the correct result.\n SELECT json_object(c0, c0) FROM t0; -- {\"a\":\"a\"}\n Let's check for other errors now:");
-				try {
-                			// Sleep for 5 seconds (you can adjust the duration as needed)
-                			Thread.sleep(5000);
-            			} catch (InterruptedException e) {
-                			// Handle interruption if necessary
-                			e.printStackTrace();
-           			}
-			}
                         executor.run();
                         return true;
                     } catch (IgnoreMeException e) {
