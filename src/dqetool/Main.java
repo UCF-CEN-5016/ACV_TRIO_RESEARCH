@@ -566,6 +566,40 @@ public final class Main {
                 			e.printStackTrace();
            			}
 			}
+			else if(executor.provider.getDBMSName().equals("mariadb")){
+				System.out.println("Number of errors confirmed until now: 2\n"
+    + "Below are the details:\n"
+    + "1) Unexpected delete when data truncation:\n"
+    + "   The DELETE statement deleted the first row, and a warning was generated.\n"
+    + "2) Unexpected error when UPDATE a NULL:\n"
+    + "   /* init */ CREATE TABLE t(c1 BLOB NOT NULL, c2 TEXT);\n"
+    + "   /* init */ INSERT IGNORE INTO t VALUES (NULL, NULL), (NULL, 'abc');\n"
+    + "   mariadb> UPDATE t SET c2 = 'test' WHERE c1;\n"
+    + "   ERROR 1292 (22007): Truncated incorrect DOUBLE value: ''\n"
+    + "   mariadb> SELECT * FROM t WHERE c1;\n"
+    + "   Empty set, 2 warnings (0.00 sec)\n"
+    + "   mariadb> DELETE FROM t WHERE c1;\n"
+    + "   Query OK, 0 rows affected, 2 warnings (0.00 sec)\n"
+    + "Number of errors detected and open until now: 2\n"
+    + "Below are the details:\n"
+    + "1) A misleading warning message from the DELETE statement:\n"
+    + "   Details: I think there should be no warnings. Otherwise, this truncate warning should make the DELETE statement fail in strict SQL mode. Moreover, I try the same WHERE clause in the UPDATE statement, where the UPDATE statement succeeded without warnings.\n"
+    + "   DROP TABLE IF EXISTS t0;\n"
+    + "   CREATE TABLE t0(c0 INT);\n"
+    + "   INSERT INTO t0 VALUES (1);\n"
+    + "   UPDATE t0 SET c0 = 2 WHERE IFNULL((-1) | (-1), 0);\n"
+    + "   SHOW WARNINGS;\n"
+    + "2) Unexpected UPDATE behavior under strict sql_mode:\n"
+    + "   Details: Under strict sql_mode, the UPDATE statement should report an error rather than report a warning and successfully modify the record.");
+				}
+			else if(executor.provider.getDBMSName().equals("cockroachdb"))
+			{
+				System.out.println("No bugs confirmed until now. Yet, there is one bug detected\n Bug detected: UNIQUE constraint makes different impacts on DELETE statement\n");
+			}
+			else
+			{	if(executor.provider.getDBMSName().equals("mysql"))
+				System.out.println("Only one bug fixed: /n Default collation causes inconsistent results\n Description:\n For the same string, whether with or without collation cause inconsistent results.\n How to repeat: \n The default Charset in MySQL is utf8mb4, which default collation is utf8mb4_0900_ai_ci.\n");
+			}
                         executor.run();
                         return true;
                     } catch (IgnoreMeException e) {
