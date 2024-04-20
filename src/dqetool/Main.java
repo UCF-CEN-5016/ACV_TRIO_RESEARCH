@@ -596,10 +596,11 @@ public final class Main {
 			{
 				System.out.println("No bugs confirmed until now. Yet, there is one bug detected\n Bug detected: UNIQUE constraint makes different impacts on DELETE statement\n");
 			}
-			else
-			{	if(executor.provider.getDBMSName().equals("mysql"))
+			else if(executor.provider.getDBMSName().equals("mysql")){
 				System.out.println("Only one bug fixed: /n Default collation causes inconsistent results\n Description:\n For the same string, whether with or without collation cause inconsistent results.\n How to repeat: \n The default Charset in MySQL is utf8mb4, which default collation is utf8mb4_0900_ai_ci.\n");
 			}
+			else
+				System.out.println(" ");
                         executor.run();
                         return true;
                     } catch (IgnoreMeException e) {
